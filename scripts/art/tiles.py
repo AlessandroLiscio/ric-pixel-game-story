@@ -1,29 +1,44 @@
 #!/usr/bin/env python3
 """Tileset generator: 32x32 tiles in the RPG Maker VX Ace look (top-down 3/4 view, light from the top left).
 
-Usage: python -I scripts/art/tiles.py [--preview PATH]
+Usage: python -I scripts/art/tiles.py [--preview PATH]      (python -I scripts/art/build_world.py runs the whole pipeline)
 Output: public/assets/tiles/tileset.png (16 columns, deterministic) and public/assets/tiles/tiles.json
 (tile name -> index, solid tile names, and the multi-tile stamps the map builder places).
-No photo is read: everything is painted with Pillow. See docs/tiles.md.
+Shared materials live in tiles_terrain.py, tiles_objects.py and tiles_rooms.py; every room adds its own stamps in
+scripts/art/stamps/<sceneId>.py, found automatically. No photo is read: everything is painted with Pillow. See docs/tiles.md.
 """
 import argparse
+import importlib.util
 import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I does not put the script folder on the path
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))  # python -I does not put the script folder on the path
 
 from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 
 import tiles_objects  # noqa: E402
 import tiles_rooms  # noqa: E402
 import tiles_terrain  # noqa: E402
-import tiles_venue  # noqa: E402
 from tilepaint import T, Canvas  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = HERE.parents[1]
 OUT_DIR = ROOT / "public" / "assets" / "tiles"
 COLUMNS = 16
+
+
+def discover(folder):
+    """Every non-underscore module of scripts/art/<folder>, sorted by file name, loaded with importlib: [(sceneId, module)]."""
+    mods = []
+    for p in sorted((HERE / folder).glob("*.py")):
+        if p.name.startswith("_"):
+            continue
+        spec = importlib.util.spec_from_file_location("%s_%s" % (folder, p.stem), p)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mods.append((p.stem, mod))
+    return mods
 
 
 class Registry:
@@ -33,20 +48,30 @@ class Registry:
         self.tiles = []  # (name, Canvas)
         self.solid = set()
         self.stamps = {}
+        self.scope = None  # the sceneId while a room's stamps module runs: every name it registers must start with `<scope>_`
+        self._names = set()
+
+    def _check(self, name):
+        assert name not in self._names, "duplicate tile " + name
+        if self.scope:
+            assert name.startswith(self.scope + "_"), "%s: a stamp of room %s must be named %s_<something>" % (name, self.scope, self.scope)
+        self._names.add(name)
 
     def tile(self, name, canvas, solid=False):
-        assert name not in {n for n, _ in self.tiles}, "duplicate tile " + name
+        self._check(name)
         assert canvas.w == T and canvas.h == T, name
         self.tiles.append((name, canvas))
         if solid:
             self.solid.add(name)
 
     def stamp(self, name, canvas, layer="objects", above_rows=0, mask=None):
-        """layer: objects (sorted with characters by their bottom row), walls or below (baked under everyone).
+        """layer: objects (sorted with characters by their bottom row), walls or below (baked under everyone), above (over everyone).
         above_rows: how many top rows go to the `above` layer (tree crowns), those cells never block.
         mask: one string per row, '#' blocks and '.' does not (default: every cell blocks in layer objects)."""
         w, h = canvas.w // T, canvas.h // T
         assert canvas.w % T == 0 and canvas.h % T == 0, name
+        if self.scope:
+            assert name.startswith(self.scope + "_"), "%s: a stamp of room %s must be named %s_<something>" % (name, self.scope, self.scope)
         cells, solid = [], []
         for cy in range(h):
             row, srow = [], []
@@ -71,8 +96,11 @@ def build():
     reg.tile("empty", Canvas())  # index 0 is always the empty tile
     tiles_terrain.define(reg)
     tiles_objects.define(reg)
-    tiles_venue.define(reg)
     tiles_rooms.define(reg)
+    for scene_id, mod in discover("stamps"):
+        reg.scope = scene_id
+        mod.define(reg)
+        reg.scope = None
     return reg
 
 
@@ -100,7 +128,7 @@ def contact_sheet(reg, sheet, names, path):
     stamps = list(reg.stamps.items())
     cell_w = 7 * T * 1 + 16
     cols = 6
-    gal_h, x, y, row_h = 0, 8, 8, 0
+    x, y, row_h = 8, 8, 0
     placed = []
     for sname, st in stamps:
         w, h = st["w"] * T, st["h"] * T
@@ -116,7 +144,7 @@ def contact_sheet(reg, sheet, names, path):
     lookup = {n: cv.im for n, cv in reg.tiles}
     for sname, st, px, py in placed:
         w, h = st["w"] * T, st["h"] * T
-        gd.rectangle([px - 2, py + 8, px + w + 1, py + h + 11], fill=(66, 54, 62, 255))
+        gd.rectangle([px - 2, py + 8, px + w + 1, py + h + 11], fill=(86, 72, 80, 255))
         for cy, row in enumerate(st["cells"]):
             for cx, tn in enumerate(row):
                 if tn:
@@ -130,18 +158,24 @@ def contact_sheet(reg, sheet, names, path):
     out.convert("RGB").save(path)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--preview", help="write a contact sheet PNG (a review aid, not committed)")
-    args = ap.parse_args()
-    reg = build()
+def write(reg=None, preview=None):
+    """Builds and writes the sheet and tiles.json, returns the registry. Quiet: the caller prints the PASS line."""
+    reg = reg or build()
     sheet, names, count = assemble(reg)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT_DIR / "tileset.png", optimize=True)
     data = {"tileSize": T, "columns": COLUMNS, "count": count, "tiles": names, "solid": sorted(reg.solid), "stamps": reg.stamps}
     (OUT_DIR / "tiles.json").write_text(json.dumps(data, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
-    if args.preview:
-        contact_sheet(reg, sheet, names, args.preview)
+    if preview:
+        contact_sheet(reg, sheet, names, preview)
+    return reg, sheet, names, count
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--preview", help="write a contact sheet PNG (a review aid, not committed)")
+    args = ap.parse_args()
+    reg, sheet, names, count = write(preview=args.preview)
     print("PASS tiles: %d names, %d distinct tiles, %d stamps, sheet %dx%d" % (len(names), count, len(reg.stamps), sheet.width, sheet.height))
 
 

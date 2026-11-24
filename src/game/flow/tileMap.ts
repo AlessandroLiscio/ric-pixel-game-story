@@ -8,6 +8,8 @@ import type { NpcDef, SceneDef } from './sceneTypes';
 export const TILE = 32;
 export const TILESET_KEY = 'tileset';
 const GLOW_KEY = 'tile-glow';
+const SHADOW_KEY = 'tile-shadow';
+const MOOD_DEPTH = 750; // over the characters and the `above` layer (700), under the glows, the dialogue and the hints
 
 type LayerName = 'ground' | 'walls' | 'below' | 'objects' | 'above';
 
@@ -21,9 +23,14 @@ export interface LightDef {
     x: number;
     y: number;
     color: string;
+    /** radius in px of the small additive glow (0 for none) */
     r: number;
     kind: 'steady' | 'flicker' | 'pulse';
     period: number;
+    /** radius in px of the pool of light it brings back into the night overlay (0 for none) */
+    pool?: number;
+    /** how much of the colour the pool brings back, 0..1 */
+    power?: number;
 }
 export interface CrowdDef {
     sheet: string;
@@ -31,6 +38,14 @@ export interface CrowdDef {
     y: number;
     facing: 'down' | 'left' | 'right' | 'up';
     bob: number;
+}
+export interface DancerDef {
+    sheet: string;
+    x: number;
+    y: number;
+    facing: 'down' | 'left' | 'right' | 'up';
+    /** ms between the two arm poses */
+    period: number;
 }
 export interface MapData {
     id: string;
@@ -41,14 +56,21 @@ export interface MapData {
     collision: number[][];
     points: Record<string, MapPoint>;
     lights: LightDef[];
+    /** an evening room: everything is multiplied by this colour, the lights bring pools of colour back (scripts/art/lighting.py) */
+    mood?: { ambient: string };
     crowd: CrowdDef[];
+    dancers?: DancerDef[];
 }
 
 const MAP_FILES = import.meta.glob('../../data/maps/*.json', { eager: true, import: 'default' }) as Record<string, MapData>;
 export const MAPS: Record<string, MapData> = Object.fromEntries(Object.values(MAP_FILES).map((m) => [m.id, m]));
 
 /** Every crowd sheet the maps use: BootScene loads them as `char-<sheet>`. */
-export const crowdSheets = (): string[] => [...new Set(Object.values(MAPS).flatMap((m) => m.crowd.map((c) => c.sheet)))];
+export const crowdSheets = (): string[] => [
+    ...new Set(Object.values(MAPS).flatMap((m) => [...m.crowd.map((c) => c.sheet), ...(m.dancers ?? []).map((d) => d.sheet)]))
+];
+
+const FACE_ROW = { down: 0, left: 1, right: 2, up: 3 } as const;
 
 /** Feet position of a character standing on a tile: centred, a few pixels above the tile's lower edge. */
 export const feetOf = (p: { x: number; y: number }): { x: number; y: number } => ({ x: p.x * TILE + TILE / 2, y: p.y * TILE + TILE - 4 });
@@ -136,8 +158,102 @@ export class TileWorld {
             })
         );
         this.bake(`map-${data.id}-over`, ['above'], 700);
+        this.addCharacterShadows();
+        this.addDancers();
+        this.addMood();
         this.addLights();
         this.addDust();
+    }
+
+    /** A soft ground shadow under every character sprite of the scene (texture key `char-*`: Ric, the people, the party, the crowd,
+     *  the dancers), so nobody floats. Found by scanning the scene a few times a second, followed every frame, so the scene that owns
+     *  the sprites needs no code for it. The shadow sits half a depth step under its character and is dropped with it. */
+    private addCharacterShadows(): void {
+        const { scene } = this;
+        if (!scene.textures.exists(SHADOW_KEY)) {
+            const tex = scene.textures.createCanvas(SHADOW_KEY, 24, 8)!;
+            const ctx = tex.getContext();
+            ctx.fillStyle = 'rgba(22,8,34,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(12, 4, 12, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(22,8,34,0.22)';
+            ctx.beginPath();
+            ctx.ellipse(12, 4, 9, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(22,8,34,0.26)';
+            ctx.beginPath();
+            ctx.ellipse(12, 4, 5.5, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            tex.refresh();
+        }
+        const shadows = new Map<Phaser.GameObjects.Sprite, Phaser.GameObjects.Image>();
+        let frame = 0;
+        const sync = (): void => {
+            if (frame++ % 20 === 0) {
+                for (const o of scene.children.list) {
+                    if (o instanceof Phaser.GameObjects.Sprite && o.texture.key.startsWith('char-') && !shadows.has(o)) {
+                        shadows.set(o, scene.add.image(o.x, o.y, SHADOW_KEY));
+                    }
+                }
+            }
+            for (const [o, img] of shadows) {
+                if (!o.active) {
+                    img.destroy();
+                    shadows.delete(o);
+                    continue;
+                }
+                img.setPosition(o.x, Math.round(o.y) - 1).setDepth(o.depth - 0.5).setVisible(o.visible).setAlpha(o.alpha);
+            }
+        };
+        scene.events.on(Phaser.Scenes.Events.UPDATE, sync);
+        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.UPDATE, sync));
+    }
+
+    /** People who dance: the two arm poses of the crowd sheet (columns 0 and 2) swap every `period` ms with a hop of two pixels.
+     *  Their tiles are blocked in the map's collision grid, so they need no other logic. */
+    private addDancers(): void {
+        for (const d of this.data.dancers ?? []) {
+            const at = feetOf(d);
+            const row = FACE_ROW[d.facing] * 3;
+            const sprite = this.scene.add.sprite(at.x, at.y, `char-${d.sheet}`, row).setOrigin(0.5, 1).setDepth(at.y);
+            let pose = Phaser.Math.Between(0, 1);
+            this.scene.time.addEvent({
+                delay: d.period,
+                loop: true,
+                callback: () => sprite.setFrame(row + (pose++ % 2) * 2)
+            });
+            this.scene.tweens.add({ targets: sprite, y: at.y - 2, duration: d.period / 2, yoyo: true, repeat: -1, ease: 'Quad.Out', delay: Phaser.Math.Between(0, d.period) });
+        }
+    }
+
+    /** The night mood (scripts/art/lighting.py is the same model): a canvas the size of the room filled with the ambient colour, a
+     *  radial pool of each light's colour added on top ('lighter', clamped at white), drawn over everything with MULTIPLY. Baked once. */
+    private addMood(): void {
+        const { mood } = this.data;
+        if (!mood) return;
+        const key = `map-${this.data.id}-mood`;
+        if (!this.scene.textures.exists(key)) {
+            const tex = this.scene.textures.createCanvas(key, this.widthPx, this.heightPx)!;
+            const ctx = tex.getContext();
+            ctx.fillStyle = mood.ambient;
+            ctx.fillRect(0, 0, this.widthPx, this.heightPx);
+            ctx.globalCompositeOperation = 'lighter';
+            for (const l of this.data.lights) {
+                const pool = l.pool ?? 0;
+                if (pool <= 0) continue;
+                const c = Phaser.Display.Color.HexStringToColor(l.color);
+                const power = l.power ?? 1;
+                const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, pool);
+                g.addColorStop(0, `rgba(${c.red},${c.green},${c.blue},${power})`);
+                g.addColorStop(0.4, `rgba(${c.red},${c.green},${c.blue},${0.6 * power})`);
+                g.addColorStop(1, `rgba(${c.red},${c.green},${c.blue},0)`);
+                ctx.fillStyle = g;
+                ctx.fillRect(l.x - pool, l.y - pool, pool * 2, pool * 2);
+            }
+            tex.refresh();
+        }
+        this.scene.add.image(0, 0, key).setOrigin(0).setDepth(MOOD_DEPTH).setBlendMode(Phaser.BlendModes.MULTIPLY);
     }
 
     private glowTexture(): string {
@@ -156,15 +272,18 @@ export class TileWorld {
         return GLOW_KEY;
     }
 
-    /** Warm and coloured glows that flicker or pulse; they sit under the `above` layer and over the characters. */
+    /** Warm and coloured glows that flicker or pulse. In a day room they sit under the `above` layer and over the characters; in an
+     *  evening room they sit over the night overlay, so a lamp stays bright. */
     private addLights(): void {
         const key = this.glowTexture();
+        const depth = this.data.mood ? MOOD_DEPTH + 10 : 650;
         for (const l of this.data.lights) {
+            if (l.r <= 0) continue;
             const img = this.scene.add
                 .image(l.x, l.y, key)
                 .setTint(Phaser.Display.Color.HexStringToColor(l.color).color)
                 .setBlendMode(Phaser.BlendModes.ADD)
-                .setDepth(650)
+                .setDepth(depth)
                 .setScale((l.r * 2) / 64);
             if (l.kind === 'steady') {
                 img.setAlpha(0.55);
@@ -191,7 +310,7 @@ export class TileWorld {
         for (let i = 0; i < 22; i++) {
             const x = Phaser.Math.Between(TILE, widthPx - TILE);
             const y = Phaser.Math.Between(5 * TILE, heightPx - 2 * TILE);
-            const mote = this.scene.add.rectangle(x, y, 2, 2, 0xffe9b0).setDepth(660).setAlpha(0);
+            const mote = this.scene.add.rectangle(x, y, 2, 2, 0xffe9b0).setDepth(this.data.mood ? MOOD_DEPTH + 20 : 660).setAlpha(0);
             this.scene.tweens.add({
                 targets: mote,
                 y: y - Phaser.Math.Between(24, 60),
