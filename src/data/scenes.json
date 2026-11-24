@@ -19,25 +19,18 @@
   {
     "id": "giuggiu",
     "background": "bg-giuggiu",
+    "map": "giuggiu",
     "title": "Casa di Giuggiu",
     "music": "giuggiu",
-    "spawn": { "x": 210, "y": 322, "facing": "right" },
-    "door": { "x": 172, "y": 204, "w": 64, "h": 90, "draw": true },
-    "walk": [
-      { "x": 170, "y": 292, "w": 100, "h": 44 },
-      { "x": 170, "y": 314, "w": 352, "h": 22 },
-      { "x": 420, "y": 262, "w": 102, "h": 52 }
-    ],
-    "friend": { "personId": "giuggiu", "x": 470, "y": 300, "facing": "left" },
+    "spawn": { "facing": "up" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "giuggiu", "facing": "left", "at": "giuggiu" },
     "extras": [
-      { "personId": "gatto", "x": 330, "y": 334, "facing": "down", "sfx": "meow" }
+      { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" }
     ],
     "minigame": "cat-smoke",
-    "ambient": [
-      { "type": "tween", "preset": "sway", "area": { "x": 290, "y": 36, "w": 70, "h": 58 }, "period": 2600 },
-      { "type": "tween", "preset": "flicker", "area": { "x": 566, "y": 40, "w": 36, "h": 60 }, "color": "#9fd0ff", "alpha": [0.0, 0.25], "period": 700 },
-      { "type": "particles", "preset": "dust", "area": { "x": 270, "y": 110, "w": 150, "h": 170 }, "count": 12 }
-    ]
+    "ambient": []
   },
   {
     "id": "giardini",

@@ -161,3 +161,27 @@ The room is 22 x 14 tiles, rebuilt from `aula-lato-cattedra-professore.jpg` and 
 | a walkway along the back wall | row 12, slate, joining the three aisles |
 | how the scene plays | Ric comes in through the small arched door (spawn on row 5 under it), Lollino waits two tiles to the right on the same row, Prof. Pinolo stands at the left end of the lectern, the exit is the big arched doorway at the right end of row 5 (the smoke test walks the room blind with the right arrow along that row), the student extra sits in the right aisle |
 
+## Giuggiu's living room, photo feature -> map
+
+The room is 22 x 13 tiles, rebuilt from the three photos `casa-giuggiu-salotto-lato-finestra.jpg`, `casa-giuggiu-divani-e-puf.jpg` and `casa-giuggiu-gatto.jpg` (the video is not used). Stamps are in `scripts/art/stamps/giuggiu.py`, the map in `scripts/art/rooms/giuggiu.py`. The three sofas of the real room are the three sofas of the cat-smoke minigame (burgundy, cream, navy), so the minigame needs no change.
+
+| Photo feature | In the map |
+| --- | --- |
+| dark herringbone parquet, worn, warm brown | `giuggiu_parquet_a` to `d`, 16 x 4 px planks in a seamless herringbone with a few scuffs in the variants |
+| pale lilac cream walls, cream baseboards, a very high ceiling | `giuggiu_wall_left`, `giuggiu_wall_win`, `giuggiu_wall_right` (three tiles tall, plaster, cream skirting), cables hanging on the wall |
+| the big white window on the back wall, three sashes, grey roller shutters half lowered, brick houses outside, a beige shutter box over it | `giuggiu_wall_win`: the middle sash open on two brick houses with a balcony, the outer sashes half covered by slatted shutters, the box and the white sill |
+| a big crystal chandelier with brass arms in front of the window | `giuggiu_chandelier` in the above layer, 6 tiles wide, arms with candles and hoops of hanging glass drops |
+| a red Chinese paper lantern with a printed child and a yellow tassel, hanging in front of the window | `giuggiu_lantern` in the above layer, hung from the middle of the chandelier |
+| a dark console table under the window, sun on its top | `giuggiu_console` with a warm streak on the dark wood |
+| a tall dark carved wardrobe in the left corner with a bicycle frame on top and cables beside it | `giuggiu_armoire`, 2 x 4 tiles, twisted columns, glass panel, a bicycle frame and a rope on top |
+| a brass tea trolley with glass shelves next to the wardrobe | `giuggiu_trolley` |
+| a gilded landscape painting on the left wall, a framed black and white picture next to the window | `giuggiu_wall_left` (landscape), `giuggiu_wall_right` (portrait) |
+| the tall window on the left wall with trees outside, a long burgundy sofa bed under it | `giuggiu_sidel_*` tiles (the wall seen edge on, a window with foliage and a white sill) and `giuggiu_sofa_burgundy`, a sun patch and a light on the floor in front |
+| a cream patterned sofa with a white blanket, a red blanket, a burgundy cushion and a black bag | `giuggiu_sofa_cream` against the left wall in the corner |
+| a red bean bag pouf in front of the burgundy sofa | `giuggiu_pouf` |
+| a navy two seater with a bright red ribbed throw, a dark grey cushion and a remote control; the cat sleeps on it, next to the door | `giuggiu_sofa_navy` in the below layer so the cat stands on its seat; the cat's tile (the right arm) is left walkable because a scene needs a walkable point |
+| the glass table with chrome legs, a laptop and a bottle on it, one red plastic chair and one black slatted chair | `giuggiu_table` (a see-through top), `giuggiu_chair_red`, `giuggiu_chair_black` |
+| a dark walnut display cabinet with leaded glass doors and claw feet, a tube TV on top, a blue pedestrian sign, a green white and red scarf | `giuggiu_vitrine` in the right corner, with the sign and the TV redrawn in our own pixels |
+| a light oak open shelf along the right wall with a white sports bag, a spray can, a picture frame | `giuggiu_shelf`, 1 x 4 tiles, the lit top and the open side with the cubbies |
+| the doorway behind the sofa, a cream frame, a dark corridor, an open door of orange veneer | `giuggiu_doorway` in the bottom wall with a coir doormat |
+| afternoon light, dim room, a bright window | day mood `#e2d0c8`, pools of warm light under the windows, a red glow near the lantern, sun patches on the parquet |
