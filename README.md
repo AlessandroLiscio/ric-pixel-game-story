@@ -1,5 +1,56 @@
 # ric-pixel-game-story
 
-A short pixel-art story game, made as a birthday gift. Play it in the browser from the GitHub Pages link or from the offline zip attached to a release.
+A pixel-art story game of about 20 minutes, written in Italian, for a friend's 30th birthday. It is a short walk through six scenes, each with a friend, a small minigame and an RPG Maker style dialogue box, ending in a credits roll with easter eggs. It runs in the browser from a GitHub Pages link and also from an offline zip that works by double-clicking `index.html`.
 
-The game and all of its text are in Italian.
+The engine is [Phaser](https://phaser.io) 4.2.1 on the official Vite + TypeScript template, at 640x360 with integer zoom (press F for fullscreen). All music and sound effects are generated in code on one shared `AudioContext`; the pixel font is Pixel Operator (CC0).
+
+## Run it
+
+Needs Node 22.2 or newer and Google Chrome (the proof scripts drive the installed Chrome; no browser is downloaded).
+
+```
+npm install
+npm run dev-nolog
+```
+
+The game opens at http://localhost:8080.
+
+## Proof scripts
+
+Every script is quiet: it prints one PASS line, or a FAIL line with at most five lines of detail, and keeps full output under `logs/` (gitignored). The exit code is 0 only on success.
+
+| Command | Success line |
+|---|---|
+| `npm run spike-nolog` | `PASS spike: Phaser APIs, font glyphs, file URL` |
+| `npm run build-nolog` | `PASS build` |
+| `npm run verify-production-nolog` | `PASS production: no test skip key` |
+| `npm run verify-offline-nolog` | `PASS offline: no network requests, title screen loaded` |
+| `npm run verify-pages-nolog` | `PASS pages: title screen loaded` |
+| `npm run check-privacy-nolog` | `PASS privacy: no reference photos or secrets in index, history, or build` |
+| `npm run test:e2e-nolog` | placeholder, prints `FAIL e2e: not implemented (W4)` until the end-to-end tests exist |
+
+`verify-pages-nolog` checks the live site and fails until GitHub Pages is deployed. `npm run typecheck-nolog` runs the TypeScript check (it is also the first step of the build).
+
+## Builds
+
+`npm run build-nolog` writes two outputs. `dist/` is the Pages build (`base: './'`). `dist-offline/index.html` is a single self-contained file (code, fonts and images inlined, no network request) built with `vite-plugin-singlefile`, and `dist/ric-pixel-game-story-offline.zip` holds it. Game assets under `public/assets/` are referenced through `assetUrl()` from the `asset-url` module, which returns a relative URL in the Pages build and a `data:` URI in the offline build; never load an asset by a hand-written path.
+
+The test skip key (`__RIC_TEST_SKIP__`, defined once in `src/game/testKey.ts`) exists only in a build made with `VITE_TEST_BUILD=1`. Pages and the offline zip never contain it, which `verify-production-nolog` checks.
+
+## Folder map
+
+| Path | Holds |
+|---|---|
+| `src/game/` | game code: `flow`, `ui`, `audio` (and `audio/music`), `party`, `transitions`, `debug`, `minigames/*`, `ending`, `ambient`, `scenes` (title) |
+| `src/data/` | story, people and scene data (JSON) |
+| `src/spike/` | the W0 spike scene, loaded only with `?spike=1` |
+| `public/assets/` | `backgrounds`, `characters`, `portraits`, `fonts` |
+| `scripts/` | build, verify and check scripts; `scripts/art/` holds the art pipelines |
+| `tests/` | end-to-end tests |
+| `vite/` | Vite configs: dev, Pages build, offline build |
+| `docs/` | notes; `docs/w0-spike.md` records the setup spike |
+| `.github/workflows/` | `ci.yml` (pull requests) and `pages.yml` (deploy on push to `main`) |
+
+## Privacy
+
+`reference_photos/` is private. It is gitignored, it must never be committed, copied into `public/` or built, and no photo may be uploaded to a service without the depicted person's consent. `npm run check-privacy-nolog` checks the index, the whole history and the build outputs for it.

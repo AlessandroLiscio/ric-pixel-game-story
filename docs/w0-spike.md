@@ -1,0 +1,59 @@
+# W0 spike record
+
+Date: 2026-11-24. Machine: Windows 11, Node 24.20.0, npm 11.19.0, Chrome 157.0.8103.79 (the installed one, through Playwright `channel: 'chrome'`).
+
+## Template and versions
+
+- Template: https://github.com/phaserjs/template-vite-ts at commit `d1d7d58acfcf47f97642bcb8b4967071b85f8db9` (default branch head on 2026-11-24, version 1.4.0, MIT). Cloned over HTTPS because the SSH clone through `gh repo clone` failed on host key verification.
+- What was taken from it: the Vite config layout (`vite/config.dev.mjs`, `vite/config.prod.mjs`, `base: './'`), the `*-nolog` script convention and the `tsconfig.json` options. What was left out: `log.js` and the `dev`/`build` scripts that run it (it sends a usage ping to Phaser), `terser` (the default esbuild minifier is enough), the demo scenes and images.
+- Phaser: 4.2.1 exactly (`npm view phaser@4.2.1 version` printed `4.2.1`; it is the `latest` dist-tag). The template itself pins 4.0.0. No fallback to 3.90.0 was needed.
+- Other versions: Vite 6.4.6, vite-plugin-singlefile 2.3.4, TypeScript 5.7.3, Playwright 1.65.1 (`playwright` package, no browser downloaded).
+
+## Documentation used
+
+- Phaser 4.2.1 release: https://github.com/phaserjs/phaser/releases/tag/v4.2.1
+- Phaser API pages (the same facts were read in `node_modules/phaser/src`): https://docs.phaser.io/api-documentation/class/core-config (`pixelArt`, `roundPixels`, `audio.context`, `loader.imageLoadType`), https://docs.phaser.io/api-documentation/class/scale-scalemanager (`Scale.FIT`, `refresh`, `getParentBounds`)
+- Files read in the installed package: `src/core/Config.js` (`pixelArt` sets `antialias=false`, `roundPixels=true`; `audio.context`; `loader.imageLoadType`), `src/sound/webaudio/WebAudioSoundManager.js` (line 500 uses `config.audio.context`), `src/scale/ScaleManager.js` (`refresh()` does not re-read the parent size, so `getParentBounds()` is called first)
+- Vite assets and `?inline`: https://vite.dev/guide/assets
+- vite-plugin-singlefile: https://github.com/richardtallent/vite-plugin-singlefile
+- Playwright browsers and `channel`: https://playwright.dev/docs/browsers
+- Font licence text: https://creativecommons.org/publicdomain/zero/1.0/
+
+## Decisions
+
+- Resolution 640x360, `pixelArt: true`, `roundPixels: true`, `Scale.FIT`. Integer zoom is done in `src/game/zoom.ts`: the game container is resized to an exact multiple of 640x360 (zoom = floor(min(width/640, height/360)), at least 1) on load, window resize and fullscreen change, and `Scale.FIT` then fills it with no fractional scaling. F toggles the browser fullscreen of the whole page (own handler, not Phaser's, so the integer sizing keeps working in fullscreen).
+- One `AudioContext`: `src/game/audioContext.ts` creates it, `src/game/main.ts` passes it to Phaser as `audio.context`, and the title scene unlocks it on the first key press. The chiptune sequencer and the SFX synth must use `getAudioContext()`.
+- Assets: `public/assets/**` is referenced only through `assetUrl()` (module `asset-url`). The Pages build resolves it to `assets/<path>`; the offline build resolves it to a module that inlines every png/jpg/gif/webp/ttf/woff file of `public/assets` as a `data:` URI (`import.meta.glob` with `?inline`). Phaser loads images with `imageLoadType: 'HTMLImageElement'`, which also accepts `data:` URIs.
+- Test skip key: `__RIC_TEST_SKIP__`, one constant in `src/game/testKey.ts`, registered on `window` only when `VITE_TEST_BUILD=1`. Production bundles do not contain the string (verified, with a control build that does contain it).
+- Offline zip: written by `scripts/lib/zip.mjs` on `node:zlib` only (about 50 lines, round-trip checked with CRC), so no archive dependency was added.
+
+## Commands run and results
+
+| Command | Output |
+|---|---|
+| `npm run spike-nolog` | `PASS spike: Phaser APIs, font glyphs, file URL` |
+| `npm run build-nolog` | `PASS build` |
+| `npm run verify-production-nolog` | `PASS production: no test skip key` |
+| `npm run verify-offline-nolog` | `PASS offline: no network requests, title screen loaded` |
+| `npm run check-privacy-nolog` | `PASS privacy: no reference photos or secrets in index, history, or build` |
+| `npm run test:e2e-nolog` | `FAIL e2e: not implemented (W4)` (expected, exit 1) |
+| `npm run verify-pages-nolog` | `FAIL pages` until the Pages deployment exists (expected; run after the first deploy) |
+
+Details are in `logs/<script>/*.log` after a run (gitignored).
+
+## Spike results
+
+- Phaser APIs: `Phaser.VERSION` is `4.2.1`; `Scale.FIT`, `pixelArt`, `roundPixels`, `antialias=false` and the loader type are as configured; `add.text`, `add.particles`, `tweens.add`, `cameras.main.fadeOut`, `textures.createCanvas`, keyboard input and `sound.context` all exist. Renderer used in headless Chrome: WebGL.
+- Integer zoom: the canvas measures 1920x1080 in a 1920x1080 window (3x), 1280x720 in 1366x768 (2x) and 640x360 in 1000x600 (1x); internal size stays 640x360 and `image-rendering` is `pixelated`. F entered fullscreen in headless Chrome.
+- Audio: the context is `suspended` at load, `running` after a key press, exactly one `AudioContext` is constructed (counted by wrapping the constructor), Phaser's `sound.context` is that same object, and a beep advances the context clock with no error.
+- Glyph test: every one of `à è é ì ò ù À È É Ì Ò Ù ’ '` was drawn on a canvas with `PixelOperator, monospace` and with `monospace` alone. The result is non-blank (ink pixels from 9 for the apostrophes to 60 for À), differs from the fallback render (so the glyph exists in the pixel font), each accented letter differs from its base letter, and the twelve accented letters differ from each other. The apostrophes `’` and `'` both render (9 ink pixels each). A screenshot was also looked at once: the Italian sample sentence shows all accents correctly.
+- file://: the offline single file (1,713,807 bytes) opens from `file://` with one request (the file itself), no console error, and a drawn title screen; the zip is 390,567 bytes and holds only `index.html`.
+
+## Font licence
+
+Pixel Operator by Jayvee Enaguas (HarvettFox96), CC0 1.0 Universal. File `public/assets/fonts/PixelOperator.ttf`, licence text `public/assets/fonts/LICENSE-PixelOperator.txt`, provenance and SHA-256 in `public/assets/fonts/NOTICE.txt`. The author's site returned 403 to a script, so the font was taken from a mirror that carries the original distribution; the CC0 grant is stated in the font's own metadata and in its LICENSE.txt. m5x7 was not used because its licence could not be verified.
+
+## Not done in W0
+
+- Phaser skills registration (`.claude/skills/`), PixelLab MCP and the `scan-skill.sh` path: the W0 brief did not include them; they need the scan and the owner's approval first.
+- GitHub Pages setting (Settings > Pages > Source: GitHub Actions) and the first deployment: repository-level steps for the manager and the owner. `verify-pages-nolog` stays red until then.
