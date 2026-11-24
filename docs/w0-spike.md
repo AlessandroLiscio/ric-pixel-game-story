@@ -53,6 +53,14 @@ Details are in `logs/<script>/*.log` after a run (gitignored).
 
 Pixel Operator by Jayvee Enaguas (HarvettFox96), CC0 1.0 Universal. File `public/assets/fonts/PixelOperator.ttf`, licence text `public/assets/fonts/LICENSE-PixelOperator.txt`, provenance and SHA-256 in `public/assets/fonts/NOTICE.txt`. The author's site returned 403 to a script, so the font was taken from a mirror that carries the original distribution; the CC0 grant is stated in the font's own metadata and in its LICENSE.txt. m5x7 was not used because its licence could not be verified.
 
+## Privacy check: what it covers and its limit
+
+`npm run check-privacy-nolog` checks three things. Names: paths in the index and in all history, and paths in `dist/`, `dist-offline/` and the zip, against `reference_photos/` and against the file names found in the private folder. Patterns: token and private-key patterns in tracked text, in history patches and in built text, plus any inlined JPEG, HEIC or WebP image (the game art is PNG only). Content: when the private folder exists (next to the main checkout, or the folder named by the environment variable `REF_PHOTOS_DIR`; it does not exist in CI), the SHA-256 of every media file in it is compared with the SHA-256 of every blob in the index and in all history (`git rev-list --objects --all` and `git cat-file`, binary blobs included), every file in `dist/` and `dist-offline/`, every zip entry, and every base64 `data:` URI payload found in built or tracked html, js and css, whatever the image format. A committed or built file with the same byte size as a private file but another hash is only a `WARN` line in `logs/check-privacy/result.log`.
+
+Positive test (2026-11-24, throwaway repos and a generated harmless PNG as the "private" folder through `REF_PHOTOS_DIR`, nothing in the real repository): baseline PASS; the PNG renamed and staged in the index FAILS; the same file committed and then deleted (history only) FAILS; the renamed copy in `dist/` FAILS; the same bytes as a base64 `data:` URI in `dist-offline/index.html` FAILS; the same bytes inside a zip in `dist/` FAILS; a different file of the same size as a data URI and as a png in `dist/` PASSES with two `WARN` lines.
+
+Remaining limit: the match is on exact bytes. A re-encoded, resized, cropped, recompressed or screenshot copy of a photo has another hash and is not caught, and neither is a photo split or encrypted before inlining. The size warning is a weak hint for those cases. The defence for them is the rule that `reference_photos/` is never read by an agent and that no photo-derived asset is added without the owner's look.
+
 ## Not done in W0
 
 - Phaser skills registration (`.claude/skills/`), PixelLab MCP and the `scan-skill.sh` path: the W0 brief did not include them; they need the scan and the owner's approval first.
