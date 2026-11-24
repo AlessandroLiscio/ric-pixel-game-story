@@ -206,3 +206,26 @@ The room is 26 x 16 tiles (an open-air park is a little larger than the indoor r
 | a gravel footpath that leaves the lawn through a gate in the fence toward the pond | `giardini_path_*` ragged autotiles at columns 20 and 21 from the road (`giardini_pathdip_l` and `_r`, the dropped curb) up to the gate posts in the backdrop |
 | a dog walker with a small dog on a red leash | the extra `sconosciuta` (tinted, egg `extra-2`) at the point `dogwalker` (21, 11) on the path, `giardini_dog` at its right on the grass with the leash running to her hand |
 | a few people sitting and standing around on the grass | six idle crowd people: a spectator at the left trunk, a pair chatting by the bin, one at the curb by the bench, one at the curb by the path, one watching from the right trunk, and the friend Liscio at the point `liscio` (6, 9) |
+
+## Casa Circe, photo feature -> map
+
+The room is 24 x 13 tiles, rebuilt from the five photos `casa-circe-zona-cucina.jpeg`, `casa-circe-foto-verso-ingresso.jpeg`, `casa-circe-tavolo-divano.jpeg`, `casa-circe-divano-aperto.jpeg` and `casa-circe-scale-tv.jpeg`. The real flat is open plan; the map lays its walls flat along one back wall of five pictures (rows 1 to 4, all blocked) and puts the table, the rug and the front door on the floor in front. People are left out of the pictures; Ros stands by the sofa, Giusy at the bathroom door. The evening mood is warm: lamps, the under-cabinet light, the TV, candles and fairy lights bring pools of colour back.
+
+| Photo feature | In the map |
+| --- | --- |
+| pine ceiling with exposed beams and black steel I-beams over the room | the top 13 px of every wall stamp is the pine ceiling edge with beam ends that join across stamps (`ceiling`), a black steel beam over the stairs and over the glass door (`steel_beam`) |
+| the kitchen run: four white upper cabinets with a red-bow Christmas bouquet, dried flowers and plastic bottles on top, a steel tap over the sink, soap and a green bottle, a built-in oven, a tall white unit with a duct | `circe_wall_kitchen` (6 wide, x 12 to 17) |
+| the tall white cube shelves with a row of bottles on top, board games, books, plants, a yellow giraffe and white cupboards below | `circe_wall_shelf` (3 wide, x 7 to 9) |
+| the white door with a red and white "STAFF ONLY" sticker: the bathroom door (the photos show it only here, between the shelves and the kitchen) | `circe_wall_door` (2 wide, x 10 to 11); Giusy stands at the point `giusy`, (11, 5), right in front of it |
+| the white stair stringer with fairy lights, a steel pole and a diagonal handrail, a film poster, polaroids, a plant on a step, dark grey wall behind the TV | `circe_wall_stairs` (6 wide, x 1 to 6), five flickering fairy light pools |
+| the TV on its low white four door cabinet, pink and blue picture, a small white Christmas tree with lights beside it | `circe_tv_unit` (3 x 2, the screen sits on the wall base), `circe_xmas_tree` |
+| the navy two seat sofa with wide arms, a red damask throw and patterned cushions, a grey blanket on the back | `circe_sofa_front_throw` (3 x 2), Ros stands in front of it (point `ros`), the plain navy `circe_sofa_front` |
+| the sofa opened into a bed with a quilted grey cover and a black metal frame | `circe_sofa_bed` (3 x 4), not used in this room, for the night scene |
+| the framed scratch-off world map over the sofa, coats on a hook, two small photos | `circe_wall_sofa` (5 wide, x 18 to 22): the map in a white frame, a lime and a dark coat, the peach wall |
+| the glass door with a white curtain and the dark night outside, a tall steel floor lamp with two heads, an electric scooter, a red bromeliad on the floor | the glass door and curtain in `circe_wall_sofa`, `circe_floorlamp` (1 x 3, heads in the `above` layer), `circe_scooter`, `circe_plant_red`, warm pools of light |
+| the long dinner table with a red damask cloth, golden plates, cups with forks, a candle, clear acrylic ghost chairs and white wooden folding chairs | `circe_table` (4 x 2), `circe_chair_ghost_n/s/e/w`, `circe_chair_white_n/s/e/w`, a candle light that flickers |
+| the pink pouf, the low wooden coffee table with a pink bowl, a beer bottle and a remote in front of the TV | `circe_beanbag`, `circe_coffee_table` (2 x 1), `circe_rug` (5 x 3, an addition: the photos show bare tiles) |
+| large pale beige floor tiles | `circe_floor_a` to `circe_floor_d`: one 64 px tile cut in four, placed by the parity of x and y |
+| a white coat stand with fairy lights, a steel bowl of pasta in the corner | `circe_coatstand`, `circe_bowl`; the front door at the bottom left is `circe_entrance` with `circe_doormat` (CIAO) |
+
+Reusable pieces for the `divano` room (night, the same sofa): `circe_sofa_front`, `circe_sofa_front_throw`, `circe_sofa_back` (seen from behind, facing a TV on the north wall), `circe_sofa_back_throw`, `circe_sofa_bed`, `circe_tv_unit` (put it at the wall base so its screen overlaps the wall rows), `circe_wall_stairs` (the TV wall without the TV), `circe_coffee_table`, `circe_rug`, `circe_beanbag`, `circe_floorlamp`, `circe_xmas_tree`; the wall stamps are 4 tiles tall and `walls` layer, so a new map blocks their cells with `m.block`. Import nothing from Python: just name the stamps in `m.stamp(...)`, the registry has them already because every module of `scripts/art/stamps/` is loaded for the whole sheet.

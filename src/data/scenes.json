@@ -51,21 +51,18 @@
   {
     "id": "circe",
     "background": "bg-circe",
+    "map": "circe",
     "title": "Casa Circe",
     "music": "circe",
-    "spawn": { "x": 452, "y": 322, "facing": "right" },
-    "door": { "x": 624, "y": 294, "w": 16, "h": 34 },
-    "walk": [{ "x": 440, "y": 288, "w": 200, "h": 38 }],
-    "friend": { "personId": "ros", "x": 500, "y": 308, "facing": "left" },
-    "friend2": { "personId": "giusy", "x": 566, "y": 314, "facing": "left" },
+    "spawn": { "facing": "up" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "ros", "facing": "left", "at": "ros" },
+    "friend2": { "personId": "giusy", "facing": "down", "at": "giusy" },
     "extras": [],
     "minigame": "d20",
     "minigame2": "mash",
-    "ambient": [
-      { "type": "particles", "preset": "steam", "area": { "x": 360, "y": 105, "w": 60, "h": 40 }, "count": 8 },
-      { "type": "tween", "preset": "flicker", "area": { "x": 520, "y": 0, "w": 120, "h": 280 }, "color": "#ffe9a0", "alpha": [0.0, 0.1], "period": 1800 },
-      { "type": "particles", "preset": "sparkle", "area": { "x": 0, "y": 0, "w": 160, "h": 90 }, "count": 6 }
-    ]
+    "ambient": []
   },
   {
     "id": "cortile",
