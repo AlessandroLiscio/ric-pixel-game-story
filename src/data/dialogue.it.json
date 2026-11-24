@@ -1,0 +1,337 @@
+{
+  "ui": {
+    "start": "Inizia",
+    "continue": "Continua",
+    "pressX": "Premi X",
+    "win": "Vittoria!",
+    "lose": "Sconfitta!",
+    "fullscreen": "F: schermo intero",
+    "mute": "M: audio sì/no",
+    "confirm": "X: conferma",
+    "fastForward": "Z: salta",
+    "talk": "X: parla",
+    "exit": "Esci dalla porta",
+    "loading": "Caricamento...",
+    "joined": "si unisce al gruppo!",
+    "theEnd": "Fine"
+  },
+  "titleScreen": {
+    "title": "Ric 30: Un Venerdì a Bologna",
+    "subtitle": "Un regalo per i 30 anni di Ric",
+    "press": "Premi X per iniziare"
+  },
+  "scenes": {
+    "universita": {
+      "arrival": [
+        { "speaker": "narratore", "text": "Venerdì a Bologna.\nOggi {ric} compie 30 anni." },
+        { "speaker": "ric", "text": "Trent'anni. Ancora non mi sento diverso.\nForse perché non ho dormito." },
+        { "speaker": "narratore", "text": "Prima tappa: l'Università.\nLollino è in aula, in prima fila di sicuro." }
+      ],
+      "meet": [
+        { "speaker": "lollino", "text": "Ric! Sei in ritardo. Siediti, parla\nPinolo: oggi si fa la camera oscura." },
+        { "speaker": "pinolo", "text": "Dunque, signori: la camera oscura.\nUna scatola, un forellino, niente lenti." },
+        { "speaker": "pinolo", "text": "La luce passa dal foro stenopeico e\nl'immagine arriva... capovolta!" },
+        { "speaker": "ric", "text": "(Il foro stenopeico. Il mio argomento\npreferito. Non respiro dall'emozione.)" },
+        { "speaker": "pinolo", "text": "Lei, quello che sorride come uno\nche sa la risposta. Venga alla lavagna." }
+      ],
+      "minigameIntro": [
+        { "speaker": "pinolo", "text": "Le mostro una sequenza di tasti.\nLa memorizzi e poi la ripeta. Senza barare." },
+        { "speaker": "ric", "text": "Facile. Ho memoria da bassista:\nquattro note e non le sbaglio mai." }
+      ],
+      "win": [
+        { "speaker": "pinolo", "text": "Perfetto! Trenta... e se lo merita.\nLollino mi ha detto che è il suo giorno." },
+        { "speaker": "lollino", "text": "Ho lavorato di sponda. Diplomazia\naccademica ai massimi livelli." },
+        { "speaker": "ric", "text": "Prof, la lezione la finiamo un'altra\nvolta? Ho una festa da raggiungere." }
+      ],
+      "lose": [
+        { "speaker": "pinolo", "text": "Sbagliato. La camera oscura è fedele:\nanche il suo errore è capovolto." },
+        { "speaker": "lollino", "text": "Tranquillo, ti passo gli appunti.\nSono in ordine alfabetico e a colori." },
+        { "speaker": "ric", "text": "Prof, mi presti una scatola da scarpe:\nle costruisco io la camera oscura." },
+        { "speaker": "pinolo", "text": "Vada, vada. Ma lo studi, il foro." }
+      ],
+      "join": [
+        { "speaker": "lollino", "text": "Allora vengo con te. Ho segnato tutto:\nprossima tappa, da Giuggiu." },
+        { "speaker": "narratore", "text": "Lollino si unisce al gruppo!" }
+      ]
+    },
+    "giuggiu": {
+      "arrival": [
+        { "speaker": "narratore", "text": "Casa di Giuggiu, ora di pranzo.\nSi mangia, poi si studia. In teoria." },
+        { "speaker": "giuggiu", "text": "Ric! Lollino! Entrate, ho fatto la pasta.\nEra per due, siete in tre. Si divide." }
+      ],
+      "meet": [
+        { "speaker": "lollino", "text": "Studiamo subito? Ho fatto uno schema\ndi quattordici pagine sul foro." },
+        { "speaker": "giuggiu", "text": "Calma, prima il caffè. E poi, come ogni\ngiorno, c'è l'appuntamento delle 16:20." },
+        { "speaker": "ric", "text": "Le 16:20. Il rito sacro di casa Giuggiu.\nSi accende il trellone, vero?" },
+        { "speaker": "giuggiu", "text": "Eh, che ci vuoi fare. Il trellone chiama\ne io rispondo. Per educazione." },
+        { "speaker": "gatto", "text": "Miao." },
+        { "speaker": "narratore", "text": "Il gatto di casa osserva tutto da sopra\nun mobile. Giudica, in silenzio." }
+      ],
+      "minigameIntro": [
+        { "speaker": "giuggiu", "text": "Tiro di costituzione! Il fumo si alza\ne il gatto sparisce sotto le nuvole." },
+        { "speaker": "giuggiu", "text": "Seguilo con gli occhi. Poi dimmi su\nquale divano si è nascosto." },
+        { "speaker": "ric", "text": "Ho gli occhi allenati dai concerti.\nChe sarà mai, un gatto?" }
+      ],
+      "win": [
+        { "speaker": "giuggiu", "text": "Eccolo! Hai l'occhio di un falco.\nUn falco con le pupille grandi." },
+        { "speaker": "gatto", "text": "Miao. (Traduzione: va bene, ti accetto.)" },
+        { "speaker": "ric", "text": "Mi ha accettato un gatto. Posso morire\ncontento a trent'anni." }
+      ],
+      "lose": [
+        { "speaker": "giuggiu", "text": "Quello è il divano sbagliato! Il gatto\nè dietro di te da dieci minuti." },
+        { "speaker": "gatto", "text": "Miao. (Traduzione: dilettante.)" },
+        { "speaker": "ric", "text": "Il fumo mi ha confuso. Vedevo gatti\novunque. Anche nei cuscini." },
+        { "speaker": "lollino", "text": "Ric, hai sbagliato divano. E io che\nmi fidavo del tuo senso dell'orientamento." }
+      ],
+      "join": [
+        { "speaker": "giuggiu", "text": "Va bene, chiudo la porta e vengo anch'io.\nFinisco il caffè strada facendo." },
+        { "speaker": "narratore", "text": "Giuggiu si unisce al gruppo!" }
+      ]
+    },
+    "giardini": {
+      "arrival": [
+        { "speaker": "narratore", "text": "Giardini Margherita. Un telo arancione\nsteso sul prato, aperto come una vela." },
+        { "speaker": "ric", "text": "Quel telo arancione lo riconosco.\nSignifica solo una cosa: Liscio." }
+      ],
+      "meet": [
+        { "speaker": "liscio", "text": "Ric! Vieni, guarda: sono in cima alla\nfettuccia da venti minuti. Zero cadute." },
+        { "speaker": "giuggiu", "text": "Ha detto zero cadute. Intende dopo le\nprime otto. Le ho contate io." },
+        { "speaker": "liscio", "text": "Il telo arancione è per stare in tema:\ncolore tramonto. Fa pubblico." },
+        { "speaker": "lollino", "text": "Io ho un solo dubbio: come si sta su\nuna cosa larga tre centimetri?" },
+        { "speaker": "liscio", "text": "Allenamento, equilibrio e fede nella\nfettuccia. Ora provaci tu, festeggiato!" }
+      ],
+      "minigameIntro": [
+        { "speaker": "liscio", "text": "Il trucco: guardi l'estremità e premi\nquando senti di essere a tempo." },
+        { "speaker": "ric", "text": "Facile come suonare il basso in piedi\nsu un filo. Cioè, no. Non è facile." }
+      ],
+      "win": [
+        { "speaker": "liscio", "text": "Hai attraversato! Sembri nato su una\nfettuccia, Ric. Meglio di me." },
+        { "speaker": "ric", "text": "Credo di aver capito il segreto:\nnon pensare. Né respirare." },
+        { "speaker": "liscio", "text": "Esatto. È anche il segreto del basso." }
+      ],
+      "lose": [
+        { "speaker": "liscio", "text": "Pof! Sul prato, anzi sul telo arancione.\nAtterraggio morbido. Applausi." },
+        { "speaker": "ric", "text": "Il telo mi ha salvato. Lo adotto.\nDa oggi vivo sul telo arancione." },
+        { "speaker": "liscio", "text": "Io di cadute ne ho fatte mille.\nLa fettuccia ti rispetta lo stesso." }
+      ],
+      "join": [
+        { "speaker": "liscio", "text": "Arrotolo la fettuccia e vengo con voi.\nIl telo arancione? Lo porto come mantello." },
+        { "speaker": "narratore", "text": "Liscio si unisce al gruppo!" }
+      ]
+    },
+    "circe": {
+      "arrival": [
+        { "speaker": "narratore", "text": "Casa Circe. Il Cortile Cafe aspetta e\nloro non sono nemmeno pronti." },
+        { "speaker": "ric", "text": "Ragazzi! Il concerto è alle nove e qui\nsiamo ancora in pigiama! Su, su!" }
+      ],
+      "meet": [
+        { "speaker": "ros", "text": "Ric! Perfetto tempismo. Mi sto giusto\naccendendo l'ennesimo trellone." },
+        { "speaker": "ric", "text": "Ros, siamo già in ritardo. Il Cortile Cafe\nci aspetta. Lara ha scaldato la voce." },
+        { "speaker": "ros", "text": "In ritardo? Ma figurati. Il tempo è un\nconcetto borghese." },
+        { "speaker": "giusy", "text": "(da dietro la porta del bagno)\nCinque minuti! Anche mezz'ora fa." }
+      ],
+      "minigameIntro": [
+        { "speaker": "narratore", "text": "Prova di saggezza! Tira il d20: se esce\npiù di 10, Ros ti ascolta." },
+        { "speaker": "ric", "text": "Ros, rifletti: stai per spegnere\nla serata. Lasciati guidare dalla saggezza." }
+      ],
+      "win": [
+        { "speaker": "ros", "text": "...Uffa. Hai ragione. Lo spengo.\nMa mi hai rovinato la scena." },
+        { "speaker": "ric", "text": "La saggezza di un trentenne. Sono\nqualcosa tra Gandalf e il tuo prof." }
+      ],
+      "lose": [
+        { "speaker": "ros", "text": "Bel discorso. Mi hai quasi convinto.\nQuasi. Ora accendo, grazie." },
+        { "speaker": "ric", "text": "Ho tirato un uno. Il dado mi odia\ne Ros se la ride." }
+      ],
+      "minigameIntro2": [
+        { "speaker": "ric", "text": "Giusy, Cortile Cafe! Esci o ti trascino\nio. Ti trascino, eh!" },
+        { "speaker": "giusy", "text": "Sto solo scegliendo la giacca! Sono\nsei. Dammi ancora cinque minuti." },
+        { "speaker": "narratore", "text": "Prova di forza! Premi X a raffica\nper trascinare Giusy fuori dal bagno." }
+      ],
+      "win2": [
+        { "speaker": "giusy", "text": "Va bene, va bene, sono fuori! Che forza.\nFai palestra, vero?" },
+        { "speaker": "ric", "text": "Zero palestra. È solo il basso che pesa." }
+      ],
+      "lose2": [
+        { "speaker": "giusy", "text": "Tutto qui? Mi hai fatto il solletico.\nDammi ancora un minuto." },
+        { "speaker": "narratore", "text": "Alla fine Giusy esce da sola.\nCon tre giacche." }
+      ],
+      "join": [
+        { "speaker": "ros", "text": "Ok, andiamo. Ma se il concerto fa\nschifo, io non ho visto niente." },
+        { "speaker": "giusy", "text": "Arrivo, arrivo! Solo un secondo, ho\ndimenticato il telefono... trovato!" },
+        { "speaker": "narratore", "text": "Ros e Giusy si uniscono al gruppo!" }
+      ]
+    },
+    "cortile": {
+      "arrival": [
+        { "speaker": "narratore", "text": "Cortile Cafe. La sala è piena, il palco\nè piccolo, il basso di Ric è pronto." },
+        { "speaker": "lara", "text": "Ric! Finalmente! Il pubblico è già caldo.\nTi ho tenuto il posto sul palco." },
+        { "speaker": "ric", "text": "Scusa il ritardo. Ho raccolto mezzo\ngruppo per strada. Sono i miei trasporti." }
+      ],
+      "meet": [
+        { "speaker": "lara", "text": "La band: tu al basso, io alla voce,\ndue chitarristi mai visti e un batterista." },
+        { "speaker": "ric", "text": "Perfetto. Una band senza prove,\ncome nelle più grandi leggende." },
+        { "speaker": "lara", "text": "Oggi non sei solo il bassista: sei il\nfesteggiato. Fatti notare!" }
+      ],
+      "minigameIntro": [
+        { "speaker": "lara", "text": "Si parte! Il gradimento sale se segui\nle note. Q, W, E, R." },
+        { "speaker": "ric", "text": "Ok. Quattro tasti, quattro corsie.\nLa mia specialità: stare a tempo." }
+      ],
+      "win": [
+        { "speaker": "lara", "text": "Ric, sei una leggenda! Il pubblico\nè in delirio! Anche i chitarristi." },
+        { "speaker": "ric", "text": "Non ho nemmeno sudato. Un po' sì,\nma il basso è pesante." },
+        { "speaker": "narratore", "text": "Scroscio di applausi. Qualcuno grida:\n«Ric! Ric! Ric!»" }
+      ],
+      "lose": [
+        { "speaker": "lara", "text": "Non è andata benissimo. Ma ci hanno\napplaudito per pietà. Conta." },
+        { "speaker": "ric", "text": "Il batterista ha tenuto il tempo...\nper conto suo. Io ero altrove." },
+        { "speaker": "narratore", "text": "Qualcuno lancia un tovagliolo.\nSorridendo, per fortuna." }
+      ],
+      "join": [
+        { "speaker": "lara", "text": "Dai, vengo con voi. Ci vuole un divano\ne un po' di calma, dopo il concerto." },
+        { "speaker": "narratore", "text": "Lara si unisce al gruppo!" }
+      ]
+    },
+    "divano": {
+      "arrival": [
+        { "speaker": "narratore", "text": "Notte, casa Circe. Tutti sul divano,\nqualcuno per terra, qualcuno su una sedia." },
+        { "speaker": "narratore", "text": "In TV c'è un documentario sui pesci.\nNessuno sa chi l'ha messo né lo spegne." },
+        { "speaker": "ric", "text": "Trent'anni. Non è stato male come venerdì.\nGrazie, ragazzi." }
+      ],
+      "meet": [
+        { "speaker": "narratore", "text": "Dalla TV: «Il pesce palla si gonfia\nper difendersi dai predatori.»" },
+        { "speaker": "giuggiu", "text": "Quello sono io quando mi chiedono\ndi studiare." },
+        { "speaker": "ros", "text": "Io sono quel pesce lì in fondo, che non\nguarda nessuno e nuota storto." },
+        { "speaker": "giusy", "text": "Io sono il pesce che arriva ultimo\nalla riunione. Sempre." },
+        { "speaker": "liscio", "text": "Io sono quello che sta in equilibrio\nsulla corrente. Come sempre." },
+        { "speaker": "lara", "text": "A me piace quello che canta. Come si\nchiama? Il pesce sirena?" },
+        { "speaker": "lollino", "text": "Non esiste. Però prendo appunti lo stesso." }
+      ],
+      "minigameIntro": [],
+      "win": [],
+      "lose": [],
+      "join": [
+        { "speaker": "ric", "text": "Grazie a tutti. Questo compleanno è\nstato il migliore di sempre." },
+        { "speaker": "narratore", "text": "Mentre il documentario va avanti,\nscorrono i titoli di coda..." }
+      ]
+    }
+  },
+  "minigames": {
+    "simon": {
+      "title": "Memoria da Prof",
+      "instructions": "Memorizza i tasti e ripetili.\nFrecce o WASD.",
+      "winText": "Sequenza perfetta! Pinolo è fiero.",
+      "loseText": "Sequenza sbagliata. Pinolo sospira."
+    },
+    "cat-smoke": {
+      "title": "Dov'è il gatto?",
+      "instructions": "Segui il gatto sotto il fumo, poi scegli\nil divano giusto. Frecce + X.",
+      "winText": "Occhio da falco! Gatto trovato.",
+      "loseText": "Il gatto ti ha fregato. Dilettante."
+    },
+    "slackline": {
+      "title": "Fettuccia",
+      "instructions": "Premi X quando il segnale tocca\nun'estremità. Resta in equilibrio!",
+      "winText": "Attraversata! Che equilibrio.",
+      "loseText": "Pof! Caduta sul telo arancione."
+    },
+    "d20": {
+      "title": "Tiro di Saggezza",
+      "instructions": "Premi X per tirare il d20.\nPiù di 10 e Ros ti ascolta.",
+      "winText": "Bel tiro: Ros ci ripensa.",
+      "loseText": "Dado sfortunato: Ros accende."
+    },
+    "mash": {
+      "title": "Prova di Forza",
+      "instructions": "Premi X a raffica per trascinare\nGiusy fuori dal bagno!",
+      "winText": "Giusy è fuori dal bagno. Finalmente!",
+      "loseText": "Giusy resiste. Il bagno vince."
+    },
+    "rhythm": {
+      "title": "Concerto al Cortile",
+      "instructions": "Premi Q W E R a tempo con le note.\nTieni alto il gradimento.",
+      "winText": "Pubblico in delirio!",
+      "loseText": "Pubblico freddo. Qualcuno sbadiglia."
+    }
+  },
+  "easterEggs": {
+    "pinolo-pinhole": [
+      { "speaker": "ric", "text": "Ragazzi, sapete come funziona la camera\noscura? Un foro, e l'immagine si capovolge." },
+      { "speaker": "lara", "text": "Zzz... mh? Camera... che?" },
+      { "speaker": "ros", "text": "Ric, sono le tre. Spegnimi il prof che\nhai dentro." },
+      { "speaker": "ric", "text": "No, ascoltate: la luce entra dal foro\nstenopeico e proietta tutto capovolto!" },
+      { "speaker": "giusy", "text": "Quindi se dormo a testa in giù\nvedo il mondo dritto?" },
+      { "speaker": "ric", "text": "In effetti sì. Ma non provarci." }
+    ],
+    "gatto": [
+      { "speaker": "narratore", "text": "Dietro la tenda si intravede una coda." },
+      { "speaker": "ric", "text": "Guardate! Il gatto di Giuggiu è\nvenuto fin qui." },
+      { "speaker": "giuggiu", "text": "Quel gatto ha più vita sociale di me." },
+      { "speaker": "gatto", "text": "Miao." }
+    ],
+    "ric-sedia": [
+      { "speaker": "narratore", "text": "Ric sale su una sedia, in equilibrio\nsu un piede, le braccia aperte." },
+      { "speaker": "liscio", "text": "Ric! Sei diventato un funambolo!\nLa fettuccia ti ha cambiato." },
+      { "speaker": "ric", "text": "Non parlatemi, perdo la concentrazione." },
+      { "speaker": "giusy", "text": "Scendi, o ti butto giù io con la\nfettuccia vera." }
+    ],
+    "ros-trellone": [
+      { "speaker": "ros", "text": "Dai Ric, un ultimo trellone. Per il\ncompleanno. Offro io." },
+      { "speaker": "ric", "text": "Per l'amor di dio basta!" },
+      { "speaker": "ros", "text": "Era una prova di saggezza.\nL'hai passata." },
+      { "speaker": "giuggiu", "text": "Stasera il dado ha fatto il suo dovere." }
+    ],
+    "giusy-divano": [
+      { "speaker": "ric", "text": "Giusy, spostati: la mia serata comincia\nda quel cuscino." },
+      { "speaker": "giusy", "text": "Eh no! Ho il posto da due ore. Mi hai\ngià trascinata fuori dal bagno." },
+      { "speaker": "ric", "text": "Dài, solo cinque minuti sul divano." },
+      { "speaker": "giusy", "text": "Cinque minuti? Ti suona familiare?" },
+      { "speaker": "narratore", "text": "Ric tira, Giusy resiste. Il divano\nsi sposta di dieci centimetri." },
+      { "speaker": "giusy", "text": "Il divano è mio. Prendi la sedia." }
+    ],
+    "ric-sopra": [
+      { "speaker": "narratore", "text": "Dal piano di sopra arriva un tonfo.\nPoi uno scricchiolio. Poi un altro tonfo." },
+      { "speaker": "giuggiu", "text": "Ric dov'è? Non si vede da mezz'ora." },
+      { "speaker": "ros", "text": "Di sopra. Con una persona, mi sa.\nLa porta è chiusa: io non dico niente." },
+      { "speaker": "sconosciuta", "text": "Ric... ssh, ci sentono tutti!" },
+      { "speaker": "ric", "text": "(dall'alto) Tutto sotto controllo!\nStiamo ripassando la camera oscura!" },
+      { "speaker": "lollino", "text": "Camera oscura. Sì, certo." },
+      { "speaker": "lara", "text": "Il vicino di sotto ha bussato due volte." }
+    ],
+    "fede": [
+      { "speaker": "fede", "text": "Ric! Sono Fede! Non sono nella storia,\nma sono venuto lo stesso." },
+      { "speaker": "ric", "text": "Fede? E dove ti eri nascosto?\nIn fondo alla sala, immagino." },
+      { "speaker": "fede", "text": "Il mio compito è fare il pubblico e dire:\nbello! Bellissimo! Bravo Ric!" },
+      { "speaker": "ric", "text": "Il tuo ruolo preferito: gratis e senza\nprove." },
+      { "speaker": "fede", "text": "Esatto. Auguri Ric! E suona bene,\nche sennò chiedo il rimborso." }
+    ],
+    "extra-1": [
+      { "speaker": "narratore", "text": "Studente: «Scusa, hai il programma\ndi Pinolo? Io ho solo disegni di pesci.»" },
+      { "speaker": "narratore", "text": "Studente: «Se non segui, chiedi al tipo\ncon i quaderni a colori.»" }
+    ],
+    "extra-2": [
+      { "speaker": "narratore", "text": "Passante col cane: «Quello sulla fettuccia\nè un tuo amico? Il cane lo sfida.»" },
+      { "speaker": "liscio", "text": "Digli che il cane può provarci.\nMa niente zampate sulla fettuccia." }
+    ],
+    "extra-3": [
+      { "speaker": "narratore", "text": "Barista: «Un'altra birra per il bassista?\nOffre la casa. Auguri!»" },
+      { "speaker": "ric", "text": "Grazie! Ma prima suono.\nPoi festeggio." }
+    ]
+  },
+  "credits": {
+    "title": "Un compleanno da trent'anni",
+    "lines": [
+      "Ric ... festeggiato ufficiale e basso",
+      "Lollino ... consulente di camera oscura",
+      "Giuggiu ... padrone di casa e del gatto",
+      "Liscio ... equilibrista di fettuccia",
+      "Ros ... ministro del trellone",
+      "Giusy ... ritardataria di professione",
+      "Lara ... la voce della serata",
+      "Fede ... pubblico (cameo non richiesto)",
+      "Prof. Pinolo ... foro stenopeico a vita",
+      "Il gatto ... se stesso, ovviamente",
+      "Un gioco di tutti i tuoi amici",
+      "Buon compleanno, Ric!"
+    ]
+  }
+}
