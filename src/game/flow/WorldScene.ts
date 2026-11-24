@@ -64,6 +64,8 @@ export class WorldScene extends Phaser.Scene {
 
         this.add.image(0, 0, def.background).setOrigin(0).setDepth(-1);
         audio.playTrack(def.music);
+        // the picture has no door here (giuggiu): a plain panel marks the exit
+        if (def.door?.draw) this.add.rectangle(def.door.x, def.door.y, def.door.w, def.door.h, 0x5a3a22).setOrigin(0).setStrokeStyle(2, 0xd9b27a).setDepth(0);
 
         ensureCharAnims(this, 'ric');
         this.ric = this.add.sprite(def.spawn.x, def.spawn.y, 'char-ric', 1).setOrigin(0.5, 1);
@@ -86,7 +88,11 @@ export class WorldScene extends Phaser.Scene {
 
         this.cameras.main.fadeIn(300);
         this.showTitle();
-        void this.say(lines(`scenes.${def.id}.arrival`)).then(() => (this.busy = false));
+        // divano has no friend to talk to: the finale (meet, eggs, join) plays by itself after the arrival lines
+        void this.say(lines(`scenes.${def.id}.arrival`)).then(() => {
+            if (def.friend) this.busy = false;
+            else void this.talkToFriend();
+        });
     }
 
     update(_time: number, delta: number): void {
@@ -96,7 +102,7 @@ export class WorldScene extends Phaser.Scene {
         this.ric.setDepth(this.ric.y);
         this.updateTalkHint();
 
-        if (this.doorOpen && !this.busy && this.inRect(this.def.door, DOOR_SLACK)) this.leave();
+        if (this.doorOpen && !this.busy && this.def.door && this.inRect(this.def.door, DOOR_SLACK)) this.leave();
     }
 
     // ---- walking ----
@@ -138,13 +144,9 @@ export class WorldScene extends Phaser.Scene {
 
     private spawnNpcs(): void {
         const { def, run } = this;
-        if (!isSceneDone(def, run)) {
-            const friend = this.addNpc(def.friend, 'friend');
-            // a second joiner (circe: Giusy) stands where the scene put her, or next to the friend
-            for (const id of joinersOf(def).slice(1)) {
-                const placed = def.extras.find((e) => e.personId === id);
-                this.addNpc(placed ?? { personId: id, x: friend.def.x + 28, y: friend.def.y, facing: friend.def.facing }, 'friend');
-            }
+        if (def.friend && !isSceneDone(def, run)) {
+            this.addNpc(def.friend, 'friend');
+            if (def.friend2) this.addNpc(def.friend2, 'friend'); // circe: Giusy joins together with Ros
         }
         for (const extra of def.extras) {
             if (!this.npcs.some((n) => n.def.personId === extra.personId && n.kind === 'friend')) this.addNpc(extra, extra.egg ? 'egg' : 'decor');
@@ -196,7 +198,7 @@ export class WorldScene extends Phaser.Scene {
         void story.then(() => (this.busy = this.leaving));
     }
 
-    private async talkToFriend(friend: Npc): Promise<void> {
+    private async talkToFriend(friend?: Npc): Promise<void> {
         const { def, run } = this;
         const L = (key: string) => lines(`scenes.${def.id}.${key}`);
         await this.say(L('meet'));
@@ -219,7 +221,7 @@ export class WorldScene extends Phaser.Scene {
         const egg = eggAfterMinigame(def);
         if (egg) await this.say(lines(`easterEggs.${egg}`));
         await this.say(L('join'));
-        await this.join(friend);
+        await this.join(friend!);
     }
 
     private async join(friend: Npc): Promise<void> {

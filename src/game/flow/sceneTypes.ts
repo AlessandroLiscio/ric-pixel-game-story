@@ -26,9 +26,13 @@ export interface SceneDef {
     title: string;
     music: string;
     spawn: Point;
-    door: Rect;
+    /** null in the last scene (divano), which has no door. */
+    door: (Rect & { draw?: boolean }) | null;
     walk: Rect[];
-    friend: NpcDef;
+    /** null in the last scene (divano), which has no friend to talk to. */
+    friend: NpcDef | null;
+    /** The second friend who joins in the same scene (circe: Giusy). */
+    friend2?: NpcDef;
     extras: NpcDef[];
     minigame: string | null;
     ambient: Record<string, unknown>[];
