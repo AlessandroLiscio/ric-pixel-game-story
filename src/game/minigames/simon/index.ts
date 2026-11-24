@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { audio } from '../../audio';
-import { beep } from '../../audioContext';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { panelTexture } from '../../ui/panel';
 import { InstructionCard } from '../../ui/InstructionCard';
@@ -81,7 +80,10 @@ export default class SimonMinigame extends Phaser.Scene {
         this.hearts = [];
 
         this.buildScene();
-        const onDebug = ({ won }: { won: boolean }): void => this.emitDone(won);
+        // The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE).
+        const onDebug = (): void => {
+            this.done = true;
+        };
         this.game.events.on('debug:minigame', onDebug);
         this.input.keyboard!.on('keydown', this.onKey, this);
         this.events.once('shutdown', () => {
@@ -185,7 +187,7 @@ export default class SimonMinigame extends Phaser.Scene {
     }
 
     private tone(dir: Dir): void {
-        if (!audio.isMuted()) beep(PITCH[dir], 0.16, 0.08);
+        audio.tone(PITCH[dir], 160);
     }
 
     private flash(dir: Dir, ms: number, state: PadState = 'lit'): void {
@@ -303,7 +305,7 @@ export default class SimonMinigame extends Phaser.Scene {
         ];
         parts.forEach((p) => p.setDepth(950));
         this.tweens.add({ targets: parts.slice(1), alpha: { from: 0, to: 1 }, duration: 200 });
-        await this.wait(2000);
+        await this.wait(1500);
         this.emitDone(won);
     }
 

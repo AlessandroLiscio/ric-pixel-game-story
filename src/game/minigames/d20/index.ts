@@ -92,10 +92,11 @@ export default class D20Minigame extends Phaser.Scene {
         this.startRoll();
     }
 
-    private onDebug({ won }: { won: boolean }): void {
+    /** The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE). */
+    private onDebug(): void {
         this.finished = true;
         this.ready = false;
-        this.emitDone(won);
+        this.input.keyboard?.off('keydown', this.onKey, this);
     }
 
     // ---- the roll ----

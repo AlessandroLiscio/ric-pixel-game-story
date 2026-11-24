@@ -100,10 +100,11 @@ export default class MashMinigame extends Phaser.Scene {
         if (this.progress >= 100) this.win();
     }
 
-    private onDebug({ won }: { won: boolean }): void {
+    /** The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE). */
+    private onDebug(): void {
         this.finished = true;
         this.playing = false;
-        this.emitDone(won);
+        this.input.keyboard?.off('keydown', this.onKey, this);
     }
 
     // ---- outcomes ----
