@@ -1,2 +1,11 @@
 # Private reference photos: never commit, never build
 reference_photos/
+
+node_modules
+dist
+dist-offline
+logs
+test-results
+.env*
+!.env.example
+*.log

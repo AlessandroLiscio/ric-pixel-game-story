@@ -1,0 +1,31 @@
+{
+  "name": "ric-pixel-game-story",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A ~20-minute pixel-art story game (Italian text) built with Phaser, deployed to GitHub Pages and as an offline zip.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.2"
+  },
+  "scripts": {
+    "dev-nolog": "vite --config vite/config.dev.mjs",
+    "build-nolog": "node scripts/build.mjs",
+    "spike-nolog": "node scripts/spike.mjs",
+    "verify-production-nolog": "node scripts/verify-production.mjs",
+    "verify-pages-nolog": "node scripts/verify-pages.mjs",
+    "verify-offline-nolog": "node scripts/verify-offline.mjs",
+    "check-privacy-nolog": "node scripts/check-privacy.mjs",
+    "test:e2e-nolog": "node scripts/e2e-placeholder.mjs",
+    "typecheck-nolog": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phaser": "4.2.1"
+  },
+  "devDependencies": {
+    "playwright": "1.65.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.3.1",
+    "vite-plugin-singlefile": "^2.3.4"
+  }
+}
