@@ -2,67 +2,51 @@
   {
     "id": "universita",
     "background": "bg-universita",
+    "map": "universita",
     "title": "Università di Bologna",
     "music": "universita",
-    "spawn": { "x": 480, "y": 250, "facing": "left" },
-    "door": { "x": 580, "y": 200, "w": 60, "h": 62 },
-    "walk": [{ "x": 400, "y": 222, "w": 184, "h": 38 }],
-    "friend": { "personId": "lollino", "x": 540, "y": 242, "facing": "left" },
+    "spawn": { "facing": "right" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "lollino", "facing": "left", "at": "lollino" },
     "extras": [
-      { "personId": "pinolo", "x": 425, "y": 222, "facing": "down", "intro": true },
-      { "personId": "sconosciuta", "x": 450, "y": 254, "facing": "right", "egg": "extra-1", "tint": "#9fb8ff" }
+      { "personId": "pinolo", "facing": "down", "intro": true, "at": "pinolo" },
+      { "personId": "sconosciuta", "facing": "left", "egg": "extra-1", "tint": "#9fb8ff", "at": "studente" }
     ],
     "minigame": "simon",
-    "ambient": [
-      { "type": "tween", "preset": "flicker", "area": { "x": 410, "y": 108, "w": 108, "h": 85 }, "color": "#ffffff", "alpha": [0.04, 0.2], "period": 1400 },
-      { "type": "particles", "preset": "dust", "area": { "x": 0, "y": 20, "w": 330, "h": 130 }, "count": 14 }
-    ]
+    "ambient": []
   },
   {
     "id": "giuggiu",
     "background": "bg-giuggiu",
+    "map": "giuggiu",
     "title": "Casa di Giuggiu",
     "music": "giuggiu",
-    "spawn": { "x": 210, "y": 322, "facing": "right" },
-    "door": { "x": 172, "y": 204, "w": 64, "h": 90, "draw": true },
-    "walk": [
-      { "x": 170, "y": 292, "w": 100, "h": 44 },
-      { "x": 170, "y": 314, "w": 352, "h": 22 },
-      { "x": 420, "y": 262, "w": 102, "h": 52 }
-    ],
-    "friend": { "personId": "giuggiu", "x": 470, "y": 300, "facing": "left" },
+    "spawn": { "facing": "up" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "giuggiu", "facing": "left", "at": "giuggiu" },
     "extras": [
-      { "personId": "gatto", "x": 330, "y": 334, "facing": "down", "sfx": "meow" }
+      { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" }
     ],
     "minigame": "cat-smoke",
-    "ambient": [
-      { "type": "tween", "preset": "sway", "area": { "x": 290, "y": 36, "w": 70, "h": 58 }, "period": 2600 },
-      { "type": "tween", "preset": "flicker", "area": { "x": 566, "y": 40, "w": 36, "h": 60 }, "color": "#9fd0ff", "alpha": [0.0, 0.25], "period": 700 },
-      { "type": "particles", "preset": "dust", "area": { "x": 270, "y": 110, "w": 150, "h": 170 }, "count": 12 }
-    ]
+    "ambient": []
   },
   {
     "id": "giardini",
     "background": "bg-giardini",
+    "map": "giardini",
     "title": "Giardini Margherita",
     "music": "giardini",
-    "spawn": { "x": 60, "y": 330, "facing": "right" },
-    "door": { "x": 0, "y": 312, "w": 18, "h": 40 },
-    "walk": [
-      { "x": 8, "y": 312, "w": 582, "h": 40 },
-      { "x": 212, "y": 244, "w": 378, "h": 70 },
-      { "x": 112, "y": 266, "w": 84, "h": 48 }
-    ],
-    "friend": { "personId": "liscio", "x": 400, "y": 278, "facing": "left" },
+    "spawn": { "facing": "right" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "liscio", "facing": "right", "at": "liscio" },
     "extras": [
-      { "personId": "sconosciuta", "x": 520, "y": 300, "facing": "left", "egg": "extra-2", "tint": "#ffd08a" }
+      { "personId": "sconosciuta", "facing": "left", "egg": "extra-2", "tint": "#ffd08a", "at": "dogwalker" }
     ],
     "minigame": "slackline",
-    "ambient": [
-      { "type": "tween", "preset": "sway", "area": { "x": 0, "y": 0, "w": 640, "h": 130 }, "period": 3200 },
-      { "type": "tween", "preset": "sway", "area": { "x": 0, "y": 240, "w": 640, "h": 110 }, "color": "#1f3a14", "alpha": [0.0, 0.12], "period": 4200 },
-      { "type": "particles", "preset": "pollen", "area": { "x": 0, "y": 120, "w": 640, "h": 200 }, "count": 16 }
-    ]
+    "ambient": []
   },
   {
     "id": "circe",

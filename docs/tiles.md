@@ -136,3 +136,73 @@ The room is 22 x 14 tiles, rebuilt from the three photos `cortile-cafe-lato-scal
 | drums with the "Cortile Cafe" kick drum, amps, mic stands, a guitar on a stand | `drum_kit` (ring logo on the kick), `amp`, `mic_stand`, `guitar_stand`, `bass_stand` |
 | the floor in front packed with the crowd | twenty-two idle people of twenty different sheets facing the band and three dancers |
 | the street door at the front | `cortile_entrance` and a doormat at the bottom left, a cool pool of street light |
+
+## Lecture hall (universita), photo feature -> map
+
+The room is 22 x 14 tiles, rebuilt from `aula-lato-cattedra-professore.jpg` and `aula-lato-spalti-studenti.jpg` (the photo of Prof. Pinolo only for his sprite, which already exists). Stamps in `scripts/art/stamps/universita.py`, map in `scripts/art/rooms/universita.py`. The photos show the hall from behind the benches, so the front wall is the top of the map and the benches fill the floor below it. Daylight: a mild warm mood, with the sun of the left windows falling on the benches.
+
+| Photo feature | In the map |
+| --- | --- |
+| warm tan ashlar walls with a carved dentil cornice under the ceiling | `universita_wall_front` (20 x 4 tiles, one picture): courses of tan stone, a cornice with dentils |
+| the long side wall with tall wooden windows (white glazing bars, roller blinds half down, green trees outside) over a gallery balustrade of turned wooden balusters with a panelled base, strip lamps between the windows | the left six tiles of the front wall: two windows, two white strip lamps, the balustrade with its base, the wall in shade under the gallery |
+| under the gallery: a wooden door with a glazed panel, a green exit sign, a wall unit | the same bay: the glazed door, an exit sign redrawn in our own pixels, a grey wall box |
+| the front wall: olive green panels with round relief medallions (tondi) | two olive panels with a bronze tondo, above the small door and above the big doorway |
+| a small arched dark wooden door left of the screen | `arched_door_small` with a pale stone surround, two panels, a brass handle |
+| the big white projection screen between two whiteboards, dark wooden pilasters on both sides | `projection_screen` (steel casing, white surface), two `whiteboard`s (a pinhole camera sketched in marker on the left one), two `pilaster`s |
+| the inlaid honey wood panel behind the lectern | `inlaid_panel`: a dark border, a diamond lattice, a medallion |
+| the big arched wooden doorway at the right, a lit corridor and a vending machine beyond it, a green exit sign above | `arched_doorway` with a thick dark arch and a keystone, the daylit corridor and a glowing vending machine, `exit_sign`; its two tiles on row 4 are the exit |
+| two recycling bins beside the doorway | `universita_bins` (blue and green and yellow) |
+| the long panelled wooden lectern with a document camera, a laptop, a microphone | `universita_lectern` (6 x 2 tiles) with all three on the top; Prof. Pinolo stands behind it |
+| the blue grey carpet of the lecturer's floor | the carpet of `universita_bowl`: the half ellipse in front of the lectern and a band along the whole front wall |
+| concentric curved benches of honey wood desks with dark risers, rising to the back, around the lecturer | `universita_bowl` (20 x 8 tiles): rows of elliptical arcs around the foot of the screen, a lit nose, honey desks, a dark lip, the seat boards in the desk's shade and a dark riser; all those cells are blocked |
+| students seated along the rows, seen from behind, papers and laptops on the desks | busts cut from the crowd sheets and pasted on the rows (the lower body hides behind the next row's desk), seats left empty here and there, papers, notebooks and laptops on the desks |
+| the steps between the benches, the dark slate slabs of the aisles, the curved wooden bench ends with the turned ball newel at the foot of the handrail | two stair aisles (tiles 6 and 7, 17 and 18) and a side aisle along the left wall, slate slabs in running bond with a lit nosing and a shadow on every step, a wooden end panel and a ball newel at every bench end |
+| sun through the windows on the benches | two soft parallelograms of light baked into the bowl, and two warm pools of light in the map |
+| a walkway along the back wall | row 12, slate, joining the three aisles |
+| how the scene plays | Ric comes in through the small arched door (spawn on row 5 under it), Lollino waits two tiles to the right on the same row, Prof. Pinolo stands at the left end of the lectern, the exit is the big arched doorway at the right end of row 5 (the smoke test walks the room blind with the right arrow along that row), the student extra sits in the right aisle |
+
+## Giuggiu's living room, photo feature -> map
+
+The room is 22 x 13 tiles, rebuilt from the three photos `casa-giuggiu-salotto-lato-finestra.jpg`, `casa-giuggiu-divani-e-puf.jpg` and `casa-giuggiu-gatto.jpg` (the video is not used). Stamps are in `scripts/art/stamps/giuggiu.py`, the map in `scripts/art/rooms/giuggiu.py`. The three sofas of the real room are the three sofas of the cat-smoke minigame (burgundy, cream, navy), so the minigame needs no change.
+
+| Photo feature | In the map |
+| --- | --- |
+| dark herringbone parquet, worn, warm brown | `giuggiu_parquet_a` to `d`, 16 x 4 px planks in a seamless herringbone with a few scuffs in the variants |
+| pale lilac cream walls, cream baseboards, a very high ceiling | `giuggiu_wall_left`, `giuggiu_wall_win`, `giuggiu_wall_right` (three tiles tall, plaster, cream skirting), cables hanging on the wall |
+| the big white window on the back wall, three sashes, grey roller shutters half lowered, brick houses outside, a beige shutter box over it | `giuggiu_wall_win`: the middle sash open on two brick houses with a balcony, the outer sashes half covered by slatted shutters, the box and the white sill |
+| a big crystal chandelier with brass arms in front of the window | `giuggiu_chandelier` in the above layer, 6 tiles wide, arms with candles and hoops of hanging glass drops |
+| a red Chinese paper lantern with a printed child and a yellow tassel, hanging in front of the window | `giuggiu_lantern` in the above layer, hung from the middle of the chandelier |
+| a dark console table under the window, sun on its top | `giuggiu_console` with a warm streak on the dark wood |
+| a tall dark carved wardrobe in the left corner with a bicycle frame on top and cables beside it | `giuggiu_armoire`, 2 x 4 tiles, twisted columns, glass panel, a bicycle frame and a rope on top |
+| a brass tea trolley with glass shelves next to the wardrobe | `giuggiu_trolley` |
+| a gilded landscape painting on the left wall, a framed black and white picture next to the window | `giuggiu_wall_left` (landscape), `giuggiu_wall_right` (portrait) |
+| the tall window on the left wall with trees outside, a long burgundy sofa bed under it | `giuggiu_sidel_*` tiles (the wall seen edge on, a window with foliage and a white sill) and `giuggiu_sofa_burgundy`, a sun patch and a light on the floor in front |
+| a cream patterned sofa with a white blanket, a red blanket, a burgundy cushion and a black bag | `giuggiu_sofa_cream` against the left wall in the corner |
+| a red bean bag pouf in front of the burgundy sofa | `giuggiu_pouf` |
+| a navy two seater with a bright red ribbed throw, a dark grey cushion and a remote control; the cat sleeps on it, next to the door | `giuggiu_sofa_navy` in the below layer so the cat stands on its seat; the cat's tile (the right arm) is left walkable because a scene needs a walkable point |
+| the glass table with chrome legs, a laptop and a bottle on it, one red plastic chair and one black slatted chair | `giuggiu_table` (a see-through top), `giuggiu_chair_red`, `giuggiu_chair_black` |
+| a dark walnut display cabinet with leaded glass doors and claw feet, a tube TV on top, a blue pedestrian sign, a green white and red scarf | `giuggiu_vitrine` in the right corner, with the sign and the TV redrawn in our own pixels |
+| a light oak open shelf along the right wall with a white sports bag, a spray can, a picture frame | `giuggiu_shelf`, 1 x 4 tiles, the lit top and the open side with the cubbies |
+| the doorway behind the sofa, a cream frame, a dark corridor, an open door of orange veneer | `giuggiu_doorway` in the bottom wall with a coir doormat |
+| afternoon light, dim room, a bright window | day mood `#e2d0c8`, pools of warm light under the windows, a red glow near the lantern, sun patches on the parquet |
+
+## Giardini Margherita, photo feature -> map
+
+The room is 26 x 16 tiles (an open-air park is a little larger than the indoor rooms), a bright afternoon with no mood, rebuilt from the four photos `giardini-margherita-1.jpeg`, `-2.jpeg`, `-tipico.jpeg` and `-ric-slack.jpeg` of `reference_photos/giardini-margherita/` (only the setting is used: no face, no pixel and no logo of the photos is copied, and the people on the grass are our own crowd sheets). Everything is in `scripts/art/stamps/giardini.py` and `scripts/art/rooms/giardini.py`. Layers: the lawn, the gravel path, the pavers, the curb and the road are `ground` tiles (autotiled by the room module with ragged edges); the back of the park, the slackline, the towel, the tarp, the bikes and the rucksacks are `walls` stamps (flat, under everyone); the tree shadows are translucent `below` stamps; trees (crown in `above`, trunk blocks), benches, lamps, the bin and the dog are `objects`.
+
+| Photo feature | In the map |
+| --- | --- |
+| a wide mown lawn with worn bare patches and tufts, big dappled tree shadows (all four photos) | six lawn tiles (`giardini_grass_a` to `_dry`), `giardini_grass_bare` patches, four `giardini_shade_*` stamps with sun dapples punched through, falling to the lower right of each tree |
+| the slackline: a green webbing strapped around two big trunks with a green tree strap and a silver ratchet, the tail coiled on the grass (`-tipico`, `-ric-slack`) | `giardini_tree_slack_l` and `_slack_r` (trunk at columns 3 and 17 of row 8, strap and ratchet drawn on the trunk, worn earth at the foot), `giardini_line` (the sagging webbing with its shadow, 15 tiles) and `giardini_webbing` (the coil) |
+| the orange towel spread open below the line (the story text; the photo has a patterned blanket) with things left on it | `giardini_towel` 5 x 3 tiles, skewed, striped, wrinkled, with a fringe, a bottle and a paperback; Liscio stands at the left of it, between the left trunk and the towel |
+| a dark green tarp with two people lying on it, one in a straw hat (`-ric-slack`) | `giardini_tarp` with two lying figures seen from behind (no faces), a pink towel, a phone and a bottle |
+| bicycles lying on the grass, an electric scooter, rucksacks, shoes, a blue bottle, an orange frisbee, beer bottles (`-tipico`, `-ric-slack`) | `giardini_bike_a` (lime frame) and `_bike_b` (black), `giardini_scooter`, `giardini_gear_a` to `_c` |
+| the big plane trees with dark furrowed trunks, one very big at the right edge (`-1`), slender ash trees further back, a sapling with a stake (`-1`) | `giardini_tree_plane` (5 x 5), `giardini_tree_young_a` and `_b`, `giardini_sapling` |
+| the red-brown park bench with a graffiti scribble on a patch of small brick pavers behind a concrete curb, at the lower left (`-1`) | `giardini_bench_graffiti` on `giardini_brick_*` tiles, `giardini_curb_brick` |
+| the grey asphalt of Viale Bottonelli along the front behind a concrete curb with a gutter (`-1`, `-2`) | rows 14 and 15 of `giardini_road_*` (a storm drain and two tarmac patches), the row 13 `giardini_curb`; Ric comes in on the road at the left (`spawn` 1, 14) and leaves at the right (`door` 24, 14, 2 x 2) |
+| a dark green perforated litter bin on a pole at the curb (`-2`) | `giardini_bin` |
+| a green lamp post with a round globe, wooden park benches, the asphalt path behind the lawn (`-tipico`, `-ric-slack`) | two `giardini_lamp` posts, two `giardini_bench_wood`, the back path in `giardini_backdrop` with tiny walkers and a bench |
+| the far wooded edge, a villa with an orange roof among the trees (`-1`), the pond with a white fountain behind a wooden fence (`-ric-slack`), a post-and-rail fence | `giardini_backdrop` (26 x 4 tiles): sky and clouds, hazy far trees, the villa, the pond and its fountain, taller trees on slender trunks, the back path, a pale post-and-rail fence |
+| a gravel footpath that leaves the lawn through a gate in the fence toward the pond | `giardini_path_*` ragged autotiles at columns 20 and 21 from the road (`giardini_pathdip_l` and `_r`, the dropped curb) up to the gate posts in the backdrop |
+| a dog walker with a small dog on a red leash | the extra `sconosciuta` (tinted, egg `extra-2`) at the point `dogwalker` (21, 11) on the path, `giardini_dog` at its right on the grass with the leash running to her hand |
+| a few people sitting and standing around on the grass | six idle crowd people: a spectator at the left trunk, a pair chatting by the bin, one at the curb by the bench, one at the curb by the path, one watching from the right trunk, and the friend Liscio at the point `liscio` (6, 9) |
