@@ -83,18 +83,15 @@
   {
     "id": "divano",
     "background": "bg-divano",
+    "map": "divano",
     "title": "Casa Circe, la sera",
     "music": "divano",
-    "spawn": { "x": 330, "y": 302, "facing": "right" },
+    "spawn": { "facing": "up" },
     "door": null,
-    "walk": [{ "x": 30, "y": 286, "w": 450, "h": 36 }],
+    "walk": [],
     "friend": null,
     "extras": [],
     "minigame": null,
-    "ambient": [
-      { "type": "tween", "preset": "flicker", "area": { "x": 70, "y": 0, "w": 90, "h": 60 }, "color": "#ffe9a0", "alpha": [0.0, 0.2], "period": 1600 },
-      { "type": "tween", "preset": "pulse", "area": { "x": 0, "y": 0, "w": 640, "h": 360 }, "color": "#1a2f8f", "alpha": [0.0, 0.25], "period": 12000 },
-      { "type": "particles", "preset": "dust", "area": { "x": 440, "y": 0, "w": 160, "h": 200 }, "count": 8 }
-    ]
+    "ambient": []
   }
 ]
