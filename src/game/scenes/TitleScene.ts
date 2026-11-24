@@ -21,6 +21,7 @@ export class TitleScene extends Phaser.Scene {
     }
 
     create(): void {
+        this.started = false; // the ending returns to this same instance for a replay
         const cx = GAME_WIDTH / 2;
         const shadow = { offsetX: 2, offsetY: 2, color: '#0a1040', blur: 0, stroke: false, fill: true };
         this.drawSky();
