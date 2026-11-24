@@ -96,8 +96,6 @@ export interface TrackSpec {
     harm?: { wave?: 'square' | 'pulse25'; volume?: number };
     bassVolume?: number;
     noiseVolume?: number;
-    /** A held lead note longer than this many steps is struck again (the sequencer's envelope fades a note within about two steps). */
-    maxHold?: number;
 }
 
 function split(s: string): string[] {
@@ -132,40 +130,19 @@ function pattern(lib: Record<string, string>, spec: string, what: string): strin
     return toks;
 }
 
-function leadSteps(bar: string, maxHold: number, where: string): (string | null)[] {
+function leadSteps(bar: string, where: string): (string | null)[] {
     const out: (string | null)[] = [];
-    let last: string | null = null;
-    let run = 0;
     for (const tok of bar.split(/\s+/).filter(Boolean)) {
         const m = /^([A-G][#b]?-?\d|-|=)(?::(\d+))?$/.exec(tok);
         if (!m) throw new Error(`${where}: bad lead token "${tok}"`);
         const n = m[2] ? Number(m[2]) : 2;
-        for (let i = 0; i < n; i++) {
-            if (m[1] === '-') {
-                out.push('-');
-                last = null;
-                run = 0;
-            } else if (m[1] === '=' || i > 0) {
-                if (last && run >= maxHold) {
-                    out.push(last);
-                    run = 1;
-                } else {
-                    out.push('=');
-                    run++;
-                }
-            } else {
-                out.push(m[1]);
-                last = m[1];
-                run = 1;
-            }
-        }
+        for (let i = 0; i < n; i++) out.push(m[1] === '-' ? '-' : m[1] === '=' || i > 0 ? '=' : m[1]);
     }
     return out;
 }
 
 export function compose(spec: TrackSpec): Track {
     const flats = spec.flats ?? false;
-    const maxHold = spec.maxHold ?? 4;
     const lead: (string | null)[] = [];
     const harm: (string | null)[] = [];
     const bass: (string | null)[] = [];
@@ -182,7 +159,7 @@ export function compose(spec: TrackSpec): Track {
         const shift = sec.arpShift ?? 0;
         leadBars.forEach((lb, bi) => {
             const where = `${spec.id}: section ${si} bar ${bi + 1}`;
-            const l = leadSteps(lb, maxHold, where);
+            const l = leadSteps(lb, where);
             if (l.length !== STEPS_PER_BAR) throw new Error(`${where} has ${l.length} lead steps, need ${STEPS_PER_BAR}`);
             lead.push(...l);
             const chords = chordBars[bi].split(/\s+/).map(parseChord);

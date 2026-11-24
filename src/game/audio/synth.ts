@@ -60,16 +60,43 @@ export interface VoiceOptions {
     /** Low-pass cutoff for noise voices, Hz. */
     cutoff?: number;
     attack?: number;
+    /** Sustain level as a share of `vol` for pitched waves (default 1 for triangle, 0.7 for square and pulse25). Noise ignores it and decays. */
+    sustain?: number;
+}
+
+const SILENCE = 0.0001;
+const DECAY = 0.03; // seconds from the peak down to the sustain level
+const RELEASE = 0.05; // longest release at the end of a note
+
+/**
+ * Gain envelope: a quick attack to the peak, a short decay to the sustain level, a hold, then a short release at the end.
+ * Noise keeps the percussive shape (attack, then an exponential fade over the whole length).
+ */
+function envelope(g: AudioParam, o: VoiceOptions, end: number): void {
+    const peak = Math.max(o.vol, 0.0002);
+    const attack = Math.min(o.attack ?? 0.005, o.dur / 2);
+    const top = o.when + attack;
+    g.setValueAtTime(SILENCE, o.when);
+    g.linearRampToValueAtTime(peak, top);
+    if (o.wave === 'noise') {
+        g.exponentialRampToValueAtTime(SILENCE, end);
+        return;
+    }
+    const level = Math.max(peak * (o.sustain ?? (o.wave === 'triangle' ? 1 : 0.7)), 0.0002);
+    const rest = end - top;
+    const release = Math.min(RELEASE, Math.max(0.015, rest * 0.3), rest);
+    const decayEnd = Math.min(top + DECAY, end - release);
+    if (decayEnd > top) g.linearRampToValueAtTime(level, decayEnd);
+    else g.setValueAtTime(level, top);
+    g.setValueAtTime(level, end - release);
+    g.exponentialRampToValueAtTime(SILENCE, end);
 }
 
 /** One enveloped voice: starts and stops itself and frees its nodes when it ends. */
 export function voice(ctx: BaseAudioContext, dest: AudioNode, o: VoiceOptions): void {
     const end = o.when + o.dur;
-    const attack = Math.min(o.attack ?? 0.004, o.dur / 2);
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.0001, o.when);
-    gain.gain.linearRampToValueAtTime(Math.max(o.vol, 0.0002), o.when + attack);
-    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    envelope(gain.gain, o, end);
 
     let src: AudioScheduledSourceNode;
     let pitch: AudioParam;

@@ -22,6 +22,7 @@ export interface Track {
 const CHANNEL_GAIN = 0.2;
 const LOOKAHEAD = 0.1; // seconds scheduled ahead of the context clock
 const TICK_MS = 25;
+const MAX_LATENCY = 0.5; // seconds; a larger reported output latency is treated as bogus
 
 /** Schedules the notes that start on one step of every channel. Shared by the sequencer and offline renders. */
 function scheduleStep(ctx: BaseAudioContext, dest: AudioNode, track: Track, step: number, when: number): void {
@@ -95,9 +96,15 @@ export class Sequencer {
         this.track = null;
     }
 
-    /** Seconds since the track started (can be negative during the 50 ms count-in); 0 when nothing plays. */
+    /**
+     * Seconds of the track the listener is hearing now: the context clock minus the output latency (what the device still has
+     * to play), never negative; 0 when nothing plays.
+     */
     getBeatClock(): number {
-        return this.track ? this.ctx.currentTime - this.startTime : 0;
+        if (!this.track) return 0;
+        const c = this.ctx as BaseAudioContext & { outputLatency?: number; baseLatency?: number };
+        const latency = c.outputLatency || c.baseLatency || 0; // outputLatency is 0 or missing in some browsers
+        return Math.max(0, this.ctx.currentTime - this.startTime - Math.min(latency, MAX_LATENCY));
     }
 
     private tick(): void {

@@ -13,7 +13,6 @@ const REST = '-:16';
 export default compose({
     id: 'rhythm',
     bpm: 120,
-    maxHold: 16,
     sections: [
         { ...feel, chords: 'C | G', lead: `${REST} | ${REST}`, fill: 'rock' },
         { ...feel, chords: A_CHORDS, lead: A },
