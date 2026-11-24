@@ -6,6 +6,7 @@ import { InstructionCard } from '../../ui/InstructionCard';
 import { panelTexture } from '../../ui/panel';
 import { pixelStyle, t } from '../../ui/text';
 import { MINIGAME_DONE, type MinigameDone } from '../types';
+import { mashStrain } from '../fx';
 import { LABELS } from './labels';
 
 const ID = 'mash';
@@ -97,6 +98,7 @@ export default class MashMinigame extends Phaser.Scene {
         this.jitter = 4;
         this.counter.setText(`${LABELS.presses}: ${this.presses}`);
         audio.sfx('blip');
+        mashStrain(this, this.ric.x - 4, FLOOR_Y + 2);
         if (this.progress >= 100) this.win();
     }
 

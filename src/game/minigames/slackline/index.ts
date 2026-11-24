@@ -6,6 +6,7 @@ import { InstructionCard } from '../../ui/InstructionCard';
 import { panelTexture } from '../../ui/panel';
 import { pixelStyle, t } from '../../ui/text';
 import { MINIGAME_DONE, type MinigameDone } from '../types';
+import { slacklineDust } from '../fx';
 import { LABELS } from './labels';
 
 const ID = 'slackline';
@@ -146,6 +147,7 @@ export default class SlacklineMinigame extends Phaser.Scene {
         audio.sfx('miss');
         this.drawPips();
         this.wobble(22, 3);
+        slacklineDust(this, this.rig.x, LINE_Y + 40, true);
         this.cameras.main.shake(140, 0.004);
         if (this.pips <= 0) this.fall();
     }
@@ -162,6 +164,7 @@ export default class SlacklineMinigame extends Phaser.Scene {
         const landX = Phaser.Math.Clamp(this.rig.x, TOWEL.x + 6, TOWEL.x + TOWEL.w - 70);
         this.tweens.add({ targets: this.rig, angle: 810, x: landX, y: TOWEL.y + 14, duration: 750, ease: 'Quad.In' });
         this.tweens.add({ targets: this.rig, scaleY: 0.85, duration: 90, yoyo: true, delay: 760, onComplete: () => this.end(false) });
+        this.time.delayedCall(740, () => slacklineDust(this, landX + 30, TOWEL.y + 40, true));
     }
 
     private wobble(amplitude: number, repeat: number): void {
