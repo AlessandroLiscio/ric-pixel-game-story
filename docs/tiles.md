@@ -136,3 +136,28 @@ The room is 22 x 14 tiles, rebuilt from the three photos `cortile-cafe-lato-scal
 | drums with the "Cortile Cafe" kick drum, amps, mic stands, a guitar on a stand | `drum_kit` (ring logo on the kick), `amp`, `mic_stand`, `guitar_stand`, `bass_stand` |
 | the floor in front packed with the crowd | twenty-two idle people of twenty different sheets facing the band and three dancers |
 | the street door at the front | `cortile_entrance` and a doormat at the bottom left, a cool pool of street light |
+
+## Lecture hall (universita), photo feature -> map
+
+The room is 22 x 14 tiles, rebuilt from `aula-lato-cattedra-professore.jpg` and `aula-lato-spalti-studenti.jpg` (the photo of Prof. Pinolo only for his sprite, which already exists). Stamps in `scripts/art/stamps/universita.py`, map in `scripts/art/rooms/universita.py`. The photos show the hall from behind the benches, so the front wall is the top of the map and the benches fill the floor below it. Daylight: a mild warm mood, with the sun of the left windows falling on the benches.
+
+| Photo feature | In the map |
+| --- | --- |
+| warm tan ashlar walls with a carved dentil cornice under the ceiling | `universita_wall_front` (20 x 4 tiles, one picture): courses of tan stone, a cornice with dentils |
+| the long side wall with tall wooden windows (white glazing bars, roller blinds half down, green trees outside) over a gallery balustrade of turned wooden balusters with a panelled base, strip lamps between the windows | the left six tiles of the front wall: two windows, two white strip lamps, the balustrade with its base, the wall in shade under the gallery |
+| under the gallery: a wooden door with a glazed panel, a green exit sign, a wall unit | the same bay: the glazed door, an exit sign redrawn in our own pixels, a grey wall box |
+| the front wall: olive green panels with round relief medallions (tondi) | two olive panels with a bronze tondo, above the small door and above the big doorway |
+| a small arched dark wooden door left of the screen | `arched_door_small` with a pale stone surround, two panels, a brass handle |
+| the big white projection screen between two whiteboards, dark wooden pilasters on both sides | `projection_screen` (steel casing, white surface), two `whiteboard`s (a pinhole camera sketched in marker on the left one), two `pilaster`s |
+| the inlaid honey wood panel behind the lectern | `inlaid_panel`: a dark border, a diamond lattice, a medallion |
+| the big arched wooden doorway at the right, a lit corridor and a vending machine beyond it, a green exit sign above | `arched_doorway` with a thick dark arch and a keystone, the daylit corridor and a glowing vending machine, `exit_sign`; its two tiles on row 4 are the exit |
+| two recycling bins beside the doorway | `universita_bins` (blue and green and yellow) |
+| the long panelled wooden lectern with a document camera, a laptop, a microphone | `universita_lectern` (6 x 2 tiles) with all three on the top; Prof. Pinolo stands behind it |
+| the blue grey carpet of the lecturer's floor | the carpet of `universita_bowl`: the half ellipse in front of the lectern and a band along the whole front wall |
+| concentric curved benches of honey wood desks with dark risers, rising to the back, around the lecturer | `universita_bowl` (20 x 8 tiles): rows of elliptical arcs around the foot of the screen, a lit nose, honey desks, a dark lip, the seat boards in the desk's shade and a dark riser; all those cells are blocked |
+| students seated along the rows, seen from behind, papers and laptops on the desks | busts cut from the crowd sheets and pasted on the rows (the lower body hides behind the next row's desk), seats left empty here and there, papers, notebooks and laptops on the desks |
+| the steps between the benches, the dark slate slabs of the aisles, the curved wooden bench ends with the turned ball newel at the foot of the handrail | two stair aisles (tiles 6 and 7, 17 and 18) and a side aisle along the left wall, slate slabs in running bond with a lit nosing and a shadow on every step, a wooden end panel and a ball newel at every bench end |
+| sun through the windows on the benches | two soft parallelograms of light baked into the bowl, and two warm pools of light in the map |
+| a walkway along the back wall | row 12, slate, joining the three aisles |
+| how the scene plays | Ric comes in through the small arched door (spawn on row 5 under it), Lollino waits two tiles to the right on the same row, Prof. Pinolo stands at the left end of the lectern, the exit is the big arched doorway at the right end of row 5 (the smoke test walks the room blind with the right arrow along that row), the student extra sits in the right aisle |
+
