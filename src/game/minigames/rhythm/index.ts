@@ -14,12 +14,14 @@ const ID = 'rhythm';
 const PERFECT = 0.06; // seconds either side of the note
 const GOOD = 0.12;
 const EARLY = 0.26; // a press this close to a note, but outside GOOD, counts that note as missed (no double penalty)
-const GAIN = { perfect: 4, good: 2, miss: -6 };
+// Tuned with a scripted player on the 91-note chart (see docs/music.md): a perfect run reaches 100 only near the end of the song, a player who
+// hits about 7 notes in 10 still finishes with 50 or more, and a player who presses nothing loses after about 24 seconds.
+const GAIN = { perfect: 0.7, good: 0.5, miss: -1.25 };
 const START_APPROVAL = 50;
 const FALL_SECONDS = 1.6; // time a note needs to fall from the top of the screen to the hit line
 const COUNT_STEP = 0.8; // seconds per number of the 3-2-1 countdown
-const AUDIO_LATENCY = 0; // seconds; raise it if the notes feel late against what you hear
-const END_PAUSE_MS = 2000;
+const AUDIO_LATENCY = 0; // seconds; an extra manual offset on top of the output latency the beat clock already subtracts
+const END_PAUSE_MS = 1500;
 const SHAKE_FROM_COMBO = 6;
 
 // ---- layout (640x360) ----
@@ -107,7 +109,7 @@ export default class RhythmMinigame extends Phaser.Scene {
         if (this.useWall) return this.wallClock();
         const a = audio.getBeatClock();
         const wall = this.wallClock();
-        if (wall > 0.35 && a < 0.05) {
+        if (wall > 0.8 && a < 0.05) { // 0.8 s: the clock stays at 0 for the 50 ms count-in plus the output latency (up to 0.5 s)
             this.useWall = true; // no audio (blocked or muted context): the game stays playable on its own clock
             return wall;
         }
@@ -295,8 +297,12 @@ export default class RhythmMinigame extends Phaser.Scene {
         return (this.time.now - this.songStartedAt) / 1000 - 0.05;
     }
 
-    private onDebug = ({ won }: { won: boolean }): void => {
-        this.finish(won, true);
+    /** The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE). */
+    private onDebug = (): void => {
+        if (this.finished) return;
+        this.finished = true;
+        this.phase = 'ending';
+        audio.stopTrack();
     };
 
     // ---- input and judging ----
@@ -381,15 +387,11 @@ export default class RhythmMinigame extends Phaser.Scene {
 
     // ---- end ----
 
-    private finish(won: boolean, immediate = false): void {
+    private finish(won: boolean): void {
         if (this.finished) return;
         this.finished = true;
         this.phase = 'ending';
         audio.stopTrack();
-        if (immediate) {
-            this.emitDone(won);
-            return;
-        }
         audio.sfx(won ? 'win' : 'lose');
         this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.55).setOrigin(0).setDepth(30);
         this.add

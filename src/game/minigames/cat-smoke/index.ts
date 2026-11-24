@@ -76,7 +76,10 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.cat = this.add.sprite(SOFA_X[this.current], FEET_ON, 'char-gatto', 4).setOrigin(0.5, 1).setScale(CAT_SCALE).setDepth(DEPTH.cat);
         this.face('down');
 
-        const onDebug = ({ won }: { won: boolean }): void => this.emitDone(won);
+        // The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE).
+        const onDebug = (): void => {
+            this.done = true;
+        };
         this.game.events.on('debug:minigame', onDebug);
         this.input.keyboard!.on('keydown', this.onKey, this);
         this.events.once('shutdown', () => {
@@ -425,7 +428,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         ];
         parts.forEach((p) => p.setDepth(DEPTH.banner));
         this.tweens.add({ targets: parts, alpha: { from: 0, to: 1 }, duration: 200 });
-        await this.wait(2000);
+        await this.wait(1500);
         this.emitDone(won);
     }
 

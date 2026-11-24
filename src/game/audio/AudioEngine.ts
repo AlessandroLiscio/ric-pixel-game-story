@@ -2,8 +2,9 @@ import type Phaser from 'phaser';
 import { getAudioContext } from '../audioContext';
 import { Sequencer, type Track } from './Sequencer';
 import { playSfx, SFX_NAMES, type SfxName } from './sfx';
+import { voice } from './synth';
 
-const MUSIC_GAIN = 0.7; // music sits under the effects
+const MUSIC_GAIN = 0.4; // music sits under the effects; notes sustain now, so the average level is about 2.7x the old plucks (lowered from 0.7)
 const DEFAULT_VOLUME = 0.7;
 
 // One file per track in ./music, each `export default` a Track. An empty folder is fine.
@@ -66,6 +67,13 @@ export class AudioEngine {
             return;
         }
         playSfx(ctx, this.master, name);
+    }
+
+    /** A short square-wave tone through the master gain, so mute and volume apply (the Simon pad keys). */
+    tone(freq: number, ms: number): void {
+        const ctx = this.ctx;
+        if (!ctx || !this.master || ctx.state !== 'running') return;
+        voice(ctx, this.master, { wave: 'square', freq, when: ctx.currentTime, dur: ms / 1000, vol: 0.12 });
     }
 
     playTrack(id: string): void {

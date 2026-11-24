@@ -4,7 +4,7 @@ Both are Phaser scenes in `src/game/minigames/<id>/index.ts` (default export, `s
 
 ## Simon (scene universita)
 
-Prof. Pinolo (`char-pinolo`, 2x, stick on the top corner of a chalkboard that shows the round and the hearts) lights the keys of a big arrow pad one at a time (380 ms lit, 190 ms gap) with a distinct tone per direction (G4 left, C5 down, E5 up, G5 right, through `beep()` of `audioContext.ts`, skipped while muted). The player retypes with the arrow keys or WASD; progress shows as squares under the status word. Three rounds of 4, 5 and 6 keys (never three equal keys in a row), 3 hearts. A wrong key, or 8 s without a key, costs a heart, plays `miss` and replays the same sequence; 0 hearts loses, finishing round 3 wins. Score is the number of rounds completed. A full clean run takes about 30 s.
+Prof. Pinolo (`char-pinolo`, 2x, stick on the top corner of a chalkboard that shows the round and the hearts) lights the keys of a big arrow pad one at a time (380 ms lit, 190 ms gap) with a distinct tone per direction (G4 left, C5 down, E5 up, G5 right, through `audio.tone()`, so mute and volume apply). The player retypes with the arrow keys or WASD; progress shows as squares under the status word. Three rounds of 4, 5 and 6 keys (never three equal keys in a row), 3 hearts. A wrong key, or 8 s without a key, costs a heart, plays `miss` and replays the same sequence; 0 hearts loses, finishing round 3 wins. Score is the number of rounds completed. A full clean run takes about 30 s.
 
 ## Cat-smoke (scene giuggiu)
 
