@@ -27,9 +27,11 @@ Every script is quiet: it prints one PASS line, or a FAIL line with at most five
 | `npm run verify-offline-nolog` | `PASS offline: no network requests, title screen loaded` |
 | `npm run verify-pages-nolog` | `PASS pages: title screen loaded` |
 | `npm run check-privacy-nolog` | `PASS privacy: no reference photos or secrets in index, history, or build` |
-| `npm run test:e2e-nolog` | placeholder, prints `FAIL e2e: not implemented (W4)` until the end-to-end tests exist |
+| `npm run test:e2e-nolog` | `PASS e2e: 6 scenes, 6 minigames, no console errors` |
 
 `verify-pages-nolog` checks the live site and fails until GitHub Pages is deployed. `npm run typecheck-nolog` runs the TypeScript check (it is also the first step of the build).
+
+`test:e2e-nolog` (`scripts/e2e.mjs`, about 2.5 minutes) builds the offline single file twice into `logs/e2e/`, once as a test build (`VITE_TEST_BUILD=1`, `dist/`) and once as production (`dist-prod/`), and opens both in Chrome through `file://`. In the test build it plays the title, all six scenes, all six minigames, the ending and the replay from the title: the first scene and the last are walked with real key presses only, simon, mash and d20 are played with real key presses, and slackline, cat-smoke (lost on purpose) and rhythm are forced through `window.__ricTest`. It fails on any console error, failed request or request that is not `file:` or `data:`, and when the number of distinct minigames entered is not 6. In the production build it checks that the title renders, the game starts, and `window.__ricTest`, the `__RIC_TEST_SKIP__` key and the debug keys are absent. The step log is `logs/e2e/steps.log`.
 
 ## Builds
 

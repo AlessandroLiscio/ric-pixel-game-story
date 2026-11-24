@@ -21,7 +21,7 @@
     "check-dialogue-nolog": "node scripts/check-dialogue.mjs",
     "check-content-nolog": "node scripts/check-audio.mjs && node scripts/check-scenes.mjs && node scripts/check-dialogue.mjs",
     "smoke-walk-nolog": "node scripts/smoke-walk.mjs",
-    "test:e2e-nolog": "node scripts/e2e-placeholder.mjs",
+    "test:e2e-nolog": "node scripts/e2e.mjs",
     "typecheck-nolog": "tsc --noEmit"
   },
   "dependencies": {
