@@ -1,0 +1,200 @@
+[
+  {
+    "id": "ric",
+    "name": "Ric",
+    "role": "hero",
+    "traits": {
+      "skin": "tan",
+      "hair": "tied",
+      "hairStyle": "tied-back",
+      "hairColor": "brown",
+      "outfitTop": "shirt:maroon:floral",
+      "outfitBottom": "shorts:khaki/charcoal",
+      "accessory": ["beard", "sunglasses"],
+      "height": 1.1
+    },
+    "sprite": "char-ric",
+    "portrait": "portrait-ric",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "lara",
+    "name": "Lara",
+    "role": "friend",
+    "traits": {
+      "skin": "light",
+      "hair": "medium",
+      "hairStyle": "long-wavy",
+      "hairColor": "chestnut",
+      "outfitTop": "dress:white:buttons",
+      "outfitBottom": "dress:white/white",
+      "accessory": [],
+      "height": 0.92
+    },
+    "sprite": "char-lara",
+    "portrait": "portrait-lara",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "liscio",
+    "name": "Liscio",
+    "role": "friend",
+    "traits": {
+      "skin": "tan",
+      "hair": "short",
+      "hairStyle": "curly",
+      "hairColor": "brown",
+      "outfitTop": "tee:grey:chain",
+      "outfitBottom": "shorts:khaki/white",
+      "accessory": ["stubble", "necklace"],
+      "height": 1.0
+    },
+    "sprite": "char-liscio",
+    "portrait": "portrait-liscio",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "ros",
+    "name": "Ros",
+    "role": "friend",
+    "traits": {
+      "skin": "light",
+      "hair": "medium",
+      "hairStyle": "bob-bangs",
+      "hairColor": "auburn",
+      "outfitTop": "tank:charcoal:floral",
+      "outfitBottom": "shorts:navy/white",
+      "accessory": [],
+      "height": 0.9
+    },
+    "sprite": "char-ros",
+    "portrait": "portrait-ros",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "lollino",
+    "name": "Lollino",
+    "role": "friend",
+    "traits": {
+      "skin": "tan",
+      "hair": "short",
+      "hairStyle": "curly",
+      "hairColor": "black",
+      "outfitTop": "tee:navy",
+      "outfitBottom": "shorts:khaki/white",
+      "accessory": ["beard", "sunglasses-on-head"],
+      "height": 1.0
+    },
+    "sprite": "char-lollino",
+    "portrait": "portrait-lollino",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "fede",
+    "name": "Fede",
+    "role": "npc",
+    "traits": {
+      "skin": "light",
+      "hair": "long",
+      "hairStyle": "long-straight",
+      "hairColor": "brown",
+      "outfitTop": "tank:yellow:floral",
+      "outfitBottom": "skirt:cream/white",
+      "accessory": [],
+      "height": 0.95
+    },
+    "sprite": "char-fede",
+    "portrait": "portrait-fede",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "giuggiu",
+    "name": "Giuggiu",
+    "role": "friend",
+    "traits": {
+      "skin": "tan",
+      "hair": "short",
+      "hairStyle": "short",
+      "hairColor": "black",
+      "outfitTop": "tee:white:logo",
+      "outfitBottom": "shorts:navy/charcoal",
+      "accessory": ["beard"],
+      "height": 1.0
+    },
+    "sprite": "char-giuggiu",
+    "portrait": "portrait-giuggiu",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "giusy",
+    "name": "Giusy",
+    "role": "friend",
+    "traits": {
+      "skin": "olive",
+      "hair": "long",
+      "hairStyle": "long-wavy",
+      "hairColor": "black",
+      "outfitTop": "dress:charcoal:floral",
+      "outfitBottom": "dress:charcoal/white",
+      "accessory": [],
+      "height": 0.9
+    },
+    "sprite": "char-giusy",
+    "portrait": "portrait-giusy",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "pinolo",
+    "name": "Prof. Pinolo",
+    "role": "npc",
+    "traits": {
+      "skin": "light",
+      "hair": "short",
+      "hairStyle": "side-part",
+      "hairColor": "grey",
+      "outfitTop": "shirt-long:blue_l:stripes",
+      "outfitBottom": "trousers:charcoal/charcoal",
+      "accessory": ["glasses", "tie"],
+      "height": 0.95
+    },
+    "sprite": "char-pinolo",
+    "portrait": "portrait-pinolo",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "gatto",
+    "name": "Gatto",
+    "role": "animal",
+    "traits": {
+      "skin": "calico",
+      "hair": "none",
+      "hairStyle": "none",
+      "hairColor": "orange",
+      "outfitTop": "none",
+      "outfitBottom": "none",
+      "accessory": [],
+      "height": 0.5
+    },
+    "sprite": "char-gatto",
+    "portrait": null,
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "sconosciuta",
+    "name": "La sconosciuta",
+    "role": "npc",
+    "traits": {
+      "skin": "light",
+      "hair": "tied",
+      "hairStyle": "ponytail",
+      "hairColor": "chestnut",
+      "outfitTop": "dress:mint",
+      "outfitBottom": "dress:mint/white",
+      "accessory": [],
+      "height": 0.92
+    },
+    "sprite": "char-sconosciuta",
+    "portrait": "portrait-sconosciuta",
+    "portraitSource": "parametric"
+  }
+]
