@@ -35,25 +35,18 @@
   {
     "id": "giardini",
     "background": "bg-giardini",
+    "map": "giardini",
     "title": "Giardini Margherita",
     "music": "giardini",
-    "spawn": { "x": 60, "y": 330, "facing": "right" },
-    "door": { "x": 0, "y": 312, "w": 18, "h": 40 },
-    "walk": [
-      { "x": 8, "y": 312, "w": 582, "h": 40 },
-      { "x": 212, "y": 244, "w": 378, "h": 70 },
-      { "x": 112, "y": 266, "w": 84, "h": 48 }
-    ],
-    "friend": { "personId": "liscio", "x": 400, "y": 278, "facing": "left" },
+    "spawn": { "facing": "right" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "liscio", "facing": "right", "at": "liscio" },
     "extras": [
-      { "personId": "sconosciuta", "x": 520, "y": 300, "facing": "left", "egg": "extra-2", "tint": "#ffd08a" }
+      { "personId": "sconosciuta", "facing": "left", "egg": "extra-2", "tint": "#ffd08a", "at": "dogwalker" }
     ],
     "minigame": "slackline",
-    "ambient": [
-      { "type": "tween", "preset": "sway", "area": { "x": 0, "y": 0, "w": 640, "h": 130 }, "period": 3200 },
-      { "type": "tween", "preset": "sway", "area": { "x": 0, "y": 240, "w": 640, "h": 110 }, "color": "#1f3a14", "alpha": [0.0, 0.12], "period": 4200 },
-      { "type": "particles", "preset": "pollen", "area": { "x": 0, "y": 120, "w": 640, "h": 200 }, "count": 16 }
-    ]
+    "ambient": []
   },
   {
     "id": "circe",
