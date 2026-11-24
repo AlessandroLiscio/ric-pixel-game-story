@@ -98,15 +98,49 @@ for (const f of tracked) badPath(f, 'index');
 const history = git(['log', '--all', '--name-only', '--format=']).split('\n').filter(Boolean);
 for (const f of new Set(history)) badPath(f, 'history');
 
-// (2) index and history: contents for token patterns
-for (const f of tracked) {
-    if (f === 'package-lock.json' || MEDIA.test(f) || /\.(ttf|woff2?|zip)$/i.test(f)) continue;
-    const p = join(ROOT, f);
-    if (existsSync(p)) {
-        const text = readFileSync(p, 'utf8');
-        scanText(text, `index ${f}`);
-        scanDataUris(text, `index ${f}`);
+// (2) contents for token patterns (and data: URIs): the INDEX blobs (what the next commit would hold,
+// even when the working file was changed after `git add`), the working files that are tracked or
+// untracked-but-not-ignored (what a later `git add` would stage), and the history patches.
+// Binary files (a NUL byte in the first 8000 bytes) are skipped; text over 8 MB gives a WARN.
+const SKIP_PATH = (f) => f === 'package-lock.json' || MEDIA.test(f) || /\.(ttf|woff2?|zip)$/i.test(f);
+const scanBuf = (buf, where) => {
+    if (buf.subarray(0, 8000).includes(0)) return;
+    const text = buf.toString('utf8');
+    scanText(text, where);
+    scanDataUris(text, where);
+};
+const indexBlobs = new Map(); // oid -> first path
+for (const l of git(['ls-files', '-s', '-z']).split('\0').filter(Boolean)) {
+    const path = l.split('\t')[1];
+    if (!SKIP_PATH(path) && !indexBlobs.has(l.split(/\s+/)[1])) indexBlobs.set(l.split(/\s+/)[1], path);
+}
+if (indexBlobs.size) {
+    const sizes = git(['cat-file', '--batch-check'], Buffer.from([...indexBlobs.keys()].join('\n') + '\n')).toString('utf8').split('\n').filter(Boolean);
+    const small = [];
+    for (const line of sizes) {
+        const [oid, type, size] = line.split(' ');
+        if (type !== 'blob') continue;
+        if (Number(size) > TEXT_BLOB_CAP) warns.push(`WARN index ${indexBlobs.get(oid)}: ${size} bytes, over 8 MB, not scanned for tokens`);
+        else small.push(oid);
     }
+    if (small.length) {
+        const out = git(['cat-file', '--batch'], Buffer.from(small.join('\n') + '\n'));
+        let p = 0;
+        while (p < out.length) {
+            const nl = out.indexOf(10, p);
+            const [oid, , size] = out.toString('utf8', p, nl).split(' ');
+            scanBuf(out.subarray(nl + 1, nl + 1 + Number(size)), `index ${indexBlobs.get(oid)}`);
+            p = nl + 1 + Number(size) + 1;
+        }
+    }
+}
+const untracked = git(['ls-files', '-o', '--exclude-standard', '-z']).split('\0').filter(Boolean);
+for (const f of untracked) badPath(f, 'untracked');
+for (const f of [...tracked, ...untracked]) {
+    const p = join(ROOT, f);
+    if (SKIP_PATH(f) || !existsSync(p) || !statSync(p).isFile()) continue;
+    if (statSync(p).size > TEXT_BLOB_CAP) warns.push(`WARN working ${f}: over 8 MB, not scanned for tokens`);
+    else scanBuf(readFileSync(p), `working ${f}`);
 }
 scanText(git(['log', '--all', '-p', '--format=', '--', '.', ':(exclude)package-lock.json']), 'history');
 
