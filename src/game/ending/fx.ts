@@ -1,16 +1,16 @@
 // pixelfx of the ending: critters on the TV screen and fireworks on the birthday finale. Everything is positioned from ENDING_FX, the one object
-// to edit when the room art changes (a rebuilt living room only needs a new TV rectangle and finale point here).
+// to edit when the room changes (the TV rectangle follows the divano map through layout.ts, the finale point is over the credits column).
 import Phaser from 'phaser';
 import { fx } from '../fx';
-import { SCREEN } from './layout';
+import { DEPTH, SCREEN } from './layout';
 
 export const ENDING_FX = {
-    /** The TV screen in screen pixels; the critters are clipped to it. */
+    /** The TV screen of the room in screen pixels; the critters are clipped to it. */
     tv: { x: SCREEN.x, y: SCREEN.y, w: SCREEN.w, h: SCREEN.h },
     /** Where "Buon compleanno Ric!" stands: the fireworks burst around it. */
     finale: { x: 494, y: 74 },
-    /** Depths: over the documentary and under its scanlines, and over the room and band but under the finale texts (80). */
-    depth: { tv: 59.5, finale: 75 }
+    /** Depths: over the documentary and under its scanlines, and over the room and the credits column but under the finale texts. */
+    depth: { tv: DEPTH.tvPicture + 0.5, finale: DEPTH.finaleFx }
 };
 
 /** A school of fish crossing the TV and a jellyfish drifting in front of the documentary. */

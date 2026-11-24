@@ -57,7 +57,7 @@ export class FishTv {
     private readonly rnd = seeded(42);
     private readonly fish: Swimmer[] = [];
     private readonly bubbles: { x: number; y: number; v: number; ph: number; big: boolean }[] = [];
-    private readonly seaweed = [8, 20, 31, 76, 90, 103];
+    private readonly seaweed = [8, 20, 31, 66, 78, 88];
     private last = 0;
 
     constructor(scene: Phaser.Scene, key: string) {
@@ -67,7 +67,7 @@ export class FishTv {
         this.refresh = () => canvasTex.refresh();
         this.back = this.makeBackground();
         for (let i = 0; i < 5; i++) {
-            this.fish.push({ x: this.rnd() * (W + 40) - 20, y: 14 + this.rnd() * 32, vx: (0.1 + this.rnd() * 0.18) * (this.rnd() > 0.35 ? 1 : -1), sp: i % SPECIES.length, ph: this.rnd() * 6 });
+            this.fish.push({ x: this.rnd() * (W + 40) - 20, y: 8 + this.rnd() * (H - 30), vx: (0.1 + this.rnd() * 0.18) * (this.rnd() > 0.35 ? 1 : -1), sp: i % SPECIES.length, ph: this.rnd() * 6 });
         }
         for (let i = 0; i < 9; i++) this.bubbles.push({ x: 4 + this.rnd() * (W - 8), y: this.rnd() * H, v: 0.012 + this.rnd() * 0.02, ph: this.rnd() * 6, big: this.rnd() > 0.6 });
     }
@@ -99,7 +99,7 @@ export class FishTv {
             rect(ctx, '#7f8aa8', x + 1, SAND_Y - h + 2, w - 3, 2);
         }
         // coral fans
-        for (const [x, col, hi] of [[40, '#e8505b', '#ff8a8a'], [66, '#f08ac0', '#ffc2dc'], [98, '#ff9a3a', '#ffcf8a']] as const) {
+        for (const [x, col, hi] of [[40, '#e8505b', '#ff8a8a'], [60, '#f08ac0', '#ffc2dc'], [84, '#ff9a3a', '#ffcf8a']] as const) {
             rect(ctx, col, x, SAND_Y - 9, 2, 10);
             rect(ctx, col, x - 3, SAND_Y - 7, 2, 4);
             rect(ctx, col, x + 3, SAND_Y - 8, 2, 5);
@@ -163,7 +163,7 @@ export class FishTv {
         for (let i = 0; i < 7; i++) {
             const ox = (i % 3) * 7 - ((i * 5) % 6);
             const oy = Math.sin(t / 700 + i * 1.3) * 3 + i * 2 - 6;
-            sprite(ctx, TINY, { a: '#cfe8ff', e: '#304060', f: '#8fb0d8' }, W - sx + ox - 20, 40 + oy, true);
+            sprite(ctx, TINY, { a: '#cfe8ff', e: '#304060', f: '#8fb0d8' }, W - sx + ox - 20, H / 2 + oy, true);
         }
 
         // the stars of the documentary
@@ -219,7 +219,7 @@ export class FishTv {
 
     private respawn(f: Swimmer, x: number): void {
         f.x = x;
-        f.y = 10 + this.rnd() * 36;
+        f.y = 8 + this.rnd() * (H - 30);
         f.sp = Math.floor(this.rnd() * SPECIES.length);
         f.vx = Math.sign(f.vx) * (0.1 + this.rnd() * 0.18);
     }
