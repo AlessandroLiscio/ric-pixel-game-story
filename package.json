@@ -16,6 +16,11 @@
     "verify-pages-nolog": "node scripts/verify-pages.mjs",
     "verify-offline-nolog": "node scripts/verify-offline.mjs",
     "check-privacy-nolog": "node scripts/check-privacy.mjs",
+    "check-audio-nolog": "node scripts/check-audio.mjs",
+    "check-scenes-nolog": "node scripts/check-scenes.mjs",
+    "check-dialogue-nolog": "node scripts/check-dialogue.mjs",
+    "check-content-nolog": "node scripts/check-audio.mjs && node scripts/check-scenes.mjs && node scripts/check-dialogue.mjs",
+    "smoke-walk-nolog": "node scripts/smoke-walk.mjs",
     "test:e2e-nolog": "node scripts/e2e-placeholder.mjs",
     "typecheck-nolog": "tsc --noEmit"
   },

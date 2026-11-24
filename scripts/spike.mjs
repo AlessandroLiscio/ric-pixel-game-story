@@ -46,7 +46,7 @@ try {
     const api = await page.evaluate(() => {
         const P = window.__ricPhaser;
         const g = window.__ricGame;
-        const s = g.scene.getScene('Title');
+        const s = g.scene.getScene('title');
         return {
             version: P.VERSION,
             fit: g.scale.scaleMode === P.Scale.FIT,
@@ -112,7 +112,7 @@ try {
 
     // 4. Glyphs: start the spike scene, then compare canvas renders of each glyph
     await page.evaluate(() => {
-        window.__ricGame.scene.stop('Title');
+        window.__ricGame.scene.stop('title');
         window.__ricGame.scene.start('Spike');
     });
     await page.waitForFunction(() => window.__ricSpikeReady === true, null, { timeout: 5000 });

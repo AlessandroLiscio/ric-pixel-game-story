@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
 import { beep, getAudioContext } from './audioContext';
 import { GAME_HEIGHT, GAME_WIDTH } from './config';
-import { TitleScene } from './scenes/TitleScene';
+import { installDebug } from './debug';
+import { installFlowGlobals } from './flow/globals';
+import { gameScenes } from './flow/sceneList';
 import { installTestSkip } from './testKey';
 import { installIntegerZoom } from './zoom';
 
 export async function startGame(parent: string): Promise<Phaser.Game> {
-    const scenes: Phaser.Types.Scenes.SceneType[] = [TitleScene];
+    const scenes = gameScenes();
     // ?spike=1 adds the W0 spike scene (used by `npm run spike-nolog`); it is not reachable from the game.
     if (new URLSearchParams(location.search).has('spike')) {
         const { SpikeScene } = await import('../spike/SpikeScene');
@@ -28,7 +30,9 @@ export async function startGame(parent: string): Promise<Phaser.Game> {
     });
 
     installIntegerZoom(game, document.getElementById(parent)!);
-    installTestSkip(() => game.events.emit('test-skip')); // W2/W4 listen to 'test-skip' (test builds only)
+    installTestSkip(() => game.events.emit('test-skip')); // DialogBox and InstructionCard listen to 'test-skip' (test builds only)
+    installFlowGlobals(game);
+    installDebug(game);
     if (new URLSearchParams(location.search).has('spike')) {
         Object.assign(window, { __ricGame: game, __ricPhaser: Phaser, __ricAudio: { ctx: getAudioContext(), beep } });
     }
