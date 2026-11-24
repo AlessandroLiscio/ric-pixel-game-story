@@ -155,7 +155,7 @@
       "hairColor": "grey",
       "outfitTop": "shirt-long:blue_l:stripes",
       "outfitBottom": "trousers:charcoal/charcoal",
-      "accessory": ["glasses", "tie"],
+      "accessory": ["glasses"],
       "height": 0.95
     },
     "sprite": "char-pinolo",

@@ -16,6 +16,9 @@ from pathlib import Path
 
 from PIL import Image
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I does not put the script folder on the path
+import portraits  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 PEOPLE_JSON = ROOT / "src" / "data" / "people.json"
 OUT_DIR = ROOT / "public" / "assets" / "characters"
@@ -670,200 +673,6 @@ def render_sheet(tr):
     return sheet
 
 
-# ---------------------------------------------------------------- portraits (48x48, scaled x2)
-
-def lerp(a, b, f):
-    return tuple(int(a[i] + (b[i] - a[i]) * f) for i in range(3))
-
-
-def draw_portrait(tr):
-    skin, skin_s = SKIN_NAMES[tr["skin"]]
-    acc = set(tr["accessory"])
-    st = tr["hairStyle"]
-    ln = tr["hair"]
-    top = parse_top(tr["outfitTop"])
-    hc = hexrgb(PAL["h_" + tr["hairColor"]])
-    hair = hc + (255,)
-    hair_hi = lerp(hc, (255, 255, 255), 0.28) + (255,)
-    outfit = top["col"] if top else "white"
-    ofc = hexrgb(PAL[outfit]) + (255,)
-    ofs = lerp(hexrgb(PAL[outfit]), (20, 20, 40), 0.3) + (255,)
-    sk = rgba(skin); sks = rgba(skin_s)
-    pink = rgba("pink"); white = rgba("white"); red = rgba("red"); char = rgba("charcoal")
-    bgc = (26, 42, 107, 255)
-    cv = Cv(48, 48)
-    S = lambda *a, **k: cv.ell(*a, **k)
-    # long hair back layer
-    kind = top["kind"] if top else "tee"
-    if st in ("long-wavy", "long-straight"):
-        cv.rect(10, 12, 38, 40, hair)
-        cv.rect(8, 28, 40, 47, hair)
-    if st == "bob-bangs":
-        cv.rect(10, 12, 38, 34, hair)
-    if st == "ponytail":
-        cv.rect(37, 14, 40, 30, hair); cv.rect(38, 30, 39, 34, hair)
-    # body
-    for y in range(38, 48):
-        hw = int(10 + (y - 38) * 1.5)
-        cv.rect(24 - hw, y, 24 + hw - 1, y, ofc)
-    cv.rect(24, 38, 47, 47, ofc)
-    for y in range(38, 48):
-        hw = int(10 + (y - 38) * 1.5)
-        cv.rect(24 + hw - 5, y, 24 + hw - 1, y, ofs)
-    # pattern
-    pat = top["pat"] if top else None
-    for y in range(40, 48):
-        for x in range(2, 46):
-            hw = int(10 + (y - 38) * 1.5)
-            if abs(x - 23.5) < hw - 2:
-                pc = pat_color(pat, x % 10, y % 8, outfit)
-                if pc and pat == "floral":
-                    cv.set(x, y, rgba(pc))
-                if pat == "stripes" and y % 3 == 0:
-                    cv.set(x, y, white)
-    if pat == "logo":
-        cv.rect(18, 42, 29, 43, char); cv.rect(20, 44, 27, 44, char)
-    if pat == "buttons":
-        for y in (42, 45):
-            cv.rect(23, y, 24, y, rgba("grey"))
-    # neck and neckline
-    cv.rect(20, 33, 27, 39, sks)
-    if kind in ("tank", "dress"):
-        cv.rect(15, 38, 32, 41, sk); S(24, 41, 8, 4, sk, ymin=38)
-        cv.rect(15, 38, 17, 40, ofc); cv.rect(30, 38, 32, 40, ofc)
-        S(24, 41, 8, 5, sk, ymin=38)
-        cv.rect(10, 41, 14, 47, sk) if False else None
-    elif kind == "shirt" or kind == "shirt-long":
-        for i in range(5):
-            cv.rect(20 + i, 38 + i, 27 - i, 38 + i, sk if i < 3 else sks)
-        for i in range(5):
-            cv.set(19 + i, 38 + i, white); cv.set(28 - i, 38 + i, white)
-            cv.set(18 + i, 38 + i, white); cv.set(29 - i, 38 + i, white)
-    else:
-        S(24, 38, 5.5, 3, sk, ymin=38)
-    if "tie" in acc:
-        cv.rect(23, 40, 24, 41, red); cv.rect(22, 42, 25, 46, red); cv.rect(23, 47, 24, 47, red)
-        cv.rect(23, 38, 24, 39, red)
-    if "necklace" in acc:
-        for i in range(4):
-            cv.set(20 + i, 39 + i, rgba("cream")); cv.set(27 - i, 39 + i, rgba("cream"))
-        cv.rect(23, 43, 24, 44, rgba("cream"))
-    # head
-    S(24, 22, 12.5, 13.5, sk)
-    # ears
-    cv.rect(11, 22, 12, 26, sks); cv.rect(36, 22, 37, 26, sks)
-    S(24, 22, 12, 13, sk)
-    # hair
-    def cap(rx=13.5, ymax=17):
-        S(24, 20, rx, 13, hair, ymax=ymax)
-
-    def arc(y0):
-        """Curved highlight on hair pixels only."""
-        for x in range(15, 34):
-            y = y0 + ((x - 24) ** 2) // 24
-            if cv.px[x, y] == hair:
-                cv.px[x, y] = hair_hi
-    if st in ("short", "side-part"):
-        cap(13.5, 17)
-        for x in range(11, 38):
-            lim = 16 + max(0, min(5, (34 - x) // 4)) if st == "short" else 17 + max(0, min(3, (30 - x) // 4))
-            cv.rect(x, 12, x, lim, hair)
-        cv.rect(11, 17, 13, 25, hair); cv.rect(35, 17, 37, 25, hair)
-        arc(13)
-    elif st == "curly":
-        for cx, cy in ((13, 20), (13, 14), (18, 9), (24, 7), (30, 9), (35, 14), (35, 20), (24, 12), (17, 13), (31, 13)):
-            S(cx, cy, 5.2, 5, hair)
-        for x in range(12, 37):
-            cv.rect(x, 12, x, 18 + (1 if x % 4 < 2 else 0), hair)
-        cv.rect(10, 16, 13, 27, hair); cv.rect(35, 16, 38, 27, hair)
-        for (x, y) in ((15, 10), (22, 9), (29, 11), (12, 17), (36, 17), (19, 15), (28, 15)):
-            cv.rect(x, y, x + 1, y, hair_hi)
-    elif st in ("long-wavy", "long-straight"):
-        cap(14, 17)
-        for x in range(11, 38):
-            lim = 18 + max(0, min(4, abs(x - 24) // 3)) if st == "long-wavy" else 17 + (1 if x < 20 or x > 28 else 0)
-            lim = 18 + min(4, abs(x - 24) // 3) if st == "long-wavy" else lim
-            cv.rect(x, 12, x, lim, hair)
-        cv.rect(9, 17, 14, 44, hair); cv.rect(34, 17, 39, 44, hair)
-        if st == "long-straight":
-            cv.rect(24, 9, 24, 14, sks)
-        else:
-            for y in range(24, 40, 7):
-                cv.rect(11, y, 11, y + 4, hair_hi); cv.rect(36, y + 3, 36, y + 7, hair_hi)
-        arc(13)
-    elif st == "bob-bangs":
-        cap(14, 18)
-        cv.rect(12, 12, 36, 20, hair)
-        cv.rect(10, 17, 14, 36, hair); cv.rect(34, 17, 38, 36, hair)
-        arc(14)
-    elif st == "tied-back":
-        cap(13.5, 14)
-        for x in range(12, 37):
-            cv.rect(x, 12, x, 14 + (1 if x % 5 == 0 else 0), hair)
-        cv.rect(11, 14, 12, 21, hair); cv.rect(36, 14, 37, 21, hair)
-        S(24, 5, 5, 4.5, hair)
-        cv.rect(20, 9, 28, 10, sks)
-        cv.set(22, 4, hair_hi); cv.set(23, 4, hair_hi)
-        arc(11)
-    elif st == "ponytail":
-        cap(13.5, 17)
-        for x in range(11, 38):
-            lim = 16 + max(0, min(4, (34 - x) // 5))
-            cv.rect(x, 12, x, lim, hair)
-        cv.rect(11, 17, 13, 24, hair); cv.rect(35, 17, 37, 24, hair)
-        arc(13)
-        cv.rect(36, 12, 38, 14, pink)
-    # face
-    for x in (18, 28):
-        cv.rect(x, 24, x + 2, 28, rgba("o_navy"))
-        cv.set(x, 24, white); cv.set(x + 1, 24, white)
-    cv.rect(16, 29, 18, 29, pink); cv.rect(30, 29, 32, 29, pink)
-    cv.rect(23, 33, 25, 33, red)
-    cv.set(24, 29, sks)
-    for x in (18, 28):
-        cv.rect(x - 1, 21, x + 3, 21, hair)
-    if "beard" in acc:
-        for y in range(30, 36):
-            for x in range(11, 38):
-                if ((x + .5 - 24) / 12.2) ** 2 + ((y + .5 - 22) / 13.3) ** 2 <= 1:
-                    if y >= 31 or abs(x - 24) > 8 or (y >= 28 and abs(x - 24) > 10):
-                        cv.set(x, y, hair)
-        for x in range(10, 38):
-            if abs(x - 24) > 7 or True:
-                pass
-        cv.rect(14, 29, 17, 30, hair); cv.rect(31, 29, 34, 30, hair)
-        cv.rect(19, 30, 29, 31, hair)
-        cv.rect(23, 33, 25, 33, red)
-        cv.set(24, 29, sks)
-    if "stubble" in acc:
-        for (x, y) in ((14, 31), (17, 34), (20, 35), (28, 35), (31, 34), (34, 31), (23, 35), (13, 28), (35, 28), (16, 33), (32, 33)):
-            cv.set(x, y, hair)
-    if "glasses" in acc:
-        for x in (15, 27):
-            cv.rect(x, 22, x + 8, 22, char); cv.rect(x, 30, x + 8, 30, char)
-            cv.rect(x, 23, x, 29, char); cv.rect(x + 8, 23, x + 8, 29, char)
-        cv.rect(23, 25, 26, 25, char)
-    if "sunglasses" in acc:
-        cv.rect(14, 23, 22, 29, rgba("o_navy")); cv.rect(26, 23, 34, 29, rgba("o_navy"))
-        cv.rect(22, 24, 26, 24, char)
-        cv.rect(15, 24, 17, 24, rgba("grey")); cv.rect(27, 24, 29, 24, rgba("grey"))
-        cv.rect(12, 24, 14, 24, char); cv.rect(34, 24, 36, 24, char)
-    if "sunglasses-on-head" in acc:
-        cv.rect(14, 11, 34, 14, char)
-        cv.rect(15, 13, 22, 15, rgba("o_navy")); cv.rect(26, 13, 33, 15, rgba("o_navy"))
-        cv.rect(16, 12, 18, 12, rgba("grey")); cv.rect(28, 12, 30, 12, rgba("grey"))
-    cv.outline(OUTLINE_FOR_HAIR[tr["hairColor"]])
-    bg = Image.new("RGBA", (48, 48), bgc)
-    bg.alpha_composite(cv.im)
-    # soft floor band to read as a tile
-    px = bg.load()
-    for y in range(44, 48):
-        for x in range(48):
-            if px[x, y] == bgc:
-                px[x, y] = (20, 33, 88, 255)
-    return bg.resize((96, 96), Image.NEAREST).convert("RGBA")
-
-
 # ---------------------------------------------------------------- driver
 
 def colours(img):
@@ -887,7 +696,7 @@ def stage_portraits(people, log):
     for p in people:
         if not p["portrait"]:
             continue
-        img = draw_portrait(p["traits"])
+        img = portraits.draw(p["id"])
         PORT_DIR.mkdir(parents=True, exist_ok=True)
         img.save(PORT_DIR / f"{p['id']}.png")
         log(f"portrait {p['id']} {img.size} colours={len(colours(img))}")
@@ -913,7 +722,7 @@ def stage_check(people, log):
             po = Image.open(PORT_DIR / f"{p['id']}.png").convert("RGBA")
             assert po.size == (96, 96), f"{p['id']} portrait size {po.size}"
             ncol = len(colours(po))
-            assert ncol <= 16, f"{p['id']} portrait has {ncol} colours"
+            assert ncol <= portraits.MAX_COLOURS, f"{p['id']} portrait has {ncol} colours"
             n_port += 1
     assert n_sheets == 11 and n_port == 10, f"counts {n_sheets}/{n_port}"
     return n_sheets, n_port
