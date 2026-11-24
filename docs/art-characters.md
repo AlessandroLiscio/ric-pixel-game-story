@@ -14,7 +14,7 @@ python -m venv "$HOME\.venvs\chibis"
 
 A clean run prints one `OK` line per stage (sheets, portraits, check) and `PASS characters: 11 sheets 96x128, 10 portraits 96x96`. On a failure it prints a `FAIL` line with the log path and the first error. The full log of each stage is written to `logs/chibis/run_<timestamp>/<stage>.log` (the last 10 runs are kept; the folder must stay out of git). `--verbose` also streams the log to the console and `--preview <path>` writes a contact sheet PNG of every sheet and portrait (a review aid, not committed).
 
-The outputs are `public/assets/characters/<id>.png` (sheet 96x128) and `public/assets/characters/<id>-portrait.png` (portrait 96x96). The cat has a sheet and no portrait. The portraits of this folder are the parametric variant; the flow routes them to `public/assets/portraits/<id>.png` (`portraitSource: "parametric"`), the dialogue worker owns the photo-based variant there.
+The outputs are `public/assets/characters/<id>.png` (sheet 96x128) and `public/assets/portraits/<id>.png` (portrait 96x96). The cat has a sheet and no portrait. The portraits are the parametric variant (`portraitSource: "parametric"`); a photo-based variant would replace a file in the same folder only for a friend who agreed to a public likeness.
 
 ## Sheet layout
 

@@ -3,7 +3,7 @@
 
 Usage: python scripts/art/chibis.py [--verbose] [--preview PATH]
 Exit codes: 0 = pass, 1 = a stage failed, 2 = bad usage or missing input.
-Output: public/assets/characters/<id>.png (sheet), public/assets/characters/<id>-portrait.png (portrait).
+Output: public/assets/characters/<id>.png (sheet), public/assets/portraits/<id>.png (portrait).
 Logs: logs/chibis/run_<timestamp>/<stage>.log (last 10 runs kept).
 """
 import argparse
@@ -19,6 +19,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 PEOPLE_JSON = ROOT / "src" / "data" / "people.json"
 OUT_DIR = ROOT / "public" / "assets" / "characters"
+PORT_DIR = ROOT / "public" / "assets" / "portraits"
 LOG_BASE = ROOT / "logs" / "chibis"
 
 # One shared sprite palette. LINE is a placeholder resolved to the per-sprite outline tone.
@@ -876,7 +877,8 @@ def stage_portraits(people, log):
         if not p["portrait"]:
             continue
         img = draw_portrait(p["traits"])
-        img.save(OUT_DIR / f"{p['id']}-portrait.png")
+        PORT_DIR.mkdir(parents=True, exist_ok=True)
+        img.save(PORT_DIR / f"{p['id']}.png")
         log(f"portrait {p['id']} {img.size} colours={len(colours(img))}")
 
 
@@ -897,7 +899,7 @@ def stage_check(people, log):
         assert not extra, f"{p['id']} colours outside palette: {sorted(extra)[:3]}"
         n_sheets += 1
         if p["portrait"]:
-            po = Image.open(OUT_DIR / f"{p['id']}-portrait.png").convert("RGBA")
+            po = Image.open(PORT_DIR / f"{p['id']}.png").convert("RGBA")
             assert po.size == (96, 96), f"{p['id']} portrait size {po.size}"
             ncol = len(colours(po))
             assert ncol <= 16, f"{p['id']} portrait has {ncol} colours"
@@ -918,7 +920,7 @@ def preview(people, path):
         x, y = (i % cols) * cw, (i // cols) * (ch + 8)
         img.alpha_composite(sh, (x + 4, y + 4))
         if p["portrait"]:
-            po = Image.open(OUT_DIR / f"{p['id']}-portrait.png").convert("RGBA")
+            po = Image.open(PORT_DIR / f"{p['id']}.png").convert("RGBA")
             po = po.resize((96 * S // 2, 96 * S // 2), Image.NEAREST)
             img.alpha_composite(po, (x + 4, y + 128 * S + 4))
     Path(path).parent.mkdir(parents=True, exist_ok=True)
