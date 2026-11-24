@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      # Actions are pinned to full commit SHAs (tag in the comment).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # check-privacy scans the whole history
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1' # tests use the Chrome preinstalled on ubuntu-latest
+      - run: npm run spike-nolog
+      - run: npm run build-nolog
+      - run: npm run verify-production-nolog
+      - run: npm run verify-offline-nolog
+      - run: npm run check-privacy-nolog

@@ -1,0 +1,7 @@
+PixelOperator.ttf is "Pixel Operator" by Jayvee Enaguas (HarvettFox96), released under CC0 1.0 Universal (public domain dedication). Two independent places in the files say so: the font's own embedded licence fields ("Creative Commons Zero", https://creativecommons.org/licenses/zero/1.0/) and the LICENSE.txt shipped with it, whose full text is in LICENSE-PixelOperator.txt next to this file.
+
+Source of these files: the font's original distribution (font files plus its LICENSE.txt), taken on 2026-11-24 from the mirror https://github.com/uzkbwza/smileygame/tree/master/framework/font/pixel_operator (file commit f6f22cc6278bf83918608a2db45d10c53b92fda9). The author's own site, https://www.pixeloperator.com, answered 403 (Cloudflare challenge) to a scripted request, so the site itself was not read.
+
+SHA-256 of PixelOperator.ttf: 8d805274eaf227855147153182a96a86ff395ddbc7d2d378095af8831b764a3e
+
+Why this font: it covers the Italian accented letters and both apostrophes (checked by npm run spike-nolog) and CC0 needs no attribution. m5x7 was not used because its licence could not be verified in this run.

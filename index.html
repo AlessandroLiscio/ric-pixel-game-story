@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>Titolo provvisorio</title>
+    <style>
+        html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+        #app { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        /* src/game/zoom.ts resizes this to an integer multiple of 640x360. */
+        #game-container { width: 640px; height: 360px; }
+        canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="game-container"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
