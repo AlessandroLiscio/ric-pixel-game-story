@@ -108,6 +108,11 @@ if (!trellone.some((l) => l.speaker === 'ric' && l.text === "Per l'amor di dio b
   err('easterEggs.ros-trellone', "needs a ric line with the exact text \"Per l'amor di dio basta!\"");
 }
 
+const fede = data.easterEggs?.fede ?? [];
+if (fede.length !== 2 || fede[0].speaker !== 'ric' || fede[0].text !== "Allora, Fede dov'è?" || fede[1].speaker !== 'lara' || fede[1].text !== 'Ha paccato.') {
+  err('easterEggs.fede', 'must be exactly 2 lines: ric "Allora, Fede dov\'è?" then lara "Ha paccato."');
+}
+
 // credits
 checkText('credits.title', data.credits?.title, 1, MAX_CHARS);
 if (!Array.isArray(data.credits?.lines) || data.credits.lines.length === 0) err('credits.lines', 'missing or empty');

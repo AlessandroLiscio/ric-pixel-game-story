@@ -14,7 +14,7 @@ Deviations from the contract, both needed by the story and listed here for the f
 
 ## Easter egg triggers (assumed)
 
-The six divano eggs play in the final scene only when their minigame was won: `pinolo-pinhole` (simon), `gatto` (cat-smoke), `ric-sedia` (slackline), `ros-trellone` (d20), `giusy-divano` (mash), `ric-sopra` (rhythm). `ros-trellone` contains the exact Ric line `Per l'amor di dio basta!` and the validator checks it. `fede` is the audience exchange in the cortile scene (Fede stands in the room, talk to him); he is always available, not tied to a win. The `ric-sopra` egg is a cheeky non-explicit joke (thumps from upstairs, a closed door, a neighbour knocking); the girl upstairs speaks as `sconosciuta`.
+The six divano eggs play in the final scene only when their minigame was won: `pinolo-pinhole` (simon), `gatto` (cat-smoke), `ric-sedia` (slackline), `ros-trellone` (d20), `giusy-divano` (mash), `ric-sopra` (rhythm). `ros-trellone` contains the exact Ric line `Per l'amor di dio basta!` and the validator checks it. `fede` is a joke in the cortile scene, not an NPC (author decision): there is no Fede sprite or standing place, and `scenes.cortile` has no Fede line. After the stage with Lara, Ric can ask her; the egg is exactly 2 Lines, `ric` "Allora, Fede dov'è?" and `lara` "Ha paccato.", and the validator enforces both texts. It is always available, not tied to a win. The `ric-sopra` egg is a cheeky non-explicit joke (thumps from upstairs, a closed door, a neighbour knocking); the girl upstairs speaks as `sconosciuta`.
 
 ## Extra NPC lines the author can swap
 
@@ -23,7 +23,7 @@ The six divano eggs play in the final scene only when their minigame was won: `p
 ## Assumptions
 
 - Working title: `Ric 30: Un Venerdì a Bologna`. Subtitle and press text as briefed.
-- Genders: Ric and Prof. Pinolo are male, Giusy is female (the brief says "her seat"), Fede is male. For everyone else the lines avoid gendered forms.
+- Genders: Ric and Prof. Pinolo are male, Giusy is female (the brief says "her seat"). For everyone else the lines avoid gendered forms.
 - "Trellone" is used as the author's own word, always as a light joke, never as an instruction or praise; the friends' personalities are light inventions: Lollino studious (notes and colour pens), Giuggiu the chill host, Liscio the sporty acrobat, Ros the sarcastic rebel, Giusy always late, Lara the musical one.
 - The cat only says `Miao.` with a parenthetical translation in some lines.
 - The two cortile guitarists and the drummer are never named.
@@ -39,7 +39,7 @@ The six divano eggs play in the final scene only when their minigame was won: `p
 | scenes.circe | 22 |
 | scenes.cortile | 16 |
 | scenes.divano | 12 |
-| easterEggs (10) | 42 |
-| Total in the validator (all Lines) | 148 |
+| easterEggs (10) | 39 |
+| Total in the validator (all Lines) | 145 |
 
 The per-scene figures are all Lines in the scene, so a single run shows about 8 to 15 of them per scene (win and lose are alternatives).

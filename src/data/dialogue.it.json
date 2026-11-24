@@ -298,11 +298,8 @@
       { "speaker": "lara", "text": "Il vicino di sotto ha bussato due volte." }
     ],
     "fede": [
-      { "speaker": "fede", "text": "Ric! Sono Fede! Non sono nella storia,\nma sono venuto lo stesso." },
-      { "speaker": "ric", "text": "Fede? E dove ti eri nascosto?\nIn fondo alla sala, immagino." },
-      { "speaker": "fede", "text": "Il mio compito è fare il pubblico e dire:\nbello! Bellissimo! Bravo Ric!" },
-      { "speaker": "ric", "text": "Il tuo ruolo preferito: gratis e senza\nprove." },
-      { "speaker": "fede", "text": "Esatto. Auguri Ric! E suona bene,\nche sennò chiedo il rimborso." }
+      { "speaker": "ric", "text": "Allora, Fede dov'è?" },
+      { "speaker": "lara", "text": "Ha paccato." }
     ],
     "extra-1": [
       { "speaker": "narratore", "text": "Studente: «Scusa, hai il programma\ndi Pinolo? Io ho solo disegni di pesci.»" },
@@ -327,7 +324,7 @@
       "Ros ... ministro del trellone",
       "Giusy ... ritardataria di professione",
       "Lara ... la voce della serata",
-      "Fede ... pubblico (cameo non richiesto)",
+      "Fede ... grande assente",
       "Prof. Pinolo ... foro stenopeico a vita",
       "Il gatto ... se stesso, ovviamente",
       "Un gioco di tutti i tuoi amici",
