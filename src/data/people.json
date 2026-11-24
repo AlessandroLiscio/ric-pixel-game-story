@@ -11,7 +11,8 @@
       "outfitTop": "shirt:maroon:floral",
       "outfitBottom": "shorts:khaki/charcoal",
       "accessory": ["beard", "sunglasses"],
-      "height": 1.1
+      "height": 1.1,
+      "build": "broad"
     },
     "sprite": "char-ric",
     "portrait": "portrait-ric",

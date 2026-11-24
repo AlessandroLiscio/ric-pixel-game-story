@@ -197,12 +197,12 @@ def legs_side(cv, ty1, bot, skin, step):
             cv.rect(x0, y, x1, y, c)
 
 
-def torso_front(cv, T0, top, skin, skin_s, back=False):
+def torso_front(cv, T0, top, skin, skin_s, back=False, broad=False):
     if top is None:
         return
     kind, col, pat = top["kind"], top["col"], top["pat"]
     sleeveless = kind in ("tank", "dress")
-    x0, x1 = (12, 19) if sleeveless else (11, 20)
+    x0, x1 = (12, 19) if sleeveless else ((10, 21) if broad else (11, 20))
     for ry in range(TORSO):
         for x in range(x0, x1 + 1):
             c = col
@@ -236,13 +236,14 @@ def torso_front(cv, T0, top, skin, skin_s, back=False):
             cv.rect(gx0, y, gx1, y, col)
 
 
-def arms_front(cv, T0, top, skin, ya_l, ya_r):
+def arms_front(cv, T0, top, skin, ya_l, ya_r, broad=False):
     kind = top["kind"] if top else "tee"
     col = top["col"] if top else "white"
     pat = top["pat"] if top else None
     sleeve = {"tee": 3, "shirt": 3, "shirt-long": 6, "tank": 0, "dress": 0}.get(kind, 3)
-    for x0, ya in ((9, ya_l), (21, ya_r)):
-        for r in range(1, TORSO):
+    # broad build: arms one px further out and the shoulder corner filled, so the shoulders read square
+    for x0, ya in (((8, ya_l), (22, ya_r)) if broad else ((9, ya_l), (21, ya_r))):
+        for r in range(0 if broad else 1, TORSO):
             y = T0 + r + ya
             c = col if r <= sleeve else skin
             if c == col and pat == "stripes" and r % 2 == 0:
@@ -253,12 +254,12 @@ def arms_front(cv, T0, top, skin, ya_l, ya_r):
             cv.rect(x0, T0 + TORSO - 2 + ya, x0 + 1, T0 + TORSO - 2 + ya, skin)
 
 
-def torso_side(cv, T0, top, skin, skin_s, step):
+def torso_side(cv, T0, top, skin, skin_s, step, broad=False):
     if top is None:
         return
     kind, col, pat = top["kind"], top["col"], top["pat"]
     for ry in range(TORSO):
-        for x in range(12, 20):
+        for x in range(11 if broad else 12, 21 if broad else 20):
             pc = pat_color(pat, x - 11, ry, col) if pat in ("floral", "stripes") else None
             cv.set(x, T0 + ry, pc or col)
     if kind in ("tank", "dress"):
@@ -327,8 +328,9 @@ def hair_down(cv, t, st, col, T0, ln):
                 for y in range(t + 5, end, 3):
                     cv.set(9, y, LINE); cv.set(22, y, LINE)
     elif st == "tied-back":
-        S(0, 2); R(9, 3, 10, 5); R(21, 3, 22, 5)
-        R(13, -2, 18, -2); R(12, -1, 19, -1); R(13, 0, 18, 0)
+        # man-bun: hair pulled back off the forehead, thin temples, small high bun
+        S(0, 2); R(9, 3, 10, 4); R(21, 3, 22, 4)
+        R(14, -2, 17, -2); R(13, -1, 18, -1)
         R(14, -1, 14, -1, LINE)
     elif st == "ponytail":
         S(0, 3); R(9, 4, 16, 4); R(21, 4, 22, 4); R(9, 5, 10, 6); R(21, 5, 22, 6)
@@ -336,7 +338,7 @@ def hair_down(cv, t, st, col, T0, ln):
         R(23, 3, 23, 3, "pink")
 
 
-def hair_up(cv, t, st, col, T0, ln):
+def hair_up(cv, t, st, col, T0, ln, beard=False, skin_s="skin_tan_s"):
     S = lambda r0, r1, g=0: cv.spans(sil(t, r0, r1, g), col)
     R = lambda x0, r0, x1, r1, c=None: cv.rect(x0, t + r0, x1, t + r1, c or col)
     if st in ("short", "side-part"):
@@ -362,9 +364,15 @@ def hair_up(cv, t, st, col, T0, ln):
             for x, y in ((13, t + 16), (17, t + 19), (11, t + 21)):
                 cv.set(x, y, LINE)
     elif st == "tied-back":
-        S(0, 10); R(13, -2, 18, -2); R(12, -1, 19, -1)
-        R(14, 5, 17, 5, LINE)
-        R(14, 11, 17, 14)
+        # short tight sides and nape (ears and neck show), small bun on top, no hair tail
+        S(0, 8); R(11, 9, 20, 9)
+        R(14, -2, 17, -2); R(13, -1, 18, -1)
+        R(14, -1, 14, -1, LINE)
+        cv.rect(13, t + 10, 18, t + 10, skin_s); cv.rect(14, t + 11, 17, t + 11, skin_s)
+        if beard:
+            # darker jaw edge of the beard seen from behind, under the ears and round the nape
+            dark = "h_black"
+            R(9, 9, 10, 9, dark); R(21, 9, 22, 9, dark); R(10, 10, 12, 10, dark); R(19, 10, 21, 10, dark); R(12, 11, 13, 11, dark); R(18, 11, 19, 11, dark)
     elif st == "ponytail":
         S(0, 10)
         R(14, 3, 17, 3, "pink")
@@ -399,8 +407,10 @@ def hair_side(cv, t, st, col, T0, ln, face_skin_s):
             for y in range(t + 5, t + 11, 3):
                 cv.set(19, y, LINE)
     elif st == "tied-back":
-        S(0, 2); R(17, 3, 22, 6); R(15, 3, 16, 3)
-        R(16, -2, 21, -2); R(15, -1, 22, -1)
+        # hair only above the ear and at the back of the head, small bun on top, no tail
+        S(0, 3); R(15, 4, 22, 6); R(18, 7, 22, 9); R(20, 10, 21, 10)
+        R(16, -2, 19, -2); R(15, -1, 20, -1)
+        R(16, -1, 16, -1, LINE)
     elif st == "ponytail":
         S(0, 3); R(9, 4, 12, 4); R(15, 4, 22, 8)
         R(23, 3, 24, 4); R(24, 5, 25, 11)
@@ -515,11 +525,12 @@ def render_frame(tr, facing, col):
     T0 = ty1 - (TORSO - 1) + bob
     t = T0 - 13
     acc = set(tr["accessory"])
+    broad = tr.get("build") == "broad"
     arm_l, arm_r = (1, -1) if step == -1 else ((-1, 1) if step == 1 else (0, 0))
     if facing == "down":
         legs_front(cv, ty1, bot, skin, skin_s, step)
-        torso_front(cv, T0, top, skin, skin_s)
-        arms_front(cv, T0, top, skin, arm_l, arm_r)
+        torso_front(cv, T0, top, skin, skin_s, broad=broad)
+        arms_front(cv, T0, top, skin, arm_l, arm_r, broad=broad)
         draw_head_down(cv, t, tr, skin, skin_s, hair_col)
         hair_down(cv, t, st, hair_col, T0, ln)
         # beard/glasses drawn before hair would be covered by fringe; redraw face accessories on top of hair
@@ -529,15 +540,15 @@ def render_frame(tr, facing, col):
         accessories_torso(cv, T0, tr, "down")
     elif facing == "up":
         legs_front(cv, ty1, bot, skin, skin_s, step)
-        torso_front(cv, T0, top, skin, skin_s, back=True)
-        arms_front(cv, T0, top, skin, arm_r, arm_l)
+        torso_front(cv, T0, top, skin, skin_s, back=True, broad=broad)
+        arms_front(cv, T0, top, skin, arm_r, arm_l, broad=broad)
         draw_head_down(cv, t, tr, skin, skin_s, hair_col, back=True)
-        hair_up(cv, t, st, hair_col, T0, ln)
+        hair_up(cv, t, st, hair_col, T0, ln, beard="beard" in acc, skin_s=skin_s)
         if "sunglasses-on-head" in acc:
             sunglasses_on_head(cv, t, "up")
     else:
         legs_side(cv, ty1, bot, skin, step)
-        torso_side(cv, T0, top, skin, skin_s, step)
+        torso_side(cv, T0, top, skin, skin_s, step, broad=broad)
         draw_head_side(cv, t, tr, skin, skin_s, hair_col, st)
         hair_side(cv, t, st, hair_col, T0, ln, skin_s)
         arm_side(cv, T0, top, skin, step)

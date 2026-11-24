@@ -89,7 +89,7 @@ export class WorldScene extends Phaser.Scene {
         if (map) this.facing = (def.spawn as { facing?: Facing }).facing ?? 'down';
         this.ric.play(`ric-idle-${this.facing}`);
         this.party = new Party(this, this.ric);
-        run.party.forEach((id) => this.party.add(id));
+        run.party.forEach((id) => this.party.add(id, { instant: true })); // a rebuilt party: no pop-in, no join sound
 
         this.spawnNpcs();
         if (map && this.tw) this.spawnCrowd();
@@ -263,7 +263,7 @@ export class WorldScene extends Phaser.Scene {
             const result = await this.runMinigame(id);
             run.results[id] = result.won;
             resultFx(this, result.won);
-            await this.banner(result.won ? t('ui.win') : t('ui.lose'), result.won);
+            audio.sfx(result.won ? 'win' : 'lose'); // the minigame already showed its own result panel; only the jingle stays
             await this.say(L(`${result.won ? 'win' : 'lose'}${n}`));
         }
         const egg = eggAfterMinigame(def);
