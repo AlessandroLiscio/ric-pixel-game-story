@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
+import { startAmbient } from '../ambient';
 import { audio } from '../audio';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { joinFx, resultFx } from '../fx/moments';
 import { MINIGAME_DONE, type MinigameDone, type MinigameInit } from '../minigames/types';
 import { Party } from '../party/Party';
 import { ensureCharAnims } from '../party/anims';
@@ -91,6 +93,7 @@ export class WorldScene extends Phaser.Scene {
 
         this.spawnNpcs();
         if (map && this.tw) this.spawnCrowd();
+        startAmbient(this, { sceneId: def.id, lights: this.tw?.data.lights, spriteOf: (id) => this.npcs.find((n) => n.def.personId === id)?.sprite });
         if (this.tw) {
             const cam = this.cameras.main;
             cam.setBounds(0, 0, this.tw.widthPx, this.tw.heightPx);
@@ -259,6 +262,7 @@ export class WorldScene extends Phaser.Scene {
             await this.say(L(`minigameIntro${n}`));
             const result = await this.runMinigame(id);
             run.results[id] = result.won;
+            resultFx(this, result.won);
             await this.banner(result.won ? t('ui.win') : t('ui.lose'), result.won);
             await this.say(L(`${result.won ? 'win' : 'lose'}${n}`));
         }
@@ -272,6 +276,8 @@ export class WorldScene extends Phaser.Scene {
         for (const id of joinersOf(this.def)) {
             if (!this.run.party.includes(id)) this.run.party.push(id);
             this.party.add(id);
+            const spot = this.party.positions().find((p) => p.id === id);
+            if (spot) joinFx(this, spot.x, spot.y);
             this.npcs.filter((n) => n.kind === 'friend' && n.def.personId === id).forEach((n) => n.sprite.destroy());
             await this.banner(`${person(id)?.name ?? id} ${t('ui.joined')}`, true, 20);
         }

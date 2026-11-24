@@ -6,6 +6,7 @@ import { InstructionCard } from '../../ui/InstructionCard';
 import { pixelStyle, t } from '../../ui/text';
 import { MINIGAME_DONE, type MinigameDone } from '../types';
 import { buildChart, LANE_COUNT, type ChartNote } from './chart';
+import { rhythmCombo, rhythmHit } from '../fx';
 import { LABELS } from './labels';
 
 const ID = 'rhythm';
@@ -339,6 +340,8 @@ export default class RhythmMinigame extends Phaser.Scene {
         const flash = this.add.rectangle(laneX(lane), HIT_Y + 1, LANE_W - 8, 16, perfect ? 0xffffff : LANE_COLORS[lane], 0.95).setDepth(7);
         this.tweens.add({ targets: flash, scaleX: 1.5, scaleY: 2.6, alpha: 0, duration: 200, onComplete: () => flash.destroy() });
         this.floatText(lane, perfect ? LABELS.perfect : LABELS.good, perfect ? '#ffe27a' : '#9be8a8');
+        rhythmHit(this, laneX(lane), HIT_Y, LANE_HEX[lane], perfect);
+        rhythmCombo(this, this.combo, 554, 222);
         this.refreshCombo(true);
         this.addApproval(perfect ? GAIN.perfect : GAIN.good);
     }

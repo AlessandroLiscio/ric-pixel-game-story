@@ -5,6 +5,7 @@ import { InstructionCard } from '../../ui/InstructionCard';
 import { panelTexture } from '../../ui/panel';
 import { pixelStyle, t } from '../../ui/text';
 import { MINIGAME_DONE, type MinigameDone } from '../types';
+import { d20Roll } from '../fx';
 import { LABELS } from './labels';
 
 const ID = 'd20';
@@ -131,6 +132,7 @@ export default class D20Minigame extends Phaser.Scene {
         const won = value > TARGET;
         this.tweens.add({ targets: this.die, scale: { from: 1.3, to: 1 }, duration: 260, ease: 'Back.Out' });
 
+        d20Roll(this, value, DIE_X, DIE_Y);
         const special = value === 20 ? LABELS.nat20 : value === 1 ? LABELS.nat1 : '';
         if (value === 20) {
             audio.sfx('win');

@@ -18,6 +18,7 @@ import {
     TV_SET_TOP,
     tvTexture
 } from './art';
+import { finaleFx, startTvFx } from './fx';
 import { LABELS } from './labels';
 import {
     BAND_CX,
@@ -125,6 +126,7 @@ export class EndingScene extends Phaser.Scene {
         this.buildParty();
         this.buildLight();
         this.buildCredits();
+        startTvFx(this);
 
         this.keyX = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.X);
         this.input.keyboard!.on('keydown', this.onKey, this);
@@ -313,6 +315,7 @@ export class EndingScene extends Phaser.Scene {
 
     private startFinale(): void {
         this.phase = 'finale';
+        finaleFx(this);
         this.tweens.add({ targets: this.band, alpha: 0.45, duration: 700 });
         for (const line of this.credits) line.obj.destroy();
         this.tweens.add({ targets: this.dim, alpha: 0.5, duration: 1000 });
