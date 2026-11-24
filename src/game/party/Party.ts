@@ -14,6 +14,8 @@ interface Follower {
     moving: boolean;
     /** Rebuilt at a scene start: stays hidden until Ric has walked far enough to leave it a spot behind him, so it never sits on top of him. */
     hideUntilTrail: boolean;
+    /** Placed by lineUpBeside: holds its spot until the trail behind Ric is long enough to take it over. */
+    anchored?: boolean;
 }
 
 /** RPG Maker style follow train: each follower walks the path Ric walked, a fixed distance behind. */
@@ -67,6 +69,10 @@ export class Party {
         this.leader.setDepth(this.leader.y);
         this.followers.forEach((f, i) => {
             const target = this.pointBehind(i);
+            if (f.anchored) {
+                if (target.short) return; // placed by lineUpBeside: stays put until Ric leaves it a spot on the trail
+                f.anchored = false;
+            }
             const dx = target.x - f.sprite.x;
             const dy = target.y - f.sprite.y;
             f.sprite.setPosition(target.x, target.y);
@@ -82,6 +88,23 @@ export class Party {
                 f.dir = dir;
                 f.sprite.play(moving ? walkKey(f.id, dir) : idleKey(f.id, dir), true);
             }
+        });
+    }
+
+    /**
+     * Shows the whole party at once in a row beside Ric (alternating right and left, `gap` px apart), facing `dir`,
+     * for a scene where Ric does not walk before everyone must be seen (the last scene). Each follower keeps that
+     * spot until Ric walks far enough to give it a place on the trail.
+     */
+    lineUpBeside(gap: number, dir: Dir): void {
+        this.followers.forEach((f, i) => {
+            const side = i % 2 === 0 ? 1 : -1;
+            const x = this.leader.x + side * gap * (Math.floor(i / 2) + 1);
+            f.sprite.setPosition(x, this.leader.y).setDepth(this.leader.y).setVisible(true);
+            f.hideUntilTrail = false;
+            f.anchored = true;
+            f.dir = dir;
+            f.sprite.play(idleKey(f.id, dir), true);
         });
     }
 

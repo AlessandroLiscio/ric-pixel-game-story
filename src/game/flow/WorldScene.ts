@@ -90,6 +90,8 @@ export class WorldScene extends Phaser.Scene {
         this.ric.play(`ric-idle-${this.facing}`);
         this.party = new Party(this, this.ric);
         run.party.forEach((id) => this.party.add(id, { instant: true })); // a rebuilt party: no pop-in, no join sound
+        // Ric never walks in divano before the credits, so the trail would keep everyone hidden: line them up beside him
+        if (!def.friend) this.party.lineUpBeside(28, this.facing);
 
         this.spawnNpcs();
         if (map && this.tw) this.spawnCrowd();

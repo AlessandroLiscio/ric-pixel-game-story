@@ -1,41 +1,12 @@
 import Phaser from 'phaser';
 import { audio } from '../audio';
 import { getRun, resetRun } from '../flow/RunState';
+import { MAPS, TileWorld } from '../flow/tileMap';
 import { DIALOGUE, pixelStyle } from '../ui/text';
-import {
-    balloonTexture,
-    bandTexture,
-    blanketTexture,
-    chairTexture,
-    glowTexture,
-    particleTextures,
-    pillowTexture,
-    poufTexture,
-    roomTexture,
-    scanTexture,
-    sofaTexture,
-    tableTexture,
-    TV_SET_TOP,
-    tvTexture
-} from './art';
+import { balloonTexture, bandTexture, blanketTexture, glowTexture, particleTextures, pillowTexture, scanTexture } from './art';
 import { finaleFx, startTvFx } from './fx';
 import { LABELS } from './labels';
-import {
-    BAND_CX,
-    BAND_TEXT_W,
-    BAND_X,
-    CHAIR_LEFT_X,
-    CHAIR_RIGHT_X,
-    CHAIR_TOP,
-    GAME_HEIGHT,
-    GAME_WIDTH,
-    SCREEN,
-    SEAT_X,
-    SEATED_BOTTOM,
-    SOFA,
-    TABLE,
-    TV_CX
-} from './layout';
+import { BALLOONS, BAND_CX, BAND_TEXT_W, BAND_X, DEPTH, GAME_HEIGHT, GAME_WIDTH, SCREEN, SPOTS, type Spot } from './layout';
 import { FishTv } from './tv';
 
 /** The credits roll lasts about as long as the credits track (24 bars at 100 bpm, 57.6 s): the finale lands on its Happy Birthday phrase. */
@@ -44,14 +15,14 @@ const FAST = 4;
 const FINALE_CX = 494;
 const RESTART_CODES = ['KeyX', 'Enter', 'Space'];
 const CONFETTI = [0xff5a6e, 0xffd34a, 0x6ee08a, 0x6ab4ff, 0xff8ae0];
-const NIGHT = { r: 150, g: 165, b: 215 };
 
-const STAND = 10; // frame: facing up, standing
+/** Frames of a character sheet (3 columns, rows down, left, right, up): the standing frame of each facing, and the two steps of the up row. */
+const FACE = { down: 1, left: 4, right: 7, up: 10 } as const;
 const STEP_L = 9;
 const STEP_R = 11;
 
 interface Breather {
-    img: Phaser.GameObjects.Image;
+    img: Phaser.GameObjects.Sprite;
     base: number;
     phase: number;
 }
@@ -67,8 +38,9 @@ interface CreditLine {
 type Phase = 'credits' | 'finale';
 
 /**
- * The `ending` scene: a night living room, the whole party asleep or half asleep around the sofa while a fish
- * documentary plays on the TV. The credits roll over a dark column, then "Buon compleanno Ric!" and the way back to the title.
+ * The `ending` scene: Casa Circe late at night, the real tile room of the divano scene (src/data/maps/divano.json) as the backdrop.
+ * The sofa is opened into a bed, the TV plays a fish documentary, and the whole party is asleep or half asleep on the bed, the
+ * chairs and the floor. The credits roll over a dark column on the right, then "Buon compleanno Ric!" and the way back to the title.
  */
 export class EndingScene extends Phaser.Scene {
     private tv!: FishTv;
@@ -82,14 +54,12 @@ export class EndingScene extends Phaser.Scene {
     private credits: CreditLine[] = [];
     private creditsTop = GAME_HEIGHT + 8;
     private breathers: Breather[] = [];
-    private lit: Phaser.GameObjects.Image[] = [];
     private zzz: Zzz[] = [];
     private balloons: { img: Phaser.GameObjects.Image; base: number; phase: number }[] = [];
     private glow!: Phaser.GameObjects.Image;
-    private cone!: Phaser.GameObjects.Graphics;
     private band!: Phaser.GameObjects.Image;
     private dim!: Phaser.GameObjects.Rectangle;
-    private ricStand: Phaser.GameObjects.Image | null = null;
+    private ricStand: Phaser.GameObjects.Sprite | null = null;
     private keyX!: Phaser.Input.Keyboard.Key;
     private canRestart = false;
     private leaving = false;
@@ -109,7 +79,6 @@ export class EndingScene extends Phaser.Scene {
         this.scroll = 0;
         this.credits = [];
         this.breathers = [];
-        this.lit = [];
         this.zzz = [];
         this.balloons = [];
         this.ricStand = null;
@@ -140,34 +109,36 @@ export class EndingScene extends Phaser.Scene {
     // ---- the room ----
 
     private buildRoom(): void {
-        this.add.image(0, 0, roomTexture(this)).setOrigin(0).setDepth(0);
+        new TileWorld(this, MAPS.divano); // the real room: its night mood, lights, fairy lights and dust come with it
         for (const [i, digit] of (['3', '0'] as const).entries()) {
-            const img = this.add.image(280 + i * 34, 52, balloonTexture(this, digit)).setOrigin(0).setDepth(2);
+            const img = this.add.image(BALLOONS.x + i * 28, BALLOONS.y, balloonTexture(this, digit)).setOrigin(0).setDepth(DEPTH.tvGlow); // foil: it catches the TV light, so it sits over the night overlay
             this.balloons.push({ img, base: img.y, phase: i * 1.7 });
         }
 
-        // the TV with the fish documentary
-        this.add.image(TV_CX - 76, TV_SET_TOP, tvTexture(this)).setOrigin(0).setDepth(58);
+        // the fish documentary over the screen of the TV in the room, above the night overlay: it is a light, not a surface
         this.tv = new FishTv(this, 'ending-fish');
         this.tv.draw(0);
-        this.add.image(SCREEN.x, SCREEN.y, 'ending-fish').setOrigin(0).setDepth(59);
-        this.add.image(SCREEN.x, SCREEN.y, scanTexture(this)).setOrigin(0).setDepth(60);
-
-        // the table with the leftovers of the party
-        this.add.image(TABLE.x, TABLE.y, tableTexture(this)).setOrigin(0.5, 0).setDepth(26);
+        this.add.image(SCREEN.x, SCREEN.y, 'ending-fish').setOrigin(0).setDepth(DEPTH.tvPicture);
+        this.add.image(SCREEN.x, SCREEN.y, scanTexture(this)).setOrigin(0).setDepth(DEPTH.tvPicture + 1);
     }
 
     // ---- the party ----
 
-    private person(id: string, x: number, bottom: number, depth: number, frame = STAND): Phaser.GameObjects.Image {
-        const img = this.add.image(x, bottom, `char-${id}`, frame).setOrigin(0.5, 1).setScale(2).setDepth(depth);
-        this.lit.push(img);
-        this.breathers.push({ img, base: bottom, phase: this.breathers.length * 1.3 });
+    private person(id: string, s: Spot, frame: number = FACE.left): Phaser.GameObjects.Sprite {
+        const img = this.add.sprite(s.x, s.y, `char-${id}`, frame).setOrigin(0.5, 1).setDepth(s.depth);
+        this.breathers.push({ img, base: s.y, phase: this.breathers.length * 1.3 });
+        return img;
+    }
+
+    /** Someone lying on their back, turned by `angle` (the picture keeps its face to the viewer): the spot is the middle of the body. */
+    private lying(id: string, s: Spot, angle: number): Phaser.GameObjects.Sprite {
+        const img = this.add.sprite(s.x, s.y, `char-${id}`, FACE.down).setRotation(angle).setDepth(s.depth);
+        this.breathers.push({ img, base: s.y, phase: this.breathers.length * 1.3 });
         return img;
     }
 
     private sleepy(x: number, y: number): void {
-        const imgs = [0, 1, 2].map(() => this.add.image(x, y, 'ending-z').setDepth(70).setAlpha(0));
+        const imgs = [0, 1, 2].map(() => this.add.image(x, y, 'ending-z').setDepth(DEPTH.tvGlow).setAlpha(0));
         this.zzz.push({ imgs, x, y });
     }
 
@@ -176,68 +147,57 @@ export class EndingScene extends Phaser.Scene {
         const slackline = results.slackline === true;
         const cat = results['cat-smoke'] === true;
 
-        // sofa: Liscio, Ric (or Ros while Ric is balancing on the chair), Lara
-        const middle = slackline ? 'ros' : 'ric';
-        ['liscio', middle, 'lara'].forEach((id, i) => this.person(id, SEAT_X[i], SEATED_BOTTOM, 20));
-        this.add.image(SOFA.x, SOFA.y, sofaTexture(this)).setOrigin(0).setDepth(30);
+        // the bed: Liscio and Ric (Ros while Ric balances on the chair) lean on the backrest, Lara lies across the foot on the quilt
+        this.person('liscio', SPOTS.bedLeft);
+        this.person(slackline ? 'ros' : 'ric', SPOTS.bedRight);
+        this.lying('lara', SPOTS.bedFoot, Math.PI / 2);
 
-        // chairs: Giusy asleep in the corner, and the right one is Ric's stage when he won the slackline
-        this.add.image(CHAIR_LEFT_X - 20, CHAIR_TOP, chairTexture(this)).setOrigin(0).setDepth(30);
-        this.person('giusy', CHAIR_LEFT_X, CHAIR_TOP + 10, 20);
-        this.sleepy(CHAIR_LEFT_X + 10, 206);
-
-        this.add.image(CHAIR_RIGHT_X - 20, CHAIR_TOP, chairTexture(this)).setOrigin(0).setDepth(30);
+        // the chairs: Giusy asleep on the left one, the right one is Ric's stage when he won the slackline
+        const { chairLeft, chairRight, chairRightStand } = SPOTS;
+        this.person('giusy', chairLeft);
+        this.sleepy(chairLeft.x + 8, chairLeft.y - 38);
         if (slackline) {
-            // standing on one foot, wobbling
-            const ric = this.person('ric', CHAIR_RIGHT_X, CHAIR_TOP + 4, 20, STEP_L);
-            this.ricStand = ric;
+            // standing on one foot on the seat, wobbling
+            this.ricStand = this.person('ric', chairRightStand, STEP_L);
             this.breathers.pop(); // the wobble replaces the breathing
         } else {
-            this.person('ros', CHAIR_RIGHT_X, CHAIR_TOP + 10, 20);
+            this.person('ros', chairRight);
         }
 
-        // floor: Lollino against a pouf (only head and shoulders show), Giuggiu asleep under a blanket
-        this.add.image(96, 326, poufTexture(this, 'ending-pouf', '#3f6fb0', '#6fa0e0')).setOrigin(0.5, 0).setDepth(36);
-        const lollino = this.person('lollino', 96, 354, 34);
-        lollino.setCrop(0, 0, 32, 24);
-        this.sleepy(104, 288);
+        // the floor: Lollino leans against the pink pouf (it hides all but his head and shoulders), Giuggiu sleeps on her back under a blanket
+        const pouf = this.person('lollino', SPOTS.pouf, FACE.up);
+        this.sleepy(pouf.x + 6, pouf.y - 36);
 
-        this.add.image(262, 338, pillowTexture(this)).setOrigin(0.5).setAngle(90).setDepth(33);
-        const giuggiu = this.add.image(292, 334, 'char-giuggiu', 1).setScale(2).setRotation(-Math.PI / 2).setDepth(34);
-        this.lit.push(giuggiu);
-        this.breathers.push({ img: giuggiu, base: 334, phase: 2.2 });
-        this.add.image(306, 346, blanketTexture(this)).setOrigin(0.5).setAngle(90).setScale(1.2, 1).setDepth(35);
-        this.sleepy(262, 316);
+        const g = SPOTS.floor;
+        this.add.image(g.x - 17, g.y, pillowTexture(this)).setDepth(g.depth - 1);
+        this.lying('giuggiu', g, -Math.PI / 2);
+        this.add.image(g.x + 7, g.y + 2, blanketTexture(this)).setDepth(g.depth + 1);
+        this.sleepy(g.x - 6, g.y - 14);
 
         if (cat) {
-            const gatto = this.person('gatto', 380, 358, 34);
-            gatto.setScale(2);
-            this.sleepy(390, 322);
+            this.person('gatto', SPOTS.cat, FACE.down);
+            this.sleepy(SPOTS.cat.x + 8, SPOTS.cat.y - 28);
         }
     }
 
     // ---- light ----
 
     private buildLight(): void {
-        // the TV throws blue light on the room and the floor
-        this.glow = this.add.image(TV_CX, 120, glowTexture(this)).setDepth(55).setBlendMode(Phaser.BlendModes.ADD);
-        this.cone = this.add.graphics().setDepth(41).setBlendMode(Phaser.BlendModes.ADD);
-        this.cone.fillStyle(0x5a8cff, 0.07);
-        this.cone.fillTriangle(SCREEN.x, 122, SCREEN.x + SCREEN.w, 122, TV_CX + 175, GAME_HEIGHT);
-        this.cone.fillTriangle(SCREEN.x, 122, TV_CX + 175, GAME_HEIGHT, TV_CX - 175, GAME_HEIGHT);
-        this.dim = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x05071a, 1).setOrigin(0).setDepth(50).setAlpha(0);
+        // the TV throws a soft flickering light on the room, over the night overlay of the map (which already holds its steady pools)
+        this.glow = this.add.image(SCREEN.x + SCREEN.w / 2, SCREEN.y + SCREEN.h / 2, glowTexture(this)).setDepth(DEPTH.tvGlow).setBlendMode(Phaser.BlendModes.ADD);
+        this.dim = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x05071a, 1).setOrigin(0).setDepth(DEPTH.dim).setAlpha(0);
     }
 
     // ---- credits ----
 
     private buildCredits(): void {
-        this.band = this.add.image(BAND_X - 24, 0, bandTexture(this)).setOrigin(0).setDepth(70);
+        this.band = this.add.image(BAND_X - 24, 0, bandTexture(this)).setOrigin(0).setDepth(DEPTH.band);
         const { title, lines } = DIALOGUE.credits;
         const entries = lines.filter((l) => !/compleanno/i.test(l) || l.includes(' ... '));
         const look = { align: 'center', wordWrap: { width: BAND_TEXT_W }, lineSpacing: 2, stroke: '#05071a', strokeThickness: 3 } as const;
         let y = this.creditsTop;
         const put = (text: string, color: string, gap: number): void => {
-            const obj = this.add.text(BAND_CX, y, text, { ...pixelStyle(16, color), ...look }).setOrigin(0.5, 0).setDepth(71);
+            const obj = this.add.text(BAND_CX, y, text, { ...pixelStyle(16, color), ...look }).setOrigin(0.5, 0).setDepth(DEPTH.credits);
             this.credits.push({ obj, y });
             y += obj.height + gap;
         };
@@ -274,11 +234,7 @@ export class EndingScene extends Phaser.Scene {
         if (this.flickerAcc >= 90) {
             this.flickerAcc = 0;
             this.flicker += (0.72 + Math.random() * 0.28 - this.flicker) * 0.6;
-            const f = this.flicker;
-            this.glow.setAlpha(0.55 + 0.45 * f);
-            this.cone.setAlpha(0.5 + 0.5 * f);
-            const night = Phaser.Display.Color.GetColor(NIGHT.r + 70 * f, NIGHT.g + 60 * f, NIGHT.b + 40 * f);
-            for (const img of this.lit) img.setTint(night);
+            this.glow.setAlpha(0.55 + 0.45 * this.flicker);
         }
 
         // breathing: one pixel up and down, out of step
@@ -291,9 +247,9 @@ export class EndingScene extends Phaser.Scene {
         for (const z of this.zzz) {
             z.imgs.forEach((img, i) => {
                 const p = ((t + i * 1100) % 3300) / 3300;
-                img.setPosition(Math.round(z.x + p * 12 + Math.sin(p * 8) * 2), Math.round(z.y - p * 26));
+                img.setPosition(Math.round(z.x + p * 10 + Math.sin(p * 8) * 2), Math.round(z.y - p * 22));
                 img.setAlpha(Math.sin(p * Math.PI));
-                img.setScale(p < 0.45 ? 1 : 2);
+                img.setScale(p < 0.45 ? 1 : 1.5);
             });
         }
 
@@ -321,7 +277,7 @@ export class EndingScene extends Phaser.Scene {
         this.tweens.add({ targets: this.dim, alpha: 0.5, duration: 1000 });
 
         const shadow = { stroke: '#05071a', strokeThickness: 5 };
-        const title = this.add.text(FINALE_CX, 74, LABELS.birthday, { ...pixelStyle(32, '#ffe27a'), ...shadow }).setOrigin(0.5).setDepth(80).setScale(0.2).setAlpha(0);
+        const title = this.add.text(FINALE_CX, 74, LABELS.birthday, { ...pixelStyle(32, '#ffe27a'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setScale(0.2).setAlpha(0);
         this.tweens.add({ targets: title, scale: 1, alpha: 1, duration: 800, ease: 'Back.Out', delay: 400 });
         this.tweens.add({ targets: title, y: 70, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: 1400 });
 
@@ -340,7 +296,7 @@ export class EndingScene extends Phaser.Scene {
                     tint,
                     emitting: false
                 });
-                burst.setDepth(90).explode(14);
+                burst.setDepth(DEPTH.particles).explode(14);
                 const rain = this.add.particles(0, 0, 'ending-dot', {
                     x: { min: 0, max: GAME_WIDTH },
                     y: -6,
@@ -353,7 +309,7 @@ export class EndingScene extends Phaser.Scene {
                     maxAliveParticles: 24,
                     tint
                 });
-                rain.setDepth(90);
+                rain.setDepth(DEPTH.particles);
                 this.rain.push(rain);
             });
             this.add
@@ -367,11 +323,11 @@ export class EndingScene extends Phaser.Scene {
                     blendMode: 'ADD',
                     tint: 0xfff2a8
                 })
-                .setDepth(90);
+                .setDepth(DEPTH.particles);
         });
 
-        const theEnd = this.add.text(FINALE_CX, 126, DIALOGUE.ui.theEnd ?? LABELS.theEnd, { ...pixelStyle(32, '#ffffff'), ...shadow }).setOrigin(0.5).setDepth(80).setAlpha(0);
-        const prompt = this.add.text(FINALE_CX, 168, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(80).setAlpha(0);
+        const theEnd = this.add.text(FINALE_CX, 126, DIALOGUE.ui.theEnd ?? LABELS.theEnd, { ...pixelStyle(32, '#ffffff'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
+        const prompt = this.add.text(FINALE_CX, 168, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
         const show = (): void => {
             this.tweens.killTweensOf([theEnd, prompt]);
             theEnd.setAlpha(1);
