@@ -59,7 +59,9 @@ Pixel Operator by Jayvee Enaguas (HarvettFox96), CC0 1.0 Universal. File `public
 
 Positive test (2026-11-24, throwaway repos and a generated harmless PNG as the "private" folder through `REF_PHOTOS_DIR`, nothing in the real repository): baseline PASS; the PNG renamed and staged in the index FAILS; the same file committed and then deleted (history only) FAILS; the renamed copy in `dist/` FAILS; the same bytes as a base64 `data:` URI in `dist-offline/index.html` FAILS; the same bytes inside a zip in `dist/` FAILS; a different file of the same size as a data URI and as a png in `dist/` PASSES with two `WARN` lines.
 
-Remaining limit: the match is on exact bytes. A re-encoded, resized, cropped, recompressed or screenshot copy of a photo has another hash and is not caught, and neither is a photo split or encrypted before inlining. The size warning is a weak hint for those cases. The defence for them is the rule that `reference_photos/` is never read by an agent and that no photo-derived asset is added without the owner's look.
+Inlined photos in history (added after review round 1): blobs whose path ends in html, htm, js, mjs, cjs, jsx, ts, tsx, css, json, svg, md, txt, yml or yaml, in the index and in all history, are read (one `git cat-file --batch` call) and every base64 `data:` URI payload in them is decoded and hashed like a built file, so a photo committed as a data URI inside such a file and deleted later still fails. A text blob over 8 MB is not scanned and gives a `WARN` line. Test: a generated PNG as a data URI in a `.js` file, committed and then deleted, FAILS; the baseline PASSES.
+
+Remaining limit: the match is on exact bytes. A re-encoded, resized, cropped, recompressed or screenshot copy of a photo has another hash and is not caught, and neither is a photo split, encrypted or otherwise encoded (hex, URL-encoded, not base64) before inlining, nor a data URI inside a text blob of another file type or over 8 MB. The size warning is a weak hint for those cases. The defence for them is the rule that `reference_photos/` is never read by an agent and that no photo-derived asset is added without the owner's look.
 
 ## Not done in W0
 

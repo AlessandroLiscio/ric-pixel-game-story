@@ -24,6 +24,8 @@ const git = (args, input, binary = Boolean(input)) => {
 };
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
+const TEXT_LIKE = /\.(html?|m?js|cjs|jsx?|tsx?|css|json|svg|md|txt|ya?ml)$/i;
+const TEXT_BLOB_CAP = 8 * 1024 * 1024;
 const MEDIA = /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?|avif|mp4|mov|avi|mkv|webm|m4v)$/i;
 const TOKENS = [
     /ghp_[A-Za-z0-9]{36}/,
@@ -113,18 +115,35 @@ let blobs = 0;
 if (priv.hashes.size) {
     const idx = git(['ls-files', '-s', '-z']).split('\0').filter(Boolean).map((l) => ({ oid: l.split(/\s+/)[1], path: l.split('\t')[1] }));
     const hist = git(['rev-list', '--objects', '--all']).split('\n').filter(Boolean).map((l) => ({ oid: l.slice(0, 40), path: l.slice(41) }));
-    const seen = new Map();
-    for (const b of [...idx, ...hist]) if (!seen.has(b.oid)) seen.set(b.oid, b.path);
+    const seen = new Map(); // oid -> paths it had
+    for (const b of [...idx, ...hist]) seen.set(b.oid, [...(seen.get(b.oid) ?? []), b.path]);
     const list = [...seen.keys()].join('\n') + '\n';
-    // batch-check prints "<oid> <type> <size>"; only blobs whose size equals a private file's size can match
+    // batch-check prints "<oid> <type> <size>". A whole-file copy has exactly a private file's size; a photo
+    // inlined as a data: URI sits inside a bigger text blob, so text-like blobs (up to 8 MB) are read and decoded.
     const checked = git(['cat-file', '--batch-check'], Buffer.from(list)).toString('utf8').split('\n').filter(Boolean);
+    const textOids = [];
     for (const line of checked) {
         const [oid, type, size] = line.split(' ');
         if (type !== 'blob') continue;
         blobs++;
-        if (!priv.sizes.has(Number(size))) continue;
-        const buf = git(['cat-file', 'blob', oid], undefined, true);
-        matchBytes(buf, `git blob ${oid.slice(0, 10)} (${seen.get(oid) ?? '?'})`);
+        const name = `git blob ${oid.slice(0, 10)} (${seen.get(oid)[0] ?? '?'})`;
+        if (priv.sizes.has(Number(size))) matchBytes(git(['cat-file', 'blob', oid], undefined, true), name);
+        if (seen.get(oid).some((p) => TEXT_LIKE.test(p))) {
+            if (Number(size) > TEXT_BLOB_CAP) warns.push(`WARN ${name}: ${size} bytes, text blob over 8 MB not scanned for data: URIs`);
+            else textOids.push(oid);
+        }
+    }
+    // One `cat-file --batch` call for all text blobs: output is "<oid> blob <size>\n<bytes>\n" per blob.
+    if (textOids.length) {
+        const out = git(['cat-file', '--batch'], Buffer.from(textOids.join('\n') + '\n'));
+        let p = 0;
+        while (p < out.length) {
+            const nl = out.indexOf(10, p);
+            const [oid, , size] = out.toString('utf8', p, nl).split(' ');
+            const body = out.subarray(nl + 1, nl + 1 + Number(size));
+            scanDataUris(body.toString('utf8'), `git blob ${oid.slice(0, 10)} (${seen.get(oid)[0] ?? '?'})`);
+            p = nl + 1 + Number(size) + 1;
+        }
     }
 }
 
