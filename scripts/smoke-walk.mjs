@@ -66,8 +66,14 @@ try {
     note('debug jumps F2/F1 ok');
 
     for (let i = 0; i < 6; i++) {
-        const def = SCENES[i];
         await until(world(i), `world ${i}`);
+        // a tile room takes door and friend positions from its map: read the resolved entry from the live scene
+        await page.waitForFunction((sid) => window.__ricGame.scene.getScene('world').def?.id === sid, SCENES[i].id, { timeout: 10000 });
+        const live = await page.evaluate(() => {
+            const d = window.__ricGame.scene.getScene('world').def;
+            return { friend: d.friend, door: d.door };
+        });
+        const def = { ...SCENES[i], ...live };
         await skipArrival();
         if (def.friend) {
             if (i === 0) {

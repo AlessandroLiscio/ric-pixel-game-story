@@ -72,10 +72,17 @@ export function installDebugTools(game: Phaser.Game): void {
     };
 
     const draw = (scene: Phaser.Scene): void => {
-        const def = SCENES[sceneIndex()];
+        // the world scene holds the resolved entry (a tile room takes spawn, door and people from its map) and the tile world
+        const live = scene as unknown as { def?: SceneData; tw?: { data: { collision: number[][] } } };
+        const def = live.def ?? SCENES[sceneIndex()];
         const o = overlayFor(scene);
         const g = o.gfx;
         g.clear();
+        live.tw?.data.collision.forEach((row, ty) =>
+            row.forEach((blocked, tx) => {
+                if (blocked) g.fillStyle(0xff3030, 0.28).fillRect(tx * 32, ty * 32, 32, 32);
+            })
+        );
         for (const r of def.walk) {
             g.fillStyle(0x00ff00, 0.22).fillRect(r.x, r.y, r.w, r.h);
             g.lineStyle(1, 0x00ff00, 1).strokeRect(r.x, r.y, r.w, r.h);
