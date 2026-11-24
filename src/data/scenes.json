@@ -86,23 +86,18 @@
   {
     "id": "cortile",
     "background": "bg-cortile",
+    "map": "cortile",
     "title": "Cortile Cafe",
     "music": "cortile",
-    "spawn": { "x": 190, "y": 300, "facing": "right" },
-    "door": { "x": 138, "y": 170, "w": 40, "h": 84 },
-    "walk": [
-      { "x": 20, "y": 290, "w": 600, "h": 60 },
-      { "x": 134, "y": 252, "w": 48, "h": 40 }
-    ],
-    "friend": { "personId": "lara", "x": 330, "y": 304, "facing": "up" },
+    "spawn": { "facing": "up" },
+    "door": null,
+    "walk": [],
+    "friend": { "personId": "lara", "facing": "up", "at": "lara" },
     "extras": [
-      { "personId": "sconosciuta", "x": 470, "y": 306, "facing": "left", "egg": "extra-3", "tint": "#c0c0c0" }
+      { "personId": "sconosciuta", "facing": "down", "egg": "extra-3", "at": "barista" }
     ],
     "minigame": "rhythm",
-    "ambient": [
-      { "type": "tween", "preset": "pulse", "area": { "x": 290, "y": 130, "w": 350, "h": 120 }, "color": "#ff59d6", "alpha": [0.0, 0.22], "period": 500 },
-      { "type": "tween", "preset": "sway", "area": { "x": 540, "y": 0, "w": 100, "h": 80 }, "period": 2400 }
-    ]
+    "ambient": []
   },
   {
     "id": "divano",

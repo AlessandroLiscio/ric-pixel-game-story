@@ -11,9 +11,12 @@ import { SCENES, person } from './data';
 import { ACTIVE_MINIGAME_KEY, getRun, type RunState } from './RunState';
 import type { Facing, NpcDef, Rect, SceneDef } from './sceneTypes';
 import { divanoEggs, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
+import { MAPS, TileWorld, resolveMapScene, feetOf } from './tileMap';
 
 const SPEED = 80; // px per second
 const TALK_RANGE = 34;
+const TALK_RANGE_TILES = 52; // a tile room is bigger and has counters between people
+const NPC_BLOCK = { x: 13, y: 7 }; // Ric cannot walk into a person: half width and half depth around the feet in a tile room
 const DOOR_SLACK = 6; // the door counts a few pixels outside its rectangle, so walk limits that stop short still reach it
 const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
 const OUTLINE = { stroke: '#0a1040', strokeThickness: 3 };
@@ -37,6 +40,9 @@ export class WorldScene extends Phaser.Scene {
     private arrows!: Keys;
     private wasd!: Keys;
     private npcs: Npc[] = [];
+    /** Set in a tile room (scenes.json `map`); the old picture rooms leave it undefined. */
+    private tw?: TileWorld;
+    private crowd: Phaser.GameObjects.Sprite[] = [];
     private talkHint!: Phaser.GameObjects.Text;
     private doorHint?: Phaser.GameObjects.Text;
     private facing: Facing = 'down';
@@ -50,6 +56,8 @@ export class WorldScene extends Phaser.Scene {
 
     init(): void {
         this.npcs = [];
+        this.crowd = [];
+        this.tw = undefined;
         this.facing = 'down';
         this.busy = true;
         this.doorOpen = false;
@@ -59,21 +67,36 @@ export class WorldScene extends Phaser.Scene {
 
     create(): void {
         this.run = getRun(this.game);
-        this.def = SCENES[Phaser.Math.Clamp(this.run.sceneIndex, 0, SCENES.length - 1)];
+        const entry = SCENES[Phaser.Math.Clamp(this.run.sceneIndex, 0, SCENES.length - 1)];
+        const map = entry.map ? MAPS[entry.map] : undefined;
+        if (entry.map && !map) throw new Error(`scenes.json names the map "${entry.map}" but src/data/maps has no such file`);
+        this.def = map ? resolveMapScene(entry, map) : entry;
         const { def, run } = this;
 
-        this.add.image(0, 0, def.background).setOrigin(0).setDepth(-1);
+        if (map) {
+            this.tw = new TileWorld(this, map);
+        } else {
+            this.add.image(0, 0, def.background).setOrigin(0).setDepth(-1);
+            // the picture has no door here (giuggiu): a plain panel marks the exit
+            if (def.door?.draw) this.add.rectangle(def.door.x, def.door.y, def.door.w, def.door.h, 0x5a3a22).setOrigin(0).setStrokeStyle(2, 0xd9b27a).setDepth(0);
+        }
         audio.playTrack(def.music);
-        // the picture has no door here (giuggiu): a plain panel marks the exit
-        if (def.door?.draw) this.add.rectangle(def.door.x, def.door.y, def.door.w, def.door.h, 0x5a3a22).setOrigin(0).setStrokeStyle(2, 0xd9b27a).setDepth(0);
 
         ensureCharAnims(this, 'ric');
         this.ric = this.add.sprite(def.spawn.x, def.spawn.y, 'char-ric', 1).setOrigin(0.5, 1);
-        this.ric.play('ric-idle-down');
+        if (map) this.facing = (def.spawn as { facing?: Facing }).facing ?? 'down';
+        this.ric.play(`ric-idle-${this.facing}`);
         this.party = new Party(this, this.ric);
         run.party.forEach((id) => this.party.add(id));
 
         this.spawnNpcs();
+        if (map && this.tw) this.spawnCrowd();
+        if (this.tw) {
+            const cam = this.cameras.main;
+            cam.setBounds(0, 0, this.tw.widthPx, this.tw.heightPx);
+            cam.startFollow(this.ric, true, 0.12, 0.12);
+            cam.centerOn(this.ric.x, this.ric.y - 16);
+        }
         this.talkHint = this.add.text(0, 0, t('ui.talk'), { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 1).setDepth(900).setVisible(false);
         this.dialog = new DialogBox(this);
 
@@ -132,7 +155,15 @@ export class WorldScene extends Phaser.Scene {
     }
 
     private canStand(x: number, y: number): boolean {
+        if (this.tw) return this.tw.canStand(x, y) && !this.blockedByPerson(x, y);
         return this.def.walk.some((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
+    }
+
+    /** True when (x, y) is inside a person and Ric is not already inside that person (so he can always step out). */
+    private blockedByPerson(x: number, y: number): boolean {
+        const inside = (px: number, py: number, s: Phaser.GameObjects.Sprite) => Math.abs(px - s.x) < NPC_BLOCK.x && Math.abs(py - s.y) < NPC_BLOCK.y;
+        const people = [...this.npcs.map((n) => n.sprite), ...this.crowd];
+        return people.some((s) => inside(x, y, s) && !inside(this.ric.x, this.ric.y, s));
     }
 
     private inRect(r: Rect, slack = 0): boolean {
@@ -162,9 +193,22 @@ export class WorldScene extends Phaser.Scene {
         return npc;
     }
 
+    /** The audience of a tile room: people standing still, breathing in slow bobs. Ric cannot walk through them. */
+    private spawnCrowd(): void {
+        for (const c of this.tw!.data.crowd) {
+            const id = c.sheet;
+            ensureCharAnims(this, id);
+            const at = feetOf(c);
+            const sprite = this.add.sprite(at.x, at.y, `char-${id}`, 1).setOrigin(0.5, 1).setDepth(at.y);
+            sprite.play(`${id}-idle-${c.facing}`);
+            this.tweens.add({ targets: sprite, y: at.y - 1, duration: c.bob / 2, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: Phaser.Math.Between(0, c.bob) });
+            this.crowd.push(sprite);
+        }
+    }
+
     private nearestTalkable(): Npc | undefined {
         let best: Npc | undefined;
-        let bestDist = TALK_RANGE;
+        let bestDist = this.tw ? TALK_RANGE_TILES : TALK_RANGE;
         for (const n of this.npcs) {
             if (n.kind === 'decor') continue;
             const d = Phaser.Math.Distance.Between(this.ric.x, this.ric.y, n.sprite.x, n.sprite.y);
@@ -236,7 +280,12 @@ export class WorldScene extends Phaser.Scene {
         this.showDoorHint();
     }
 
+    /** In a scrolling room the box moves to the top when Ric (or who he talks to) stands in the lower half of the view, so it never hides the speakers. */
     private async say(dialogLines: ReturnType<typeof lines>): Promise<void> {
+        const cam = this.cameras.main;
+        // the camera centres Ric's feet exactly on the middle line, so a few pixels of margin keep the box at the bottom there
+        const lowest = Math.max(this.ric.y, this.nearestTalkable()?.sprite.y ?? 0);
+        this.dialog.setAtTop(!!this.tw && lowest - cam.scrollY > GAME_HEIGHT / 2 + 4);
         await this.dialog.show(dialogLines);
     }
 
@@ -267,12 +316,12 @@ export class WorldScene extends Phaser.Scene {
     // ---- texts on screen ----
 
     private showTitle(): void {
-        const title = this.add.text(GAME_WIDTH / 2, 8, this.def.title, { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 0).setDepth(900);
+        const title = this.add.text(GAME_WIDTH / 2, 8, this.def.title, { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 0).setDepth(900).setScrollFactor(0);
         this.tweens.add({ targets: title, alpha: 0, delay: 2600, duration: 600, onComplete: () => title.destroy() });
     }
 
     private showDoorHint(): void {
-        this.doorHint ??= this.add.text(GAME_WIDTH / 2, 8, t('ui.exit'), { ...pixelStyle(16, '#ffe27a'), ...OUTLINE }).setOrigin(0.5, 0).setDepth(900);
+        this.doorHint ??= this.add.text(GAME_WIDTH / 2, 8, t('ui.exit'), { ...pixelStyle(16, '#ffe27a'), ...OUTLINE }).setOrigin(0.5, 0).setDepth(900).setScrollFactor(0);
         this.tweens.add({ targets: this.doorHint, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
     }
 
@@ -282,7 +331,8 @@ export class WorldScene extends Phaser.Scene {
         const label = this.add
             .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40, text, { ...pixelStyle(size, good ? '#ffe27a' : '#ff8a8a'), ...OUTLINE })
             .setOrigin(0.5)
-            .setDepth(950);
+            .setDepth(950)
+            .setScrollFactor(0);
         this.tweens.add({ targets: label, scale: { from: 0.6, to: 1 }, duration: 220, ease: 'Back.Out' });
         return new Promise((resolve) =>
             this.time.delayedCall(1100, () => {

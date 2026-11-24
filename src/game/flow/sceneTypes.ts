@@ -17,12 +17,16 @@ export interface NpcDef extends Point {
     facing: Facing;
     egg?: string;
     intro?: boolean;
+    /** Tile worlds: name of a point in the scene's map; the flow turns it into x and y (the scenes.json entry then omits them). */
+    at?: string;
 }
 
 /** One entry of scenes.json. Coordinates are 640x360 pixels; a character's x,y is where its feet are. */
 export interface SceneDef {
     id: string;
     background: string;
+    /** Id of a map in src/data/maps: the room is a tile world and spawn, door, friend and extras come from the map's points. */
+    map?: string;
     title: string;
     music: string;
     spawn: Point;

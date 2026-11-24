@@ -42,12 +42,17 @@ export class DialogBox {
         this.body = scene.add.text(TEXT_X_PORTRAIT, PANEL_Y + 26, '', { ...pixelStyle(), shadow, lineSpacing: 2 });
         this.arrow = scene.add.graphics().fillStyle(0xffffff).fillTriangle(-5, 0, 5, 0, 0, 6).setPosition(GAME_WIDTH / 2, GAME_HEIGHT - 12);
         scene.tweens.add({ targets: this.arrow, alpha: 0.15, duration: 380, yoyo: true, repeat: -1 });
-        this.root = scene.add.container(0, 0, [panel, this.portrait, this.nameText, this.body, this.arrow]).setDepth(1000).setVisible(false);
+        this.root = scene.add.container(0, 0, [panel, this.portrait, this.nameText, this.body, this.arrow]).setDepth(1000).setScrollFactor(0).setVisible(false);
 
         this.zKey = scene.input.keyboard!.addKey('Z');
         scene.input.keyboard!.on('keydown', this.handleKey, this);
         scene.game.events.on('test-skip', this.handleSkip, this);
         scene.events.once('shutdown', () => this.destroy());
+    }
+
+    /** Puts the whole window at the top of the screen instead of the bottom (for scenes where the speakers stand low in the view). */
+    setAtTop(top: boolean): void {
+        this.root.setY(top ? -PANEL_Y : 0);
     }
 
     get isOpen(): boolean {

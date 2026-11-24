@@ -73,7 +73,9 @@ const badPath = (path, where) => {
     if (/^\.env(\..*)?$/.test(base) && base !== '.env.example') add(`${where}: .env file ${base}`);
 };
 const scanText = (text, where) => {
-    for (const re of TOKENS) if (re.test(text)) add(`${where}: matches token pattern ${re.source.slice(0, 24)}…`);
+    // Base64 image payloads can contain token-shaped runs by chance; they are hash-checked as data: URIs instead.
+    const plain = text.replace(/data:image\/[\w+.-]+;base64,[A-Za-z0-9+/=]+/g, 'data:image;base64,');
+    for (const re of TOKENS) if (re.test(plain)) add(`${where}: matches token pattern ${re.source.slice(0, 24)}…`);
 };
 /** Content match of one buffer against the private files. */
 const matchBytes = (buf, where) => {

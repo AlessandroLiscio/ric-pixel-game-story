@@ -1,6 +1,6 @@
 // Validates src/data/scenes.json against the contract (see docs/scenes.md).
 // Standard library only. Quiet: prints one PASS line, or up to 20 errors and exits 1.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
@@ -54,6 +54,88 @@ function personOk(where, p, walk) {
   pointOk(where, p, walk);
 }
 
+// Tile-world scenes (`map`): positions come from the map's named points (src/data/maps/<map>.json), checked on its collision grid.
+const MAP_LAYERS = ['ground', 'walls', 'below', 'objects', 'above'];
+const tilesInfo = JSON.parse(readFileSync(resolve(root, 'public/assets/tiles/tiles.json'), 'utf8'));
+
+function mapScene(at, sc, id) {
+  if (typeof sc.map !== 'string' || sc.map !== sc.id) return err(at, `map must be "${sc.id}" (src/data/maps/${sc.id}.json)`);
+  let map;
+  try {
+    map = JSON.parse(readFileSync(resolve(root, `src/data/maps/${sc.map}.json`), 'utf8'));
+  } catch (e) {
+    return err(at, `cannot read map ${sc.map}: ${e.message}`);
+  }
+  const w = `${at} map`;
+  const { width, height } = map;
+  if (!Number.isInteger(width) || !Number.isInteger(height) || map.tileSize !== 32) return err(w, 'width, height and tileSize 32 are required');
+  if (width * 32 <= W || height * 32 <= H) err(w, `a tile world must be bigger than the ${W}x${H} screen so the camera scrolls`);
+  const gridOk = (grid, name, max) => {
+    if (!Array.isArray(grid) || grid.length !== height || grid.some((r) => !Array.isArray(r) || r.length !== width)) return err(w, `${name} must be ${width}x${height}`), false;
+    if (grid.some((r) => r.some((v) => !Number.isInteger(v) || v < 0 || v > max))) return err(w, `${name} holds a value outside 0..${max}`), false;
+    return true;
+  };
+  for (const l of MAP_LAYERS) gridOk(map.layers?.[l], `layer ${l}`, tilesInfo.count - 1);
+  if (!gridOk(map.collision, 'collision', 1)) return;
+  const free = (x, y) => x >= 0 && y >= 0 && x < width && y < height && map.collision[y][x] === 0;
+  const pt = (name) => map.points?.[name];
+  const spawn = pt('spawn');
+  if (!spawn || !free(spawn.x, spawn.y)) return err(w, 'point "spawn" is missing or on a blocked tile');
+  // BFS over walkable tiles from the spawn
+  const seen = new Set([`${spawn.x},${spawn.y}`]);
+  const queue = [[spawn.x, spawn.y]];
+  while (queue.length) {
+    const [x, y] = queue.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const k = `${x + dx},${y + dy}`;
+      if (free(x + dx, y + dy) && !seen.has(k)) (seen.add(k), queue.push([x + dx, y + dy]));
+    }
+  }
+  const door = pt('door');
+  if (!door || !Number.isInteger(door.w) || !Number.isInteger(door.h)) err(w, 'point "door" needs x, y, w, h in tiles');
+  else {
+    let reach = false;
+    for (let y = door.y; y < door.y + door.h; y++) for (let x = door.x; x < door.x + door.w; x++) if (seen.has(`${x},${y}`)) reach = true;
+    if (!reach) err(w, 'door is not reachable from the spawn over walkable tiles');
+  }
+  if (sc.door !== null && sc.door !== undefined && typeof sc.door !== 'object') err(at, 'door comes from the map point "door"; scenes.json door must be null');
+
+  const person = (where, p, mustReach) => {
+    if (p === null || typeof p !== 'object') return err(where, 'not an object');
+    if (!people.has(p.personId)) err(where, `personId "${p.personId}" is not in people.json`);
+    if (!FACINGS.includes(p.facing)) err(where, `bad facing "${p.facing}"`);
+    const q = pt(p.at);
+    if (!q) return err(where, `"at" names the point "${p.at}", which the map does not have`);
+    if (!free(q.x, q.y)) err(where, `point "${p.at}" (${q.x},${q.y}) is on a blocked tile`);
+    else if (mustReach && !seen.has(`${q.x},${q.y}`)) err(where, `point "${p.at}" cannot be reached from the spawn`);
+  };
+  if (FRIENDS[id] === null) {
+    if (sc.friend !== null) err(at, 'friend must be null in divano');
+  } else {
+    person(`${at} friend`, sc.friend, true);
+    if (sc.friend?.personId !== FRIENDS[id]) err(at, `friend must be "${FRIENDS[id]}"`);
+  }
+  (sc.extras ?? []).forEach((e, j) => {
+    const where = `${at} extras[${j}]`;
+    person(where, e, e.egg !== undefined);
+    if (e.egg !== undefined) {
+      usedEggs.push(e.egg);
+      if (!eggs.has(e.egg)) err(where, `egg "${e.egg}" is not in dialogue.it.json easterEggs`);
+    }
+    if (e.egg === undefined && e.intro !== true && e.sfx === undefined) err(where, 'an extra needs one of egg, intro or sfx');
+  });
+  (map.crowd ?? []).forEach((c, j) => {
+    const where = `${w} crowd[${j}]`;
+    if (!free(c.x, c.y)) err(where, `(${c.x},${c.y}) is on a blocked tile`);
+    if (!FACINGS.includes(c.facing)) err(where, `bad facing "${c.facing}"`);
+    if (!existsSync(resolve(root, `public/assets/tiles/${c.sheet}.png`))) err(where, `sheet "${c.sheet}" has no file in public/assets/tiles`);
+  });
+  (map.lights ?? []).forEach((l, j) => {
+    if (![l.x, l.y, l.r, l.period].every(isNum) || l.x < 0 || l.y < 0 || l.x > width * 32 || l.y > height * 32) err(`${w} lights[${j}]`, 'x, y, r, period must be numbers inside the map');
+    if (!['steady', 'flicker', 'pulse'].includes(l.kind)) err(`${w} lights[${j}]`, `bad kind "${l.kind}"`);
+  });
+}
+
 if (!Array.isArray(scenes) || scenes.length !== SCENES.length) err('scenes', `expected ${SCENES.length} scenes`);
 const usedEggs = [];
 
@@ -66,6 +148,8 @@ const usedEggs = [];
   if (sc.music !== sc.id) err(at, `music must be the track "${sc.id}"`);
   if (sc.minigame !== MINIGAMES[id]) err(at, `minigame must be ${JSON.stringify(MINIGAMES[id])}`);
   if (id === 'circe' ? sc.minigame2 !== 'mash' : sc.minigame2 !== undefined) err(at, 'minigame2 is "mash" in circe and absent elsewhere');
+
+  if (sc.map !== undefined) return mapScene(at, sc, id);
 
   const walk = Array.isArray(sc.walk) ? sc.walk.filter((r, j) => rectOk(`${at} walk[${j}]`, r)) : [];
   if (walk.length === 0) return err(at, 'walk must hold at least one rectangle');

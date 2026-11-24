@@ -5,6 +5,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { MINIGAMES } from '../minigames/registry';
 import { pixelStyle, t } from '../ui/text';
 import { PEOPLE, SCENES } from './data';
+import { TILE, TILESET_KEY, crowdSheets } from './tileMap';
 
 const BAR_W = 240;
 const BAR_H = 12;
@@ -24,7 +25,9 @@ export class BootScene extends Phaser.Scene {
         this.load.on('progress', (p: number) => (bar.width = BAR_W * p));
         this.load.on('loaderror', (file: Phaser.Loader.File) => console.error(`load failed: ${file.key}`));
 
-        for (const s of SCENES) this.load.image(s.background, assetUrl(`backgrounds/${s.background.replace(/^bg-/, '')}.png`));
+        for (const s of SCENES) if (!s.map) this.load.image(s.background, assetUrl(`backgrounds/${s.background.replace(/^bg-/, '')}.png`));
+        this.load.spritesheet(TILESET_KEY, assetUrl('tiles/tileset.png'), { frameWidth: TILE, frameHeight: TILE });
+        for (const sheet of crowdSheets()) this.load.spritesheet(`char-${sheet}`, assetUrl(`tiles/${sheet}.png`), { frameWidth: 32, frameHeight: 32 });
         for (const p of PEOPLE) {
             this.load.spritesheet(`char-${p.id}`, assetUrl(`characters/${p.id}.png`), { frameWidth: 32, frameHeight: 32 });
             if (p.portrait) this.load.image(p.portrait, assetUrl(`portraits/${p.id}.png`));
