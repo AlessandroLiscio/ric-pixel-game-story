@@ -1,6 +1,6 @@
 """Furniture and scenery for the other five rooms (home, university, park): drawn now so the tileset is complete, placed in the
 maps later. Same look as tiles_objects.py: outline, 3 tones per material, light from the top left."""
-from tilepaint import BLUE, BRICK, CREAM, GOLD, GREEN, METAL, OUT, RED, STONE, WOOD, Canvas, T, hx, mix, rng
+from tilepaint import BLUE, BRICK, CREAM, GOLD, GREEN, METAL, RED, STONE, WOOD, Canvas, T, hx, mix, rng
 from tiles_objects import leaf
 
 
@@ -36,7 +36,7 @@ def sofa(n, body, name):
         c.hline(x0, x1, 27, body[0])
     c.rect(1, 29, W - 2, 29, body[0])
     c.noise(8, 16, W - 9, 26, [body[1], body[3]], .05, rng(name))
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -56,7 +56,7 @@ def coffee_table(n=2):
     c.hline(9, 12, 5, "#c8423f")
     c.rect(W - 22, 11, W - 11, 13, "#c8423f")  # a magazine
     c.hline(W - 22, W - 11, 11, "#ffffff")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -108,7 +108,7 @@ def bookshelf(n):
             x += bw + (1 if r.random() < .2 else 0)
         c.rect(1, y1 + 1, W - 2, y1 + 2, WOOD[3])
         c.hline(1, W - 2, y1 + 2, WOOD[1])
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -141,7 +141,7 @@ def kitchen_counter(n):
         for cx in (hx0 + 6, hx0 + 16):
             c.ell(cx, 7, 4, 2.2, "#4a4a52")
             c.ell(cx, 7, 2, 1, "#c8423f")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -162,7 +162,7 @@ def fridge():
     c.rect(8, 30, 11, 33, "#c8423f")  # magnets and a note
     c.rect(12, 36, 17, 41, "#f8f0c8")
     c.set(9, 36, "#2f4aa0")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -180,7 +180,7 @@ def lecture_bench(n):
     c.rect(8, 8, 17, 12, "#f4f1ea")  # paper
     c.hline(10, 15, 10, "#8aa6b8")
     c.rect(W - 18, 8, W - 10, 12, "#2f4aa0")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -197,7 +197,7 @@ def lectern():
     c.hline(8, 23, 26, WOOD[3])
     c.rect(10, 2, 21, 6, "#f4f1ea")  # an open book
     c.vline(15, 2, 6, "#98a4ac")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -216,7 +216,7 @@ def blackboard(n=4):
     c.rect(6, 50, W - 7, 54, WOOD[3])  # chalk tray
     c.hline(6, W - 7, 50, WOOD[4])
     c.rect(12, 49, 16, 50, "#f4f1ea")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -269,7 +269,7 @@ def bench_park():
     c.hline(2, 61, 17, WOOD[4])
     c.hline(2, 61, 22, WOOD[0])
     c.rect(2, 23, 61, 25, WOOD[1])
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -304,7 +304,7 @@ def fence():
         c.vline(x, 8, 29, WOOD[4])
         c.vline(x + 4, 8, 29, WOOD[1])
         c.hline(x + 1, x + 3, 29, WOOD[0])
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -324,7 +324,7 @@ def slackline_post():
     c.hline(13, 18, 40, METAL[4])
     c.rect(22, 44, 31, 46, "#e8b83a")  # the webbing running off to the right
     c.hline(22, 31, 44, "#fbe07a")
-    c.outline(OUT)
+    c.outline()
     return c
 
 
@@ -351,7 +351,7 @@ def bed(body):
     c.rect(3, 59, 60, 61, WOOD[1])
     c.vline(3, 28, 58, body[3])
     c.vline(60, 28, 58, body[0])
-    c.outline(OUT)
+    c.outline()
     return c
 
 
