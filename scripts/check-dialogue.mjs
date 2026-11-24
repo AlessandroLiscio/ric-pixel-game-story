@@ -83,7 +83,10 @@ sameKeys('scenes', data.scenes ?? {}, SCENES);
 if (JSON.stringify(Object.keys(data.scenes ?? {})) !== JSON.stringify(SCENES)) err('scenes', `order must be ${SCENES.join(', ')}`);
 for (const id of SCENES) {
   const scene = data.scenes?.[id];
-  if (!scene) continue;
+  if (!scene || typeof scene !== 'object' || Array.isArray(scene)) {
+    err(`scenes.${id}`, 'must be an object');
+    continue;
+  }
   sameKeys(`scenes.${id}`, scene, [...SCENE_KEYS, ...(SCENE_EXTRA_KEYS[id] ?? [])]);
   for (const k of Object.keys(scene)) checkLines(`scenes.${id}.${k}`, scene[k], (EMPTY_OK[id] ?? []).includes(k));
 }
@@ -92,7 +95,10 @@ for (const id of SCENES) {
 sameKeys('minigames', data.minigames ?? {}, MINIGAMES);
 for (const id of MINIGAMES) {
   const m = data.minigames?.[id];
-  if (!m) continue;
+  if (!m || typeof m !== 'object' || Array.isArray(m)) {
+    err(`minigames.${id}`, 'must be an object');
+    continue;
+  }
   sameKeys(`minigames.${id}`, m, ['title', 'instructions', 'winText', 'loseText']);
   checkText(`minigames.${id}.title`, m.title, 1, 32);
   checkText(`minigames.${id}.instructions`, m.instructions, 2, MAX_CHARS);

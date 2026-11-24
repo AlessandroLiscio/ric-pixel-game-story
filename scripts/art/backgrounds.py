@@ -3,8 +3,9 @@
 
 Pipeline per photo: face/text patches, 16:9 crop, resize to 640x360, mild pre-blur,
 auto-levels + contrast/saturation boost, median smoothing (painted look), extra flattening
-of low-detail areas, then ONE shared 32-colour palette (k-means in Lab, fixed seed) and a
-4x4 Bayer ordered dither. Output: palette-indexed PNGs + palette.json.
+of low-detail areas, a 320x180 box downsample with a one-pixel outline, then ONE shared 32-colour
+palette (k-means in Lab, fixed seed), a light 4x4 Bayer ordered dither at 320x180 and a 2x
+nearest-neighbour upscale (true 2x2 pixel grid). Output: palette-indexed PNGs + palette.json.
 
 Quiet by default: one status line per stage, full details in logs/backgrounds/<run>.log.
 Usage: python scripts/art/backgrounds.py [--src DIR] [--out DIR] [--contact-sheet FILE] [--verbose] [--check-only]
@@ -57,6 +58,7 @@ CONFIG: dict[str, dict] = {
         # five faces and the door sign
         "patches": [(154, 410, 43, 50), (384, 394, 45, 50), (742, 268, 35, 40), (937, 297, 50, 60),
                     (773, 401, 45, 48), (343, 287, 28, 22)],
+        "signs": [5],
         "gamma": 1.1, "sat": 1.0, "contrast": 1.1, "wb": 0.6,
     },
     "cortile": {
@@ -67,6 +69,7 @@ CONFIG: dict[str, dict] = {
                     (585, 439, 30, 34), (658, 517, 28, 32), (731, 517, 28, 32), (799, 512, 28, 32),
                     (919, 521, 28, 32), (987, 536, 28, 32), (965, 874, 22, 26), (55, 960, 40, 50),
                     (850, 850, 135, 48), (640, 925, 38, 42), (600, 955, 30, 34)],
+        "signs": [12],
         "gamma": 0.85, "sat": 1.2, "contrast": 1.05, "wb": 0.5,
     },
     "divano": {
@@ -79,7 +82,10 @@ CONFIG: dict[str, dict] = {
 }
 
 BAYER4 = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]], dtype=np.float32)
-DITHER = 22.0  # offset amplitude in 0..255 RGB units around each pixel before nearest-colour lookup
+DITHER = 11.0  # offset amplitude in 0..255 RGB units around each art pixel (half of the old 22 at 640x360)
+LW, LH = W // 2, H // 2  # art-pixel grid: every art pixel is a 2x2 block in the 640x360 output
+EDGE_T = 38.0  # luminance gradient above which an art pixel counts as a strong edge
+EDGE_DARK = 0.80  # brightness factor of the one-pixel outline on strong edges
 
 
 def srgb_to_lab(rgb: np.ndarray) -> np.ndarray:
@@ -92,20 +98,42 @@ def srgb_to_lab(rgb: np.ndarray) -> np.ndarray:
     return np.stack([116 * f[..., 1] - 16, 500 * (f[..., 0] - f[..., 1]), 200 * (f[..., 1] - f[..., 2])], -1)
 
 
-def paint_patches(img: Image.Image, patches: list[tuple]) -> Image.Image:
-    """Flat blurred patch of the mean colour of the ring around each ellipse."""
+SKIN = np.array([214, 168, 140], dtype=np.float32)  # muted skin tone, scaled by the local brightness
+
+
+def paint_patches(img: Image.Image, patches: list[tuple], signs: tuple[int, ...] = ()) -> Image.Image:
+    """Cover faces and signs before pixelising.
+
+    A sign becomes a flat disc of the median colour of the ring around it. A face becomes a simple
+    head: a hair-dark ellipse (darkest ring pixels) with a small featureless skin-tone face, so the
+    silhouette reads as a person instead of a hole. Edges are nearly hard so they survive the 320x180 grid.
+    """
     arr = np.asarray(img, dtype=np.float32)
     yy, xx = np.mgrid[0:img.height, 0:img.width]
     out = img.copy()
-    for cx, cy, rx, ry in patches:
+    for i, (cx, cy, rx, ry) in enumerate(patches):
         d = ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2
         ring = (d > 1.2) & (d < 2.0)
         if not ring.any():
             continue
-        colour = tuple(int(v) for v in np.median(arr[ring], axis=0))
-        mask = Image.fromarray(((d <= 1.15) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(max(rx, ry) * 0.18))
-        out = Image.composite(Image.new("RGB", img.size, colour), out, mask)
+        px = arr[ring]
+        blur = _patch_blur(rx, ry)
+        mask = Image.fromarray(((d <= 1.15) * 255).astype(np.uint8)).filter(blur)
+        if i in signs:
+            out = Image.composite(Image.new("RGB", img.size, tuple(int(v) for v in np.median(px, axis=0))), out, mask)
+            continue
+        lum = px @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+        hair = px[lum <= np.percentile(lum, 30)].mean(0) * 0.8
+        out = Image.composite(Image.new("RGB", img.size, tuple(int(v) for v in hair)), out, mask)
+        skin = np.clip(SKIN * np.clip(float(np.median(lum)) / 150.0, 0.45, 1.05), 0, 255)
+        fd = ((xx - cx) / (rx * 0.72)) ** 2 + ((yy - (cy + ry * 0.18)) / (ry * 0.68)) ** 2
+        fmask = Image.fromarray(((fd <= 1.0) * 255).astype(np.uint8)).filter(blur)
+        out = Image.composite(Image.new("RGB", img.size, tuple(int(v) for v in skin)), out, fmask)
     return out
+
+
+def _patch_blur(rx: float, ry: float) -> ImageFilter.GaussianBlur:
+    return ImageFilter.GaussianBlur(max(1.0, max(rx, ry) * 0.05))
 
 
 def grade(img: Image.Image, p: dict) -> Image.Image:
@@ -136,22 +164,41 @@ def flatten(img: Image.Image) -> Image.Image:
     return out.filter(ImageFilter.UnsharpMask(radius=1.5, percent=90, threshold=3))  # crisp edges before dithering
 
 
-def prepare(src_dir: Path, bid: str) -> tuple[Image.Image, int]:
+def pixelise(img: Image.Image) -> np.ndarray:
+    """640x360 toned picture -> float RGB array on the 320x180 art-pixel grid.
+
+    Mild edge sharpening first so lines survive, strong area downsample (box), a 3x3 median to
+    kill single-pixel noise, then a one-pixel dark outline on strong luminance edges.
+    """
+    img = img.filter(ImageFilter.UnsharpMask(radius=1.2, percent=70, threshold=2))
+    small = img.resize((LW, LH), Image.BOX).filter(ImageFilter.MedianFilter(3))
+    a = np.asarray(small, dtype=np.float32)
+    lum = a @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    gy, gx = np.gradient(lum)
+    edge = np.hypot(gx, gy) * 2.0  # central difference spans 2 px
+    # keep only the darker side of an edge so lines stay one pixel thin
+    darker = lum <= np.minimum.reduce([np.roll(lum, s, ax) for ax in (0, 1) for s in (1, -1)]) + 1.0
+    line = (edge > EDGE_T) & darker
+    a[line] *= EDGE_DARK
+    return np.clip(a, 0, 255)
+
+
+def prepare(src_dir: Path, bid: str) -> tuple[np.ndarray, int]:
     cfg = CONFIG[bid]
     img = ImageOps.exif_transpose(Image.open(src_dir / cfg["file"])).convert("RGB")
     x0, y0, x1, y1 = cfg["crop"]
     assert abs((x1 - x0) * 9 - (y1 - y0) * 16) <= 16, f"{bid}: crop is not 16:9"
-    img = paint_patches(img, cfg["patches"])
+    img = paint_patches(img, cfg["patches"], tuple(cfg.get("signs", ())))
     img = img.crop(cfg["crop"]).resize((W, H), Image.LANCZOS)
-    return flatten(grade(img, cfg)), len(cfg["patches"])
+    return pixelise(flatten(grade(img, cfg))), len(cfg["patches"])
 
 
-def kmeans_palette(images: dict[str, Image.Image]) -> np.ndarray:
+def kmeans_palette(images: dict[str, np.ndarray]) -> np.ndarray:
     rng = np.random.default_rng(SEED)
     per = 12000
     pts = []
     for im in images.values():
-        flat = np.asarray(im).reshape(-1, 3)
+        flat = np.round(im).astype(np.uint8).reshape(-1, 3)
         pts.append(flat[rng.choice(len(flat), per, replace=False)])
     rgb = np.concatenate(pts)
     lab = srgb_to_lab(rgb)
@@ -175,13 +222,14 @@ def kmeans_palette(images: dict[str, Image.Image]) -> np.ndarray:
     return pal[np.argsort(lum, kind="stable")]
 
 
-def dither_to_indices(im: Image.Image, pal: np.ndarray) -> np.ndarray:
-    a = np.asarray(im, dtype=np.float32)
-    thr = (np.tile(BAYER4, (H // 4, W // 4)) + 0.5) / 16.0 - 0.5
+def dither_to_indices(a: np.ndarray, pal: np.ndarray) -> np.ndarray:
+    """4x4 Bayer dither on the 320x180 art grid, then 2x nearest-neighbour up to 640x360."""
+    thr = (np.tile(BAYER4, (LH // 4 + 1, LW // 4))[:LH] + 0.5) / 16.0 - 0.5
     a = np.clip(a + thr[..., None] * 2 * DITHER, 0, 255)
     lab = srgb_to_lab(a.reshape(-1, 3))
     plab = srgb_to_lab(pal)
-    return ((lab[:, None, :] - plab[None]) ** 2).sum(-1).argmin(1).reshape(H, W).astype(np.uint8)
+    idx = ((lab[:, None, :] - plab[None]) ** 2).sum(-1).argmin(1).reshape(LH, LW).astype(np.uint8)
+    return idx.repeat(2, axis=0).repeat(2, axis=1)
 
 
 def save_indexed(idx: np.ndarray, pal: np.ndarray, path: Path) -> None:
@@ -212,6 +260,11 @@ def check(out_dir: Path) -> tuple[bool, list[str]]:
             errs.append(f"{bid}: {len(cols)} colours")
         if not cols <= pal:
             errs.append(f"{bid}: colours outside palette.json")
+        px = np.asarray(im.convert("RGB"))
+        if px.shape[:2] == (H, W):
+            q = px.reshape(LH, 2, LW, 2, 3)
+            if not (q == q[:, :1, :, :1, :]).all():
+                errs.append(f"{bid}: not a uniform 2x2 pixel grid")
         if f.stat().st_size > MAX_BYTES:
             errs.append(f"{bid}: {f.stat().st_size // 1024} KB > 150 KB")
     return not errs, errs
