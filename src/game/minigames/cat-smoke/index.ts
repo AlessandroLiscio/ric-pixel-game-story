@@ -6,6 +6,7 @@ import { InstructionCard } from '../../ui/InstructionCard';
 import { panelTexture } from '../../ui/panel';
 import { pixelStyle, t } from '../../ui/text';
 import { MINIGAME_DONE, type MinigameDone } from '../types';
+import { catSmokeCloud } from '../fx';
 import { LABELS } from './labels';
 
 type Face = 'down' | 'left' | 'right' | 'up';
@@ -254,6 +255,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
             loop: true,
             callback: () => {
                 if (this.clouds.size < 16) this.spawnCloud(Phaser.Math.Between(30, GAME_WIDTH - 30), Phaser.Math.Between(110, GAME_HEIGHT - 20));
+                if (Math.random() < 0.3) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
                 if (this.targetChance > 0 && Math.random() < this.targetChance && this.clouds.size < 22) {
                     this.spawnCloud(this.cat.x + Phaser.Math.Between(-18, 18), this.cat.y - 30 + Phaser.Math.Between(-12, 12));
                 }
