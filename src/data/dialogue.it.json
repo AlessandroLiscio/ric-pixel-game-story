@@ -283,7 +283,7 @@
     },
     "d20": {
       "title": "Tiro di Saggezza",
-      "instructions": "Premi X per tirare il d20.\nPiù di 10 e Ros ti ascolta.",
+      "instructions": "X a raffica carica il d20: smetti e rotola.\nPiù di 10 e Ros ti ascolta.",
       "winText": "Bel tiro: Ros ci ripensa.",
       "loseText": "Dado sfortunato: Ros accende."
     },

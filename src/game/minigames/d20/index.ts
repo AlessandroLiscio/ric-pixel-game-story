@@ -11,6 +11,8 @@ import { LABELS } from './labels';
 const ID = 'd20';
 const TARGET = 10; // success when the roll is greater than this
 const AUTO_MS = 12000; // rolls by itself when the player does not press
+const IDLE_MS = 1000; // after the first press, the die rolls once X has not been pressed for this long
+const CHARGE_FULL = 20; // presses that fill the charge; a full charge rolls at once
 const TUMBLE_MS = 1500;
 const DIE_X = GAME_WIDTH / 2;
 const DIE_Y = 165;
@@ -29,7 +31,8 @@ function rollD20(): number {
     return Math.floor(Math.random() * 20) + 1;
 }
 
-/** Scene circe, part a (wisdom): press X, the d20 tumbles and lands; more than 10 wins. */
+/** Scene circe, part a (wisdom): spam X to charge the d20, stop and it tumbles and lands; more than 10 wins. The charge only changes
+ *  how long and how wildly it tumbles, never the value, which stays a fair random roll. */
 export default class D20Minigame extends Phaser.Scene {
     static KEY = `minigame-${ID}`;
     static ID = ID;
@@ -41,6 +44,9 @@ export default class D20Minigame extends Phaser.Scene {
     finished = false;
 
     private waitMs = 0;
+    private charge = 0;
+    private idleMs = 0;
+    private bar!: Phaser.GameObjects.Rectangle;
     private die!: Phaser.GameObjects.Container;
     private number!: Phaser.GameObjects.Text;
     private hint!: Phaser.GameObjects.Text;
@@ -56,6 +62,8 @@ export default class D20Minigame extends Phaser.Scene {
         this.ready = false;
         this.finished = false;
         this.waitMs = 0;
+        this.charge = 0;
+        this.idleMs = 0;
     }
 
     async create(): Promise<void> {
@@ -73,6 +81,10 @@ export default class D20Minigame extends Phaser.Scene {
         this.hint = this.add.text(GAME_WIDTH / 2, 246, LABELS.press, { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 0);
         this.tweens.add({ targets: this.hint, alpha: 0.3, duration: 450, yoyo: true, repeat: -1 });
         this.countdown = this.add.text(GAME_WIDTH / 2, 270, '', { ...pixelStyle(16, '#cfe0ff'), ...OUTLINE }).setOrigin(0.5, 0);
+        const BAR_W = 160;
+        this.add.rectangle(GAME_WIDTH / 2, 300, BAR_W + 4, 12, 0x0a1040).setOrigin(0.5);
+        this.bar = this.add.rectangle(GAME_WIDTH / 2 - BAR_W / 2, 300, 0, 8, 0xffe27a).setOrigin(0, 0.5);
+        this.bar.setData('w', BAR_W);
 
         await InstructionCard.show(this, ID);
         if (this.finished) return;
@@ -82,15 +94,32 @@ export default class D20Minigame extends Phaser.Scene {
 
     update(_time: number, delta: number): void {
         if (!this.ready || this.rolling) return;
+        if (this.charge > 0) {
+            this.idleMs += delta;
+            if (this.idleMs >= IDLE_MS) this.startRoll();
+            return;
+        }
         this.waitMs += delta;
         const left = Math.max(0, Math.ceil((AUTO_MS - this.waitMs) / 1000));
         this.countdown.setText(`${LABELS.auto} ${left}`);
         if (this.waitMs >= AUTO_MS) this.startRoll();
     }
 
+    /** Each press adds charge: the die swells and rattles, the bar fills; a full bar rolls at once. Held keys do not count. */
     private onKey(e: KeyboardEvent): void {
-        if (e.repeat || !ROLL_KEYS.includes(e.code)) return;
-        this.startRoll();
+        if (e.repeat || !ROLL_KEYS.includes(e.code) || this.rolling) return;
+        this.charge = Math.min(CHARGE_FULL, this.charge + 1);
+        this.idleMs = 0;
+        const k = this.charge / CHARGE_FULL;
+        if (this.charge === 1) {
+            this.hint.setText(LABELS.charging);
+            this.countdown.setVisible(false);
+        }
+        this.bar.width = this.bar.getData('w') * k;
+        this.die.setScale(1 + 0.25 * k);
+        this.die.setAngle(Phaser.Math.Between(-6, 6) * (1 + 2 * k));
+        audio.sfx('blip');
+        if (this.charge >= CHARGE_FULL) this.startRoll();
     }
 
     /** The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE). */
@@ -110,13 +139,18 @@ export default class D20Minigame extends Phaser.Scene {
         this.input.keyboard?.off('keydown', this.onKey, this);
         const value = rollD20();
 
-        // tumble: three turns slowing down, a toss up and a bouncing fall, the number flickering slower and slower
-        this.tweens.add({ targets: this.die, angle: 1080, duration: TUMBLE_MS, ease: 'Cubic.Out' });
-        this.tweens.add({ targets: this.die, y: DIE_Y - 30, duration: 300, ease: 'Quad.Out' });
-        this.tweens.add({ targets: this.die, y: DIE_Y, delay: 300, duration: TUMBLE_MS - 300, ease: 'Bounce.Out' });
+        // tumble: turns slowing down, a toss up and a bouncing fall, the number flickering slower and slower; a bigger charge throws
+        // it higher, spins it more and keeps it in the air longer
+        const c = this.charge / CHARGE_FULL;
+        const tumble = TUMBLE_MS + 900 * c;
+        this.bar.width = 0;
+        this.tweens.add({ targets: this.die, scale: 1, duration: 300 });
+        this.tweens.add({ targets: this.die, angle: 1080 + 1440 * c, duration: tumble, ease: 'Cubic.Out' });
+        this.tweens.add({ targets: this.die, y: DIE_Y - 30 - 50 * c, duration: 300 + 200 * c, ease: 'Quad.Out' });
+        this.tweens.add({ targets: this.die, y: DIE_Y, delay: 300 + 200 * c, duration: tumble - 300 - 200 * c, ease: 'Bounce.Out' });
         const started = this.time.now;
         const flicker = (): void => {
-            const k = Math.min(1, (this.time.now - started) / TUMBLE_MS);
+            const k = Math.min(1, (this.time.now - started) / tumble);
             if (k >= 1) return this.land(value);
             this.number.setText(String(Phaser.Math.Between(1, 20)));
             audio.sfx('blip');

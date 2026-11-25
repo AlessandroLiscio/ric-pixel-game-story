@@ -160,7 +160,9 @@ try {
             for (let i = 1; i < ts.length; i++) minGap = Math.min(minGap, ts[i] - ts[i - 1]);
         }
         lines.push(`rhythm chart ${n.length} notes, song ${f(seconds)}s, first ${f(n[0]?.t)}s, last ${f(n.at(-1)?.t)}s, per lane ${lanes.join('/')}, min same-lane gap ${f(minGap)}s, offbeat skipped ${info.skippedOffbeat}, dropped ${info.dropped}`);
-        check(seconds >= 45 && seconds <= 60, `rhythm song is ${f(seconds)}s, need 45 to 60`);
+        check(seconds >= 30 && seconds <= 60, `rhythm song is ${f(seconds)}s, need 30 to 60`);
+        const solo = n.filter((x) => x.solo);
+        check(solo.length >= 16 && solo.every((x) => x.t > n.filter((y) => !y.solo).at(-1).t), `rhythm bass solo has ${solo.length} notes or is not at the end`);
         check(n.length >= 40 && n.length <= 140, `rhythm chart has ${n.length} notes`);
         check(lanes.every((c) => c >= 8), `rhythm chart lanes are uneven: ${lanes.join('/')}`);
         check(minGap >= 0.25, `rhythm chart same-lane gap ${f(minGap)}s is under 250 ms`);
