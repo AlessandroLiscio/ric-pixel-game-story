@@ -2,7 +2,7 @@
 
 A pixel-art story game of about 20 minutes, written in Italian, for a friend's 30th birthday. It is a short walk through six scenes, each with a friend, a small minigame and an RPG Maker style dialogue box, ending in a credits roll with easter eggs. It runs in the browser from a GitHub Pages link and also from an offline zip that works by double-clicking `index.html`.
 
-The engine is [Phaser](https://phaser.io) 4.2.1 on the official Vite + TypeScript template, at 640x360 with integer zoom (press F for fullscreen). All music and sound effects are generated in code on one shared `AudioContext`; the pixel font is Pixel Operator (CC0).
+The engine is [Phaser](https://phaser.io) 4.2.1 on the official Vite + TypeScript template, at 640x360 with integer zoom (press F for fullscreen). All music and sound effects are generated in code on one shared `AudioContext`, under one quiet looping ambient bed per scene (recorded loops, see Credits and licences); the pixel font is Pixel Operator (CC0).
 
 ## Run it
 
@@ -46,12 +46,26 @@ The test skip key (`__RIC_TEST_SKIP__`, defined once in `src/game/testKey.ts`) e
 | `src/game/` | game code: `flow`, `ui`, `audio` (and `audio/music`), `party`, `transitions`, `debug`, `minigames/*`, `ending`, `ambient`, `scenes` (title) |
 | `src/data/` | story, people and scene data (JSON) |
 | `src/spike/` | the W0 spike scene, loaded only with `?spike=1` |
-| `public/assets/` | `backgrounds`, `characters`, `portraits`, `fonts` |
+| `public/assets/` | `backgrounds`, `characters`, `portraits`, `fonts`, `tiles`, `ambient` (the five sound loops) |
 | `scripts/` | build, verify and check scripts; `scripts/art/` holds the art pipelines |
 | `tests/` | end-to-end tests |
 | `vite/` | Vite configs: dev, Pages build, offline build |
 | `docs/` | notes; `docs/w0-spike.md` records the setup spike |
 | `.github/workflows/` | `ci.yml` (pull requests) and `pages.yml` (deploy on push to `main`) |
+
+## Credits and licences
+
+The ambient beds come from the free sound effects of [vinish.dev](https://vinish.dev/free-sound-effects), licence [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the credits roll of the game names them ("Effetti e suoni: vinish.dev (CC BY 4.0)"). Files in `public/assets/ambient/`, unchanged, 16 s seamless loops in the category `ambient-places`, played by `src/game/audio/Ambience.ts` (quiet, under the music, faded on every scene change, muted with the rest of the sound):
+
+| File | Scene |
+|---|---|
+| `city_traffic_loop.ogg` | cortile |
+| `office_room_loop.ogg` | universita (the cinema) |
+| `clock_room_loop.ogg` | giuggiu and circe |
+| `forest_day_loop.ogg` | giardini |
+| `crickets_field_loop.ogg` | divano |
+
+Other credits: the pixel font Pixel Operator (CC0), the pixelfx effects (MIT, `src/vendor/pixelfx/LICENSE`), the Phaser engine (MIT).
 
 ## Privacy
 
