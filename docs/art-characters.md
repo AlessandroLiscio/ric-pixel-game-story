@@ -36,7 +36,11 @@ Edit the person in `src/data/people.json` and run the generator again. Nothing e
 - `accessory`: any of `beard`, `stubble`, `sunglasses`, `sunglasses-on-head`, `glasses`, `necklace`, `tie`.
 - `height`: 0.9 to 1.1. Up to 0.93 gives short legs, from 1.08 long legs, anything between is the standard body. Only the legs change, so every character stays inside the 32x32 frame.
 
-To add a new colour or a new hair style, edit the `PAL` table or the `hair_down`, `hair_up`, `hair_side` functions in `scripts/art/chibis.py`, and the matching style in `hair()` in `scripts/art/portraits.py`. The sprite palette has 28 named colours shared by every character (the check step fails when a sheet uses a colour outside it), each portrait uses at most 64 colours, and every sprite gets a 1 px outer outline in its own darker tone.
+To add a new colour or a new hair style, edit the `PAL` table or the `hair_down`, `hair_up`, `hair_side` functions in `scripts/art/chibis.py`, and the matching style in `hair()` in `scripts/art/portraits.py`. The sprite palette has 28 named colours shared by every character, each with a derived shade, light and dark tone (`<name>.s`, `.l`, `.d`, made by `derive` in `scripts/art/sprite_shade.py`: cool shade, warm light, a tone within 12 of an existing colour snaps to it; the three skins keep their hand picked `_s` shade). The check step fails when a sheet uses a colour outside the table, each portrait uses at most 64 colours.
+
+Every frame is finished by `sprite_shade.polish` after the right row is mirrored, so the light is on the top left in all four rows like the tiles: the top and left rim of each material is lit, its right and bottom rim shaded (two pixels on hair, which also gets a highlight crescent), the hair casts a shade onto the forehead, a shirt shades its hem, and the 1 px outer outline is selective (the dark tone of the darkest material it touches, as pxl's `selout`) with its L corners dropped so it steps diagonally. Then stray pixels are merged and doubled corners in thin lines removed, which is what `pxl lint` asks for.
+
+The gate is `python -I scripts/art/pxl/lint_sheets.py`: it runs `pxl lint` (the skill in `.claude/skills/pxl`, Node 22.18 or later, no install) over all 216 frames and must print `PASS pxl lint: 216 frames of 18 sheets, 0 findings`. The sheets before this pass had 174 findings (126 orphan pixels, 48 jaggies).
 
 ## The people in prose
 

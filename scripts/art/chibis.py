@@ -18,6 +18,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # python -I does not put the script folder on the path
 import portraits  # noqa: E402
+import sprite_shade  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 PEOPLE_JSON = ROOT / "src" / "data" / "people.json"
@@ -36,6 +37,8 @@ PAL = {
     "green": "#4f9a5d", "mint": "#8fd1b0", "blue_l": "#8db4dc", "khaki": "#b79d6b", "cream": "#e7dcc0",
     "charcoal": "#3b3f4c", "pink": "#e07a90", "orange": "#e48a3a", "red": "#c8362f",
 }
+PAL.update(sprite_shade.derive(PAL))  # `<name>.s`, `.l`, `.d`: shade, light and outline tone of every material
+RAMPS = sprite_shade.Ramps(PAL)
 LINE = "LINE"
 OUTLINE_FOR_HAIR = {"black": "o_navy", "brown": "o_brown", "chestnut": "o_brown", "auburn": "o_plum", "grey": "o_navy", "orange": "o_brown"}
 SKIN_NAMES = {"light": ("skin_light", "skin_light_s"), "tan": ("skin_tan", "skin_tan_s"), "olive": ("skin_olive", "skin_olive_s")}
@@ -80,23 +83,10 @@ class Cv:
                 if ((x + .5 - cx) / rx) ** 2 + ((y + .5 - cy) / ry) ** 2 <= 1:
                     self.set(x, y, c)
 
-    def outline(self, tone):
-        """Resolve LINE placeholders and add a 1px outer outline in the tone."""
-        o = rgba(tone)
-        line = rgba(LINE)
-        src = self.im.copy().load()
-        for y in range(self.h):
-            for x in range(self.w):
-                if src[x, y] == line:
-                    self.px[x, y] = o
-        for y in range(self.h):
-            for x in range(self.w):
-                if src[x, y][3] == 0:
-                    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                        nx, ny = x + dx, y + dy
-                        if 0 <= nx < self.w and 0 <= ny < self.h and src[nx, ny][3] > 0:
-                            self.px[x, y] = o
-                            break
+    def finish(self, tone, mirror=False):
+        """The finished frame: mirrored if asked, shaded from the top left, outlined selectively (LINE placeholders take the tone), strays merged."""
+        im = self.im.transpose(Image.FLIP_LEFT_RIGHT) if mirror else self.im
+        return sprite_shade.polish(im, RAMPS, rgba(LINE), rgba(tone))
 
 
 # ---------------------------------------------------------------- sprite geometry
@@ -513,8 +503,8 @@ def accessories_torso(cv, T0, tr, view):
         cv.rect(14, T0, 14, T0, "white"); cv.rect(17, T0, 17, T0, "white")
 
 
-def render_frame(tr, facing, col):
-    """col 0 step-left, 1 stand, 2 step-right. facing down/up/left (right is the mirror)."""
+def render_frame(tr, facing, col, mirror=False):
+    """col 0 step-left, 1 stand, 2 step-right. facing down/up/left (right is the left frame mirrored, then shaded)."""
     cv = Cv()
     step = (-1, 0, 1)[col]
     d, L, ty1 = body_params(tr)
@@ -557,8 +547,7 @@ def render_frame(tr, facing, col):
         arm_side(cv, T0, top, skin, step)
         if "sunglasses-on-head" in acc:
             sunglasses_on_head(cv, t, "left")
-    cv.outline(OUTLINE_FOR_HAIR[tr["hairColor"]])
-    return cv.im
+    return cv.finish(OUTLINE_FOR_HAIR[tr["hairColor"]], mirror)
 
 
 def face_overlay_down(cv, t, tr, skin_s, hair_col):
@@ -587,7 +576,7 @@ def face_overlay_down(cv, t, tr, skin_s, hair_col):
 
 # ---------------------------------------------------------------- cat
 
-def draw_cat(facing, col):
+def draw_cat(facing, col, mirror=False):
     cv = Cv()
     step = (-1, 0, 1)[col]
     W, O, G, B, P, E, N = "white", "orange", "h_brown", "charcoal", "pink", "green", "o_brown"
@@ -655,8 +644,7 @@ def draw_cat(facing, col):
         lift_r = 1 if step == 1 else 0
         cv.rect(11, 27 - lift_l, 14, 28 - lift_l, W)
         cv.rect(17, 27 - lift_r, 20, 28 - lift_r, W)
-    cv.outline("o_brown")
-    return cv.im
+    return cv.finish("o_brown", mirror)
 
 
 def render_sheet(tr):
@@ -664,7 +652,7 @@ def render_sheet(tr):
     for row, facing in enumerate(("down", "left", "right", "up")):
         for col in range(3):
             if facing == "right":
-                fr = (draw_cat("left", col) if tr["id"] == "gatto" else render_frame(tr, "left", col)).transpose(Image.FLIP_LEFT_RIGHT)
+                fr = draw_cat("left", col, True) if tr["id"] == "gatto" else render_frame(tr, "left", col, True)
             elif tr["id"] == "gatto":
                 fr = draw_cat(facing, col)
             else:
