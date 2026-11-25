@@ -177,7 +177,7 @@
       "height": 0.5
     },
     "sprite": "char-gatto",
-    "portrait": null,
+    "portrait": "portrait-gatto",
     "portraitSource": "parametric"
   },
   {
