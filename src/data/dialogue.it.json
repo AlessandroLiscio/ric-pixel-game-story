@@ -69,10 +69,10 @@
         { "speaker": "narratore", "text": "File di poltroncine rosse, schermo gigante,\nluci a parete. Lollino è già in sala." }
       ],
       "meet": [
-        { "speaker": "lollino", "text": "Ric! Sei in ritardo. Siediti, parla\nPinolo: oggi si fa la camera oscura." },
-        { "speaker": "pinolo", "text": "Dunque, signori: la camera oscura.\nUna scatola, un forellino, niente lenti." },
+        { "speaker": "lollino", "text": "Ric! Sei in ritardo. Siediti, parla\nPinolo: oggi si fa la pinhole camera." },
+        { "speaker": "pinolo", "text": "Dunque, signori: la pinhole camera.\nUna scatola, un forellino, niente lenti." },
         { "speaker": "pinolo", "text": "La luce passa dal foro stenopeico e\nl'immagine arriva... capovolta!" },
-        { "speaker": "pinolo", "text": "Pensate a questo schermo: una camera\noscura enorme. Con le poltroncine." },
+        { "speaker": "pinolo", "text": "Pensate a questo schermo: una pinhole\ncamera enorme. Con le poltroncine." },
         { "speaker": "ric", "text": "(Il foro stenopeico. Il mio argomento\npreferito. Non respiro dall'emozione.)" },
         { "speaker": "pinolo", "text": "Lei, quello che sorride come uno\nche sa la risposta. Venga allo schermo." }
       ],
@@ -85,9 +85,9 @@
         { "speaker": "lollino", "text": "Io lo dicevo che eri portato. L'ho\npure segnato sul quaderno, a colori." }
       ],
       "lose": [
-        { "speaker": "pinolo", "text": "Sbagliato. La camera oscura è fedele:\nanche il suo errore è capovolto." },
+        { "speaker": "pinolo", "text": "Sbagliato. La pinhole camera è fedele:\nanche il suo errore è capovolto." },
         { "speaker": "lollino", "text": "Tranquillo, ti passo gli appunti.\nSono in ordine alfabetico e a colori." },
-        { "speaker": "ric", "text": "Prof, mi presti una scatola da scarpe:\nle costruisco io la camera oscura." },
+        { "speaker": "ric", "text": "Prof, mi presti una scatola da scarpe:\nle costruisco io la pinhole camera." },
         { "speaker": "pinolo", "text": "Vada, vada. Ma lo studi, il foro." }
       ],
       "join": [
@@ -303,7 +303,7 @@
   "objects": {
     "universita": {
       "screen": [
-        { "speaker": "narratore", "text": "Sullo schermo, una diapositiva gigante:\n«La camera oscura: istruzioni per l'uso»." },
+        { "speaker": "narratore", "text": "Sullo schermo, una diapositiva gigante:\n«La pinhole camera: istruzioni per l'uso»." },
         { "speaker": "ric", "text": "(Quaranta minuti sulla stessa slide.\nRecord personale del Prof. Pinolo.)" }
       ],
       "seats": [
@@ -367,7 +367,7 @@
       { "speaker": "ric", "text": "Meh, non abbiamo mica finito qui.\nC'è ancora da fare." }
     ],
     "pinolo-pinhole": [
-      { "speaker": "ric", "text": "Ragazzi, sapete come funziona la camera\noscura? Un foro, e l'immagine si capovolge." },
+      { "speaker": "ric", "text": "Ragazzi, sapete come funziona la pinhole\ncamera? Un foro, e l'immagine si capovolge." },
       { "speaker": "lara", "text": "Zzz... mh? Camera... che?" },
       { "speaker": "ros", "text": "Ric, sono le tre. Spegnimi il prof che\nhai dentro." },
       { "speaker": "ric", "text": "No, ascoltate: la luce entra dal foro\nstenopeico e proietta tutto capovolto!" },
@@ -405,8 +405,8 @@
       { "speaker": "giuggiu", "text": "Ric dov'è? Non si vede da mezz'ora." },
       { "speaker": "ros", "text": "Di sopra. Con una persona, mi sa.\nLa porta è chiusa: io non dico niente." },
       { "speaker": "sconosciuta", "text": "Ric... ssh, ci sentono tutti!" },
-      { "speaker": "ric", "text": "(dall'alto) Tutto sotto controllo!\nStiamo ripassando la camera oscura!" },
-      { "speaker": "lollino", "text": "Camera oscura. Sì, certo." },
+      { "speaker": "ric", "text": "(dall'alto) Tutto sotto controllo!\nStiamo ripassando la pinhole camera!" },
+      { "speaker": "lollino", "text": "Pinhole camera. Sì, certo." },
       { "speaker": "lara", "text": "Il vicino di sotto ha bussato due volte." }
     ],
     "fede": [
@@ -442,7 +442,7 @@
     "title": "Un compleanno da trent'anni",
     "lines": [
       "Ric ... festeggiato ufficiale e basso",
-      "Lollino ... consulente di camera oscura",
+      "Lollino ... consulente di pinhole camera",
       "Giuggiu ... padrone di Gatto di Paz",
       "Liscio ... equilibrista di slack",
       "Ros ... ministro del trellone",
