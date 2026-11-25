@@ -31,7 +31,7 @@
       { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" }
     ],
     "minigame": "cat-smoke",
-    "bins": [{ "x": 624, "y": 380 }],
+    "bins": [{ "x": 80, "y": 540 }],
     "ambient": []
   },
   {

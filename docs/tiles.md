@@ -158,12 +158,22 @@ The room is 22 x 14 tiles, rebuilt from `cinema-bellinzona-lato-palco.jpg` and `
 | how the scene plays | Ric comes in through the left exit door (spawn at tile 1,5) and walks right along the front aisle; Lollino sits in the first seat of the front row (tile 3,6, not blocked: `universita_seat_lollino` is an object drawn over his sprite, so he is hidden from the chest down); Prof. Pinolo stands on the stage; the student extra stands in the right aisle (tile 20,9); the exit is the matching door of the right wall (door at tiles 20,5 to 20,6, the smoke test walks the room blind with the right arrow along row 5) |
 | things the game can interact with (named points, tile units `x, y, w, h`) | `obj_screen` 7,1,8,3 (the big screen) and `obj_seats` 12,6,7,1 (the front row of the right block of seats) |
 
-## Giuggiu's living room, photo feature -> map
+## Giuggiu's living room, plan and photo feature -> map
 
-The room is 22 x 13 tiles, rebuilt from the three photos `casa-giuggiu-salotto-lato-finestra.jpg`, `casa-giuggiu-divani-e-puf.jpg` and `casa-giuggiu-gatto.jpg` (the video is not used). Stamps are in `scripts/art/stamps/giuggiu.py`, the map in `scripts/art/rooms/giuggiu.py`. The three sofas of the real room are the three sofas of the cat-smoke minigame (burgundy, cream, navy), so the minigame needs no change.
+The room is 22 x 18 tiles. The layout follows the owner's floor plan (`casa-giuggiu-sketch.jpeg`, private, viewed only with Read): the plan is drawn long and narrow with the big window at the top and the TV at the bottom, here squeezed to 22 x 18 because the plan is not to scale (its table alone fills half the width) and the engine wants a room at least 21 tiles wide. The decor comes from the three photos `casa-giuggiu-salotto-lato-finestra.jpg`, `casa-giuggiu-divani-e-puf.jpg` and `casa-giuggiu-gatto.jpg` (the video is not used). Stamps are in `scripts/art/stamps/giuggiu.py`, the map in `scripts/art/rooms/giuggiu.py`.
 
-| Photo feature | In the map |
+The sofa triangle (tile coordinates, x and y of the top-left tile, sizes in tiles): the middle sofa with the red throw and the grey cushion `giuggiu_sofa_navy` at 8,9 (4 x 2, faces south), the long burgundy sofa `giuggiu_sofa_burgundy` against the left wall at 2,11 (2 x 4, faces east), the navy sofa with the cat `giuggiu_sofa_east` against the right wall at 18,10 (2 x 3, faces west), and the low black table `giuggiu_table_black` in the middle of them at 8,12 (4 x 2); the TV `giuggiu_tv` stands at 9,15 (3 x 2) at the bottom wall and faces them. The cream sofa (2,7, 2 x 3) and the red pouf (2,10) stand on the left wall above the burgundy sofa, as in the plan, which has four sofas.
+
+The scene points: `spawn` 17,15, `door` 20,14 (1 x 2, the entrance in the right wall), `giuggiu` 15,6, `gatto` 18,11. The interactable objects, as points with a size in tiles (the footprint of each object): `obj_table` 8,12 4 x 2; `obj_tv` 9,15 3 x 2; `obj_window` 8,1 6 x 3; `obj_puf` 2,10 1 x 1; `obj_cat` 18,11 1 x 1 (the seat of the navy sofa, the one tile of a sofa that stays walkable because a scene needs a walkable point for the cat). The litter bin of `scenes.json` is at the bottom left corner (tile 2,16).
+
+| Plan or photo feature | In the map |
 | --- | --- |
+| plan: "finestra grande" in the top wall with the "tavolo" (four chairs) in front of it, "mobile marrone" in the top left corner, "mobile con sopra quadri" top right | the big window `giuggiu_wall_win` in the back wall, the glass table `giuggiu_table` at 9,5 with two red chairs on its west end and two black ones on its east end, `giuggiu_armoire` in the left corner, `giuggiu_vitrine` in the right corner with framed pictures standing on top (the tube TV of the photo moved to the TV table) |
+| plan: "tavolo ferro argento" on the left wall under the cabinet | `giuggiu_trolley` (the brass and glass tea trolley of the photo) at 2,5 |
+| plan: "finestra piccola" in the left wall with the "puff" in front of it, a sofa on each side | the side window tiles `giuggiu_sidel_win_*` on rows 8 to 12, the red bean bag `giuggiu_pouf` at 2,10, the cream sofa above it and the burgundy sofa below it, a sun patch on the floor in front of the window |
+| plan: three sofas round the "tavolino nero basso" in the middle | see the sofa triangle above, with a magazine, a remote control and a mug on the black table |
+| plan: "tavolo con TV" at the bottom wall, a plant at its left | `giuggiu_tv` (an old tube TV on a low wooden table, seen from behind because it faces the sofas) and the shared `plant_big` at 5,15 |
+| plan: "porta ingresso" in the right wall below the sofa | the door tiles `giuggiu_sider_door_top` and `giuggiu_sider_door_bot` (a cream frame, a dark corridor, the open leaf of orange veneer seen edge on) at 20,14 and 20,15, with a coir doormat `giuggiu_doormat` in front |
 | dark herringbone parquet, worn, warm brown | `giuggiu_parquet_a` to `d`, 16 x 4 px planks in a seamless herringbone with a few scuffs in the variants |
 | pale lilac cream walls, cream baseboards, a very high ceiling | `giuggiu_wall_left`, `giuggiu_wall_win`, `giuggiu_wall_right` (three tiles tall, plaster, cream skirting), cables hanging on the wall |
 | the big white window on the back wall, three sashes, grey roller shutters half lowered, brick houses outside, a beige shutter box over it | `giuggiu_wall_win`: the middle sash open on two brick houses with a balcony, the outer sashes half covered by slatted shutters, the box and the white sill |
@@ -171,16 +181,13 @@ The room is 22 x 13 tiles, rebuilt from the three photos `casa-giuggiu-salotto-l
 | a red Chinese paper lantern with a printed child and a yellow tassel, hanging in front of the window | `giuggiu_lantern` in the above layer, hung from the middle of the chandelier |
 | a dark console table under the window, sun on its top | `giuggiu_console` with a warm streak on the dark wood |
 | a tall dark carved wardrobe in the left corner with a bicycle frame on top and cables beside it | `giuggiu_armoire`, 2 x 4 tiles, twisted columns, glass panel, a bicycle frame and a rope on top |
-| a brass tea trolley with glass shelves next to the wardrobe | `giuggiu_trolley` |
 | a gilded landscape painting on the left wall, a framed black and white picture next to the window | `giuggiu_wall_left` (landscape), `giuggiu_wall_right` (portrait) |
 | the tall window on the left wall with trees outside, a long burgundy sofa bed under it | `giuggiu_sidel_*` tiles (the wall seen edge on, a window with foliage and a white sill) and `giuggiu_sofa_burgundy`, a sun patch and a light on the floor in front |
-| a cream patterned sofa with a white blanket, a red blanket, a burgundy cushion and a black bag | `giuggiu_sofa_cream` against the left wall in the corner |
-| a red bean bag pouf in front of the burgundy sofa | `giuggiu_pouf` |
-| a navy two seater with a bright red ribbed throw, a dark grey cushion and a remote control; the cat sleeps on it, next to the door | `giuggiu_sofa_navy` in the below layer so the cat stands on its seat; the cat's tile (the right arm) is left walkable because a scene needs a walkable point |
+| a cream patterned sofa with a white blanket, a red blanket, a burgundy cushion and a black bag | `giuggiu_sofa_cream` against the left wall |
+| a navy two seater with a bright red ribbed throw, a dark grey cushion and a remote control; the cat sleeps on it, next to the door | the cat's sofa `giuggiu_sofa_east` (navy, a burgundy cushion, the red throw on the middle seat, the remote control) in the walls layer so the cat stands on its seat, and the middle sofa `giuggiu_sofa_navy` with the throw and the grey cushion |
 | the glass table with chrome legs, a laptop and a bottle on it, one red plastic chair and one black slatted chair | `giuggiu_table` (a see-through top), `giuggiu_chair_red`, `giuggiu_chair_black` |
-| a dark walnut display cabinet with leaded glass doors and claw feet, a tube TV on top, a blue pedestrian sign, a green white and red scarf | `giuggiu_vitrine` in the right corner, with the sign and the TV redrawn in our own pixels |
-| a light oak open shelf along the right wall with a white sports bag, a spray can, a picture frame | `giuggiu_shelf`, 1 x 4 tiles, the lit top and the open side with the cubbies |
-| the doorway behind the sofa, a cream frame, a dark corridor, an open door of orange veneer | `giuggiu_doorway` in the bottom wall with a coir doormat |
+| a dark walnut display cabinet with leaded glass doors and claw feet, a blue pedestrian sign, a green white and red scarf | `giuggiu_vitrine` in the right corner, with the sign redrawn in our own pixels and the pictures of the plan on top |
+| a light oak open shelf along the right wall with a white sports bag, a spray can, a picture frame | `giuggiu_shelf`, 1 x 4 tiles at 19,5, the lit top and the open side with the cubbies |
 | afternoon light, dim room, a bright window | day mood `#e2d0c8`, pools of warm light under the windows, a red glow near the lantern, sun patches on the parquet |
 
 ## Giardini Margherita, photo feature -> map
