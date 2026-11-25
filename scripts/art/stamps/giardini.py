@@ -11,7 +11,7 @@ Every name starts with `giardini_`: the registry refuses anything else from a ro
 and the shadows join: `giardini_backdrop` (26 x 4 tiles, the back of the park), `giardini_line` (the slackline, 15 x 1 tiles)."""
 import math
 
-from tilepaint import METAL, WOOD, Canvas, T, col, dark, hx, light, make_ramp, mix, rng
+from tilepaint import METAL, WOOD, Canvas, T, col, dark, hx, light, make_ramp, mix, pxl_object, rng
 
 GR = make_ramp("#7fa83f", 5, 2, light_hue=62, lh=20, sh=18)        # sunny lawn
 LEAF = make_ramp("#5f9c35", 5, 2, light_hue=64, lh=22, sh=20)       # canopy in the sun
@@ -874,50 +874,6 @@ def bench(graffiti=True):
     return c
 
 
-def bench_wood():
-    """A plainer park bench of dark wood slats on black legs, for the path."""
-    c = Canvas(2 * T, T)
-    c.shadow(32, 29.5, 28, 2.8, 70)
-    for x in (6, 54):
-        c.rect(x, 13, x + 3, 28, "#26262c")
-        c.vline(x, 13, 28, "#5a5a66")
-        c.rect(x - 2, 27, x + 5, 29, "#1c1c22")
-    wd = make_ramp("#8a6a44", 4, 1)
-    c.rect(4, 4, 59, 8, wd[2])
-    c.rect(4, 10, 59, 13, wd[2])
-    for y in (4, 10):
-        c.hline(4, 59, y, wd[3])
-    for y in (8, 13):
-        c.hline(4, 59, y, wd[0])
-    c.rect(5, 17, 58, 23, wd[1])
-    c.hline(5, 58, 17, wd[3])
-    c.hline(5, 58, 20, wd[0])
-    c.hline(5, 58, 23, "#2a1c12")
-    c.outline()
-    return c
-
-
-def lamp():
-    """A green park lamp post with a round milky globe, 1 x 2 tiles."""
-    c = Canvas(T, 2 * T)
-    c.shadow(16, 62, 8, 2.2, 66)
-    c.rect(15, 20, 17, 60, IRON[2])
-    c.vline(15, 20, 60, IRON[3])
-    c.vline(17, 20, 60, IRON[0])
-    c.rect(12, 55, 20, 61, IRON[1])
-    c.hline(12, 20, 55, IRON[3])
-    c.rect(14, 18, 18, 22, IRON[1])
-    c.disc(16, 11, 7.4, "#2a3a44")
-    c.disc(16, 11, 6.4, "#e4ece6")
-    c.disc(15, 10, 4.6, "#f6faf6")
-    c.disc(13.4, 8.4, 1.6, "#ffffff")
-    c.ell(18, 14, 4, 3, "#b4c4c0")
-    c.hline(11, 21, 4, IRON[1])
-    c.hline(13, 19, 3, IRON[3])
-    c.outline("#1c2a28")
-    return c
-
-
 def bin_green():
     """A dark green perforated litter bin on a pole: a black lid with a hole, a silver band, rows of round holes."""
     c = Canvas()
@@ -1014,7 +970,7 @@ def define(reg):
     reg.stamp("giardini_tree_young_b", big_tree(3, 3, "youngb", 31, 22, 8, 12, ramp=LEAF), "objects", above_rows=2, mask=mask(3, 3))
     reg.stamp("giardini_sapling", sapling(), "objects", above_rows=1, mask=[".", "#"])
     reg.stamp("giardini_bench_graffiti", bench(True), "objects")
-    reg.stamp("giardini_bench_wood", bench_wood(), "objects")
-    reg.stamp("giardini_lamp", lamp(), "objects", mask=[".", "#"])
+    reg.stamp("giardini_bench_wood", pxl_object("giardini_bench_wood", (32, 29.5, 28, 2.8, 70)), "objects")   # drawn with pxl, scripts/art/pxl/objects.px.js
+    reg.stamp("giardini_lamp", pxl_object("giardini_lamp", (16, 62, 8, 2.2, 66)), "objects", mask=[".", "#"])
     reg.stamp("giardini_bin", bin_green(), "objects")
     reg.stamp("giardini_dog", dog(), "objects")

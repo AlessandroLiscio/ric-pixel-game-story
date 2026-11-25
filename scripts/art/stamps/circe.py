@@ -14,7 +14,7 @@ import math
 
 from PIL import Image, ImageDraw
 
-from tilepaint import (LETTERS, Canvas, T, dark, hx, light, make_ramp, mix, rng)
+from tilepaint import (LETTERS, Canvas, T, dark, hx, light, make_ramp, mix, pxl_object, rng)
 from tiles_objects import bottle
 
 WALL_H = 4 * T
@@ -1357,7 +1357,7 @@ def define(reg):
     reg.stamp("circe_entrance", entrance_gap(), "walls")
     reg.stamp("circe_sofa_front", sofa_front(), "objects", mask=["...", "###"])
     reg.stamp("circe_sofa_front_throw", sofa_front(True), "objects", mask=["...", "###"])
-    reg.stamp("circe_sofa_back", sofa_back(), "objects", mask=["...", "###"])
+    reg.stamp("circe_sofa_back", pxl_object("circe_sofa_back", (48, 60, 47, 2.6, 80)), "objects", mask=["...", "###"])   # drawn with pxl, scripts/art/pxl/objects.px.js
     reg.stamp("circe_sofa_back_throw", sofa_back(True), "objects", mask=["...", "###"])
     reg.stamp("circe_sofa_bed", sofa_bed(), "objects", mask=["...", "...", "###", "###"])
     reg.stamp("circe_tv_unit", tv_unit(), "objects", mask=["...", "###"])

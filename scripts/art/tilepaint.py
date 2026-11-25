@@ -8,6 +8,7 @@ and hand placed highlight pixels. Floors have no outline and no pixel noise: the
 import colorsys
 import random
 import zlib
+from pathlib import Path
 
 from PIL import Image, ImageDraw
 
@@ -323,3 +324,21 @@ class Canvas:
         out.px = out.im.load()
         out.d = ImageDraw.Draw(out.im)
         return out
+
+
+PXL_SPRITES = Path(__file__).resolve().parent / "pxl" / "out" / "sprites"
+
+
+def pxl_object(name, shadow=None):
+    """A stamp canvas from the PNG that pxl built (scripts/art/pxl/objects.px.js, committed in scripts/art/pxl/out/sprites): the soft ground
+    shadow first, `shadow` = (cx, cy, rx, ry, alpha[, dx]) as for Canvas.shadow, then the drawing with its outline over it. The size of the
+    PNG is the size of the stamp (a multiple of 32), so collision and masks stay as they were."""
+    src = Image.open(PXL_SPRITES / (name + ".png")).convert("RGBA")
+    assert src.width % T == 0 and src.height % T == 0, name
+    c = Canvas(*src.size)
+    if shadow:
+        c.shadow(*shadow)
+    c.im.alpha_composite(src)
+    c.px = c.im.load()
+    c.d = ImageDraw.Draw(c.im)
+    return c

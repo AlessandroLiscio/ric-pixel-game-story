@@ -31,6 +31,7 @@ Review aids, never committed: `--preview PATH.png` writes a contact sheet (the s
 | `scripts/art/tiles_terrain.py` | floors, wall caps, wall faces and the soft shadow strips: single seamless 32x32 tiles |
 | `scripts/art/tiles_objects.py` | furniture, stage gear, plants, signs, rugs that any room can use |
 | `scripts/art/tiles_rooms.py` | pieces drawn for the home, university and park rooms, to restyle when a room needs them |
+| `scripts/art/pxl/objects.px.js` | eight key objects drawn with pxl (`.claude/skills/pxl`), built to the committed PNGs in `scripts/art/pxl/out/sprites` that the stamps load with `pxl_object` (see `scripts/art/pxl/README.md`) |
 | `scripts/art/stamps/<sceneId>.py` | the stamps of one room, found by `tiles.py` with importlib; names must start with `<sceneId>_` |
 | `scripts/art/rooms/<sceneId>.py` | the map of one room, found by `maps.py` with importlib; `build()` returns a `mapkit.Map` with that id |
 | `scripts/art/mapkit.py` | the `Map` class every room module uses |
