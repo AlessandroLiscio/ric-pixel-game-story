@@ -1,5 +1,5 @@
 import dialogueJson from '../../data/dialogue.it.json';
-import { FONT_FAMILY } from '../config';
+import { FONT_FAMILY, RENDER_SCALE } from '../config';
 import type { Dialogue, Line } from '../flow/sceneTypes';
 
 export const DIALOGUE = dialogueJson as unknown as Dialogue;
@@ -22,7 +22,7 @@ export function lines(path: string): Line[] {
     return Array.isArray(v) ? (v as Line[]) : [];
 }
 
-/** Text style in the pixel font (16 px keeps the font on its pixel grid). */
+/** Text style in the pixel font (16 px keeps the font on its pixel grid), rasterised at the canvas scale so it is crisp under the camera zoom. */
 export function pixelStyle(size = 16, color = '#ffffff'): Phaser.Types.GameObjects.Text.TextStyle {
-    return { fontFamily: FONT_FAMILY, fontSize: `${size}px`, color };
+    return { fontFamily: FONT_FAMILY, fontSize: `${size}px`, color, resolution: RENDER_SCALE };
 }

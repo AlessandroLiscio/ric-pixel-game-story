@@ -73,17 +73,17 @@ try {
     for (const [k, v] of Object.entries(api.apis)) check(v === 'function', `API missing: ${k} (${v})`);
     notes.push(`renderer: ${api.webgl ? 'WebGL' : 'Canvas'}; Phaser ${api.version}`);
 
-    // 2. Integer zoom at three window sizes (3x, 2x, 1x) and fullscreen with F
-    for (const [w, h, z] of [[1920, 1080, 3], [1366, 768, 2], [1000, 600, 1]]) {
+    // 2. Zoom of the 1280x720 canvas at four window sizes (1.5x, 1x, 1x, 0.78x: below 1 the exact fit) and fullscreen with F
+    for (const [w, h, z] of [[1920, 1080, 1.5], [1366, 768, 1], [1280, 720, 1], [1000, 600, 600 / 720]]) {
         await page.setViewportSize({ width: w, height: h });
-        await page.waitForFunction((zz) => document.querySelector('canvas').getBoundingClientRect().width === 640 * zz, z, { timeout: 5000 }).catch(() => undefined);
+        await page.waitForFunction((zz) => Math.abs(document.querySelector('canvas').getBoundingClientRect().width - 1280 * zz) < 1, z, { timeout: 5000 }).catch(() => undefined);
         const box = await page.evaluate(() => {
             const r = document.querySelector('canvas').getBoundingClientRect();
             const c = document.querySelector('canvas');
             return { w: r.width, h: r.height, iw: c.width, ih: c.height, ir: getComputedStyle(c).imageRendering };
         });
-        check(box.w === 640 * z && box.h === 360 * z, `zoom at ${w}x${h}: canvas ${box.w}x${box.h}, want ${640 * z}x${360 * z}`);
-        check(box.iw === 640 && box.ih === 360, `internal size ${box.iw}x${box.ih}`);
+        check(Math.abs(box.w - 1280 * z) < 1 && Math.abs(box.h - 720 * z) < 1, `zoom at ${w}x${h}: canvas ${box.w}x${box.h}, want ${1280 * z}x${720 * z}`);
+        check(box.iw === 1280 && box.ih === 720, `internal size ${box.iw}x${box.ih}`);
         check(/pixelated|crisp-edges/.test(box.ir), `image-rendering ${box.ir}`);
     }
     await page.setViewportSize({ width: 1920, height: 1080 });

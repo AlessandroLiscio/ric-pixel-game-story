@@ -62,6 +62,13 @@ try {
         }
     };
     const world = (i) => (s) => s.scene === 'world' && s.sceneIndex === i;
+    // HD: every running scene's main camera is the zoom-2, origin-0 camera of hdCamera.ts, so the 640x360 layouts fill the 1280x720 canvas
+    const hdCameras = () =>
+        page.evaluate(() => window.__ricGame.scene.getScenes(true).map((s) => `${s.scene.key}:${s.cameras.main.zoom}:${s.cameras.main.originX}:${s.cameras.main.width}x${s.cameras.main.height}`));
+    const checkHd = async (where) => {
+        const cams = await hdCameras();
+        check(cams.length > 0 && cams.every((c) => /:2:0:1280x720$/.test(c)), `${where}: cameras not zoom 2 / origin 0 / 1280x720: ${cams}`);
+    };
     const teleport = (x, y) => page.evaluate(([px, py]) => window.__ricGame.scene.getScene('world').ric.setPosition(px, py), [x, y]);
     const press = async (key) => {
         await page.keyboard.press(key);
@@ -82,6 +89,7 @@ try {
         const scene = `minigame-${id}`;
         const end = Date.now() + 60000;
         const running = async () => (await state()).scene === scene;
+        await checkHd(scene);
         if (!REAL.includes(id)) {
             await sleep(300);
             await test(id === LOSE ? 'lose' : 'win');
@@ -114,8 +122,11 @@ try {
     // ---- title ----
     let s = await until((x) => x.scene === 'title', 'title');
     check((await litPixels(context, page)) > 200, 'title screen looks blank');
+    await checkHd('title');
+    check((await page.evaluate(() => [document.querySelector('canvas').width, document.querySelector('canvas').height])).join('x') === '1280x720', 'canvas is not 1280x720');
     await press('Enter');
     await until(world(0), 'world 0');
+    await checkHd('world');
     note('title -> world 0');
 
     // debug jumps, as in smoke-walk: F2 then F1

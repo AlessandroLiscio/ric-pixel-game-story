@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { beep, getAudioContext } from './audioContext';
-import { GAME_HEIGHT, GAME_WIDTH } from './config';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './config';
 import { installDebug } from './debug';
 import { installFlowGlobals } from './flow/globals';
 import { gameScenes } from './flow/sceneList';
+import { HdCameraPlugin } from './hdCamera';
 import { installTestSkip } from './testKey';
 import { installIntegerZoom } from './zoom';
 
@@ -18,14 +19,15 @@ export async function startGame(parent: string): Promise<Phaser.Game> {
     const game = new Phaser.Game({
         type: Phaser.AUTO,
         parent,
-        width: GAME_WIDTH,
-        height: GAME_HEIGHT,
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
         backgroundColor: '#000000',
         pixelArt: true, // nearest-neighbour textures; Phaser also sets antialias=false and roundPixels=true
         roundPixels: true,
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         loader: { imageLoadType: 'HTMLImageElement' }, // no XHR: works from file:// and with data: URIs
         audio: { context: getAudioContext() },
+        plugins: { scene: [{ key: 'HdCameraPlugin', plugin: HdCameraPlugin, start: true }] },
         scene: scenes
     });
 
