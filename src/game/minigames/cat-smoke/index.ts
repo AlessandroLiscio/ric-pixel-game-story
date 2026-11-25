@@ -14,31 +14,56 @@ type Face = 'down' | 'left' | 'right' | 'up';
 const ID = 'cat-smoke';
 const SHADOW = { offsetX: 1, offsetY: 1, color: '#0a1040', blur: 0, stroke: false, fill: true };
 
-const SOFA_X = [140, 320, 500]; // left, middle, right = arrow keys LEFT, UP, RIGHT
-const SOFA_Y = 236;
-const SOFA_W = 120;
-const SOFA_H = 80;
-const SOFA_COLOR = [0xc4473f, 0xd9a43a, 0x6a4fb0];
-const FEET_ON = SOFA_Y + 14; // the cat sits on the cushions
-const FEET_FRONT = SOFA_Y + 68; // in front of the sofa, on the floor
-const FEET_UNDER = SOFA_Y + 36; // hidden behind the sofa body
+// The three sofas as in Casa Giuggiu: the long burgundy one along the left wall, the navy one in the middle facing down toward the TV, the navy one against
+// the right wall (arrow keys LEFT, UP, RIGHT). `len` runs along the sofa, `thick` across it; `rot` turns the horizontal drawing so its back rest meets the wall.
+const SOFAS = [
+    { cx: 46, cy: 184, len: 128, thick: 64, rot: -90, color: 0x8a2a3c, lift: 90 },
+    { cx: 320, cy: 184, len: 160, thick: 68, rot: 0, color: 0x2e4a86, lift: 80 },
+    { cx: 594, cy: 184, len: 116, thick: 64, rot: 90, color: 0x2e4a86, lift: 90 }
+];
+const TABLE = { cx: 320, cy: 272, w: 144, h: 72 }; // the low black table, just below the middle sofa
+// Where the cat may stand (feet). The floor nodes are open floor; the `under` nodes sit under a sofa (0, 1, 2) or the table (-1), where the cat is hidden.
+// It moves only along the EDGES, straight, so it never crosses furniture: it passes through a sofa or the table only by going under it.
+type Spot = { x: number; y: number; under?: number };
+const SPOTS: Spot[] = [
+    { x: 112, y: 208 }, // 0 in front of the left sofa
+    { x: 190, y: 216 }, // 1 left of the middle sofa
+    { x: 190, y: 304 }, // 2 left of the table
+    { x: 450, y: 216 }, // 3 right of the middle sofa
+    { x: 450, y: 304 }, // 4 right of the table
+    { x: 528, y: 208 }, // 5 in front of the right sofa
+    { x: 190, y: 128 }, // 6 behind the room, left
+    { x: 450, y: 128 }, // 7 behind the room, right
+    { x: 46, y: 208, under: 0 }, // 8 under the left sofa
+    { x: 320, y: 216, under: 1 }, // 9 under the middle sofa
+    { x: 320, y: 304, under: -1 }, // 10 under the table
+    { x: 594, y: 208, under: 2 }, // 11 under the right sofa
+    { x: 320, y: 128 } // 12 behind the room, middle
+];
+const EDGES: [number, number][] = [[0, 1], [1, 2], [0, 2], [3, 4], [3, 5], [4, 5], [1, 6], [3, 7], [6, 12], [12, 7], [0, 6], [5, 7], [0, 8], [1, 9], [9, 3], [2, 10], [10, 4], [5, 11]];
+const NEIGHBORS: number[][] = SPOTS.map((_, i) => EDGES.flatMap(([a, b]) => (a === i ? [b] : b === i ? [a] : [])));
+const SOFA_SPOT = [8, 9, 11]; // the spot under each sofa
 const CAT_SCALE = 2;
-const HOP_SPEED = 200; // px per second along the floor (the first version ran at 100: the owner's playtest asked for double)
-const HOP_MIN_MS = 500;
-const HOP_ARC = 24;
-const FOLLOW_MS = 3600; // how long the cat hops about before the fake-out; shorter hops, so about the same number of them
+const HOP_SPEED = 400; // px per second along the floor (the first version ran at 100, then 200: the owner's playtest asked for double each time)
+const HOP_MIN_MS = 120;
+const PAUSE_MS: [number, number] = [0, 90]; // a short stop between two moves, so the cat changes direction at once and often
+const HIDE_MS: [number, number] = [180, 420]; // how long it stays under a sofa or the table before moving on
+const FINAL_SLIDE_MS = 380; // the last slide under the right sofa stays slow enough to see at any speed
+const FOLLOW_MS = 3600; // how long the cat roams before the fake-out
 const GIUGGIU_SCALE = 3;
 const GIUGGIU_FEET_Y = 344;
 const GIUGGIU_EDGE = 40; // his x from the screen edge
-const MAX_CLOUDS = 70;
-const PUFF_EVERY_MS = 1700;
+const MAX_CLOUDS = 140;
+const PUFF_EVERY_MS = 1000;
+const PUFF_CLOUDS = 14;
+const TRICKLE_MS = 100;
 const COUNTDOWN = 3;
 const KEY_SOFA: Record<string, number> = { ArrowLeft: 0, KeyA: 0, ArrowUp: 1, KeyW: 1, ArrowRight: 2, KeyD: 2 };
 const FACE_ROW: Record<Face, number> = { down: 0, left: 1, right: 2, up: 3 };
 
 const DEPTH = { floor: 0, trail: 12, under: 5, sofa: 10, giuggiu: 15, cat: 20, smoke: 30, hud: 40, banner: 950 };
 
-/** Scene 2 minigame: a cat hops between three sofas while Giuggiu, at one edge of the screen, puffs smoke that drifts across the room; the cat hides under one and the player lifts the right sofa. */
+/** Scene 2 minigame: a cat runs about Casa Giuggiu's sofa triangle (passing only under the sofas and the low table) while Giuggiu, at one edge of the screen, puffs smoke that drifts across the room; the cat ends under one sofa and the player lifts the right one. */
 export default class CatSmokeMinigame extends Phaser.Scene {
     static KEY = `minigame-${ID}`;
     static ID = ID;
@@ -62,7 +87,8 @@ export default class CatSmokeMinigame extends Phaser.Scene {
     private smokeTimer?: Phaser.Time.TimerEvent;
     private puffTimer?: Phaser.Time.TimerEvent;
     private targetChance = 0;
-    private current = 0; // sofa the cat is on
+    private spot = 0; // index in SPOTS where the cat stands
+    private prevSpot = -1;
     private hideIndex = 0;
     private selected = -1;
     private picking = false;
@@ -93,8 +119,9 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.buildRoom();
         this.buildGiuggiu();
         this.hideIndex = Phaser.Math.Between(0, 2);
-        this.current = Phaser.Math.Between(0, 2);
-        this.cat = this.add.sprite(SOFA_X[this.current], FEET_ON, 'char-gatto', 4).setOrigin(0.5, 1).setScale(CAT_SCALE).setDepth(DEPTH.cat);
+        this.spot = Phaser.Math.RND.pick(SPOTS.map((s, i) => (s.under === undefined ? i : -1)).filter((i) => i >= 0));
+        this.prevSpot = -1;
+        this.cat = this.add.sprite(SPOTS[this.spot].x, SPOTS[this.spot].y, 'char-gatto', 4).setOrigin(0.5, 1).setScale(CAT_SCALE).setDepth(DEPTH.cat);
         this.face('down');
 
         // The debug keys: the flow reports the result and stops this scene itself, so only stop playing here (no second MINIGAME_DONE).
@@ -128,24 +155,27 @@ export default class CatSmokeMinigame extends Phaser.Scene {
             g.fillStyle(0x6e4a30).fillRect(0, y, GAME_WIDTH, 1);
             for (let x = (i % 3) * 70; x < GAME_WIDTH; x += 210) g.fillRect(x, y, 1, 24);
         }
-        g.fillStyle(0xd9d0a0).fillRect(40, 150, 560, 196); // rug
-        g.fillStyle(0x2f6b78).fillRect(44, 154, 552, 188);
-        g.fillStyle(0x3a8294).fillRect(60, 170, 520, 156);
+        g.fillStyle(0xd9d0a0).fillRect(100, 100, 440, 236); // rug under the triangle of sofas
+        g.fillStyle(0x2f6b78).fillRect(104, 104, 432, 228);
+        g.fillStyle(0x3a8294).fillRect(120, 120, 400, 196);
+        g.fillStyle(0x3a2a1c).fillRect(272, 330, 96, 22).fillStyle(0x111419).fillRect(284, 312, 72, 38).fillStyle(0x1d2a3a).fillRect(288, 316, 64, 28); // the TV on its table, bottom wall
         g.fillStyle(0xa8d4e8).fillRect(480, 12, 100, 42).fillStyle(0xe8f4ff).fillRect(484, 16, 92, 34); // window
         g.fillStyle(0xa8d4e8).fillRect(528, 16, 4, 34).fillRect(484, 31, 92, 3);
 
         // smoke texture: stacked translucent circles make a dense, soft puff (the first version was 0.11 per ring: too thin)
         if (!this.textures.exists('cat-smoke-cloud-2')) {
             const s = this.add.graphics();
-            for (let r = 48; r >= 6; r -= 3) s.fillStyle(0xc9cdd9, 0.2).fillCircle(48, 48, r);
+            for (let r = 48; r >= 6; r -= 3) s.fillStyle(0xc9cdd9, 0.27).fillCircle(48, 48, r);
             s.generateTexture('cat-smoke-cloud-2', 96, 96);
             s.destroy();
         }
         this.smoke = this.add.container(0, 0).setDepth(DEPTH.smoke);
 
+        this.buildTable();
         for (let i = 0; i < 3; i++) {
-            const patch = this.add.graphics({ x: SOFA_X[i], y: SOFA_Y }).setDepth(DEPTH.floor + 1);
-            patch.fillStyle(0x000000, 0.28).fillRect(-SOFA_W / 2 + 2, -SOFA_H / 2 + 6, SOFA_W - 4, SOFA_H - 6);
+            const { w, h } = this.sofaSize(i);
+            const patch = this.add.graphics({ x: SOFAS[i].cx, y: SOFAS[i].cy }).setDepth(DEPTH.floor + 1);
+            patch.fillStyle(0x000000, 0.28).fillRect(-w / 2 + 2, -h / 2 + 6, w - 4, h - 6);
             this.floorPatch.push(patch);
             this.sofas.push(this.makeSofa(i));
             this.makeKeyLabel(i);
@@ -155,43 +185,63 @@ export default class CatSmokeMinigame extends Phaser.Scene {
 
         this.tag = this.add.text(8, 6, LABELS.constitution, { ...pixelStyle(16, '#ffe27a'), shadow: SHADOW }).setDepth(DEPTH.hud);
         this.status = this.add.text(GAME_WIDTH / 2, 26, '', { ...pixelStyle(32, '#ffffff'), shadow: SHADOW }).setOrigin(0.5, 0).setDepth(DEPTH.hud);
-        this.countdownText = this.add.text(GAME_WIDTH / 2, 80, '',{ ...pixelStyle(32, '#ffe27a'), shadow: SHADOW }).setOrigin(0.5, 0).setDepth(DEPTH.hud);
-        this.confirmHint = this.add.text(GAME_WIDTH / 2, 122, t('ui.confirm'), { ...pixelStyle(16, '#cfe0ff'), shadow: SHADOW }).setOrigin(0.5, 0).setDepth(DEPTH.hud).setVisible(false);
+        this.countdownText = this.add.text(GAME_WIDTH / 2, 62, '',{ ...pixelStyle(32, '#ffe27a'), shadow: SHADOW }).setOrigin(0.5, 0).setDepth(DEPTH.hud);
+        this.confirmHint = this.add.text(GAME_WIDTH / 2, 102, t('ui.confirm'), { ...pixelStyle(16, '#cfe0ff'), shadow: SHADOW }).setOrigin(0.5, 0).setDepth(DEPTH.hud).setVisible(false);
         this.setStatus(LABELS.follow);
     }
 
+    /** The size of sofa `i` on the screen (a turned one swaps its length and thickness). */
+    private sofaSize(i: number): { w: number; h: number } {
+        const s = SOFAS[i];
+        return s.rot ? { w: s.thick, h: s.len } : { w: s.len, h: s.thick };
+    }
+
+    /** The low black table, a glossy top seen from above; the cat can hide under it. */
+    private buildTable(): void {
+        const { cx, cy, w, h } = TABLE;
+        const g = this.add.graphics({ x: cx, y: cy }).setDepth(DEPTH.sofa);
+        g.fillStyle(0x000000, 0.3).fillRect(-w / 2 + 3, -h / 2 + 4, w, h);
+        g.fillStyle(0x34343f).fillRect(-w / 2, -h / 2, w, h);
+        g.fillStyle(0x111116).fillRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8);
+        g.fillStyle(0x55556a, 0.8).fillRect(-w / 2 + 10, -h / 2 + 9, 44, 3).fillRect(-w / 2 + 10, -h / 2 + 15, 22, 3);
+        this.add.graphics({ x: cx, y: cy }).setDepth(DEPTH.floor + 1).fillStyle(0x000000, 0.28).fillRect(-w / 2 + 2, -h / 2 + 6, w - 4, h - 6);
+    }
+
     private makeSofa(i: number): Phaser.GameObjects.Container {
-        const base = SOFA_COLOR[i];
+        const { cx, cy, len, thick, rot, color: base } = SOFAS[i];
         const dark = Phaser.Display.Color.IntegerToColor(base).darken(28).color;
         const mid = Phaser.Display.Color.IntegerToColor(base).darken(12).color;
         const light = Phaser.Display.Color.IntegerToColor(base).lighten(14).color;
         const g = this.add.graphics();
-        const hw = SOFA_W / 2;
-        const hh = SOFA_H / 2;
-        g.fillStyle(0x000000, 0.3).fillRect(-hw + 3, -hh + 4, SOFA_W, SOFA_H); // shadow
-        g.fillStyle(dark).fillRect(-hw, -hh, SOFA_W, SOFA_H);
-        g.fillStyle(mid).fillRect(-hw + 2, -hh + 2, SOFA_W - 4, 22); // back rest
-        g.fillStyle(mid).fillRect(-hw + 2, -hh + 2, 16, SOFA_H - 4).fillRect(hw - 18, -hh + 2, 16, SOFA_H - 4); // armrests
-        g.fillStyle(base).fillRect(-hw + 20, -hh + 26, SOFA_W - 40, SOFA_H - 30); // seat
-        for (const cx of [-hw + 22, 1]) {
-            g.fillStyle(light).fillRect(cx, -hh + 28, 38, SOFA_H - 34); // cushions
-            g.fillStyle(dark).fillRect(cx, -hh + 28, 38, 1).fillRect(cx, -hh + 28, 1, SOFA_H - 34);
+        const hw = len / 2;
+        const hh = thick / 2;
+        const cushion = (len - 40) / 2 - 2;
+        g.fillStyle(0x000000, 0.3).fillRect(-hw + 3, -hh + 4, len, thick); // shadow
+        g.fillStyle(dark).fillRect(-hw, -hh, len, thick);
+        g.fillStyle(mid).fillRect(-hw + 2, -hh + 2, len - 4, 22); // back rest
+        g.fillStyle(mid).fillRect(-hw + 2, -hh + 2, 16, thick - 4).fillRect(hw - 18, -hh + 2, 16, thick - 4); // armrests
+        g.fillStyle(base).fillRect(-hw + 20, -hh + 26, len - 40, thick - 30); // seat
+        for (const x of [-hw + 22, 1]) {
+            g.fillStyle(light).fillRect(x, -hh + 28, cushion, thick - 34); // cushions
+            g.fillStyle(dark).fillRect(x, -hh + 28, cushion, 1).fillRect(x, -hh + 28, 1, thick - 34);
         }
-        g.fillStyle(0x000000, 0.18).fillRect(-hw + 2, -hh + 24, SOFA_W - 4, 2);
-        return this.add.container(SOFA_X[i], SOFA_Y, [g]).setDepth(DEPTH.sofa);
+        g.fillStyle(0x000000, 0.18).fillRect(-hw + 2, -hh + 24, len - 4, 2);
+        return this.add.container(cx, cy, [g]).setAngle(rot).setDepth(DEPTH.sofa);
     }
 
-    /** Arrow icon plus Italian word under each sofa: the key that picks it. */
+    /** Arrow icon plus Italian word for each sofa: the key that picks it. The side sofas carry it above them, the middle one on its seat. */
     private makeKeyLabel(i: number): void {
-        const label = this.add.text(0, SOFA_Y + 46, LABELS.sofa[i], { ...pixelStyle(16, '#ffffff'), shadow: SHADOW }).setDepth(DEPTH.hud);
+        const { cx, cy } = SOFAS[i];
+        const ly = i === 1 ? cy - 4 : cy - this.sofaSize(i).h / 2 - 46;
+        const label = this.add.text(0, ly, LABELS.sofa[i], { ...pixelStyle(16, '#ffffff'), shadow: SHADOW }).setDepth(DEPTH.hud);
         const total = label.width + 20;
-        const x0 = SOFA_X[i] - total / 2;
+        const x0 = Phaser.Math.Clamp(cx - total / 2, 4, GAME_WIDTH - 4 - total);
         label.setX(x0 + 20);
-        const cy = SOFA_Y + 54;
+        const ay = ly + 8;
         const a = this.add.graphics().setDepth(DEPTH.hud).fillStyle(0xffe27a);
-        if (i === 0) a.fillTriangle(x0, cy, x0 + 12, cy - 7, x0 + 12, cy + 7);
-        else if (i === 1) a.fillTriangle(x0 + 6, cy - 7, x0 - 1, cy + 6, x0 + 13, cy + 6);
-        else a.fillTriangle(x0 + 12, cy, x0, cy - 7, x0, cy + 7);
+        if (i === 0) a.fillTriangle(x0, ay, x0 + 12, ay - 7, x0 + 12, ay + 7);
+        else if (i === 1) a.fillTriangle(x0 + 6, ay - 7, x0 - 1, ay + 6, x0 + 13, ay + 6);
+        else a.fillTriangle(x0 + 12, ay, x0, ay - 7, x0, ay + 7);
     }
 
     private setStatus(text: string): void {
@@ -213,59 +263,78 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         else this.cat.stop().setFrame(FACE_ROW[dir] * 3 + 1);
     }
 
-    /** One hop to another sofa along the floor with a little arc, leaving fading paw dots on the path. */
-    private async hop(to: number): Promise<void> {
-        const from = this.cat.x;
-        const dx = SOFA_X[to] - from;
-        const duration = Math.max(HOP_MIN_MS, (Math.abs(dx) / HOP_SPEED) * 1000);
-        this.face(dx > 0 ? 'right' : 'left', true);
-        this.cat.setDepth(DEPTH.cat);
+    /** One straight move along an edge to spot `to` (or only `part` of the way, for the fake-out). A move that starts or ends under furniture runs below it, so the sofa or table covers the cat. */
+    private async move(to: number, { part = 1, ms = 0, under = false } = {}): Promise<void> {
+        const from = this.spot;
+        const a = { x: this.cat.x, y: this.cat.y };
+        const dx = (SPOTS[to].x - a.x) * part;
+        const dy = (SPOTS[to].y - a.y) * part;
+        const dist = Math.hypot(dx, dy);
+        const hidden = under || SPOTS[from].under !== undefined || SPOTS[to].under !== undefined;
+        this.face(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up', true);
+        this.cat.setDepth(hidden ? DEPTH.under : DEPTH.cat);
         const p = { k: 0 };
         let nextDot = 0;
         await this.tween({
             targets: p,
             k: 1,
-            duration,
+            duration: ms || Math.max(HOP_MIN_MS, (dist / HOP_SPEED) * 1000),
             ease: 'Linear',
             onUpdate: () => {
-                this.cat.x = from + dx * p.k;
-                this.cat.y = FEET_ON - Math.sin(Math.PI * p.k) * HOP_ARC;
-                if (Math.abs(dx * p.k) >= nextDot) {
+                this.cat.setPosition(a.x + dx * p.k, a.y + dy * p.k);
+                if (!hidden && dist * p.k >= nextDot) {
                     nextDot += 26;
-                    const dot = this.add.circle(this.cat.x, FEET_ON - 2, 3, 0xfff2c0, 0.85).setDepth(DEPTH.trail);
+                    const dot = this.add.circle(this.cat.x, this.cat.y - 2, 3, 0xfff2c0, 0.85).setDepth(DEPTH.trail);
                     this.tweens.add({ targets: dot, alpha: 0, duration: 1500, onComplete: () => dot.destroy() });
                 }
             }
         });
-        this.current = to;
-        this.cat.setPosition(SOFA_X[to], FEET_ON);
-        this.face('down');
+        if (part < 1) return; // the fake-out stops half way under and goes back
+        this.prevSpot = from;
+        this.spot = to;
+        this.cat.setPosition(SPOTS[to].x, SPOTS[to].y);
+        if (SPOTS[to].under === undefined) this.cat.setDepth(DEPTH.cat);
         audio.sfx('step');
     }
 
-    private async walkFront(): Promise<void> {
-        this.face('down', true);
-        await this.tween({ targets: this.cat, y: FEET_FRONT, duration: 280 });
-        this.face('down');
+    /** The next spot of the random walk: any neighbour, but mostly not the one it just came from, so it keeps turning. */
+    private nextSpot(): number {
+        const all = NEIGHBORS[this.spot];
+        const fresh = all.filter((n) => n !== this.prevSpot);
+        return Phaser.Math.RND.pick(fresh.length && Math.random() < 0.8 ? fresh : all);
     }
 
-    /** Slides under the sofa it is standing in front of; `depth` of the cat goes below the sofa body. */
-    private async slideUnder(toY: number, duration: number): Promise<void> {
-        this.cat.setDepth(DEPTH.under);
-        this.face('up', true);
-        await this.tween({ targets: this.cat, y: toY, duration, ease: 'Sine.easeIn' });
-        this.face('up');
+    /** The open-floor spots next to `target` (a spot under a sofa), where the cat can start its slide. */
+    private approaches(target: number): number[] {
+        return NEIGHBORS[target].filter((n) => SPOTS[n].under === undefined);
     }
 
-    private async popOut(): Promise<void> {
-        this.face('down', true);
-        await this.tween({ targets: this.cat, y: FEET_FRONT, duration: 160 });
-        this.cat.setDepth(DEPTH.cat);
-        this.face('down');
-        await this.wait(120);
-        this.face('up', true);
-        await this.tween({ targets: this.cat, y: FEET_ON, duration: 280 });
-        this.face('down');
+    /** The shortest walk over open floor from where the cat is to any spot in `goals`; leaves the first move out of an under spot. */
+    private route(goals: number[]): number[] {
+        const prev = new Map<number, number>([[this.spot, -1]]);
+        const queue = [this.spot];
+        for (let q = 0; q < queue.length; q++) {
+            const at = queue[q];
+            if (goals.includes(at)) {
+                const path: number[] = [];
+                for (let n = at; n !== this.spot; n = prev.get(n)!) path.unshift(n);
+                return path;
+            }
+            for (const n of NEIGHBORS[at]) {
+                if (!prev.has(n) && SPOTS[n].under === undefined) {
+                    prev.set(n, at);
+                    queue.push(n);
+                }
+            }
+        }
+        return [];
+    }
+
+    private async walkTo(goals: number[]): Promise<void> {
+        for (const n of this.route(goals)) {
+            if (this.done) return;
+            await this.move(n);
+        }
     }
 
     // ---- Giuggiu and the smoke ----
@@ -299,7 +368,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
                 this.ember.setFillStyle(0xff7a2a);
                 this.tweens.add({ targets: this.giuggiu, scaleX: GIUGGIU_SCALE, scaleY: GIUGGIU_SCALE, angle: this.dir * 5, x: x + this.dir * 3, duration: 160, hold: 380, yoyo: true });
                 if (!this.emitting) return;
-                for (let i = 0; i < 8; i++) this.time.delayedCall(i * 60, () => this.emitting && this.spawnCloud(this.mouth.x, this.mouth.y, true));
+                for (let i = 0; i < PUFF_CLOUDS; i++) this.time.delayedCall(i * 45, () => this.emitting && this.spawnCloud(this.mouth.x, this.mouth.y, true));
             }
         });
     }
@@ -309,12 +378,12 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.puff();
         this.puffTimer = this.time.addEvent({ delay: PUFF_EVERY_MS, loop: true, callback: () => this.puff() });
         this.smokeTimer = this.time.addEvent({
-            delay: 200,
+            delay: TRICKLE_MS,
             loop: true,
             callback: () => {
                 if (!this.emitting) return;
                 this.spawnCloud(this.mouth.x, this.mouth.y, false); // the trickle between two puffs
-                if (Math.random() < 0.12) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
+                if (Math.random() < 0.2) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
                 if (this.targetChance > 0 && Math.random() < this.targetChance) this.spawnCloud(this.cat.x + Phaser.Math.Between(-18, 18), this.cat.y - 30 + Phaser.Math.Between(-12, 12), false, true);
             }
         });
@@ -332,7 +401,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.tweens.add({ targets: cloud, scale: Phaser.Math.FloatBetween(burst ? 2.4 : 1.6, burst ? 3.6 : 2.6), x: x + reach, y: toY, duration: life, ease: 'Sine.easeOut' });
         this.tweens.add({
             targets: cloud,
-            alpha: burst || local ? 0.95 : 0.8,
+            alpha: burst || local ? 0.95 : 0.9,
             duration: life / 2,
             yoyo: true,
             onComplete: () => {
@@ -368,41 +437,42 @@ export default class CatSmokeMinigame extends Phaser.Scene {
 
     // ---- phase 1: follow the cat ----
 
-    private otherSofa(from: number, farChance = 0.15): number {
-        if (from === 1) return Math.random() < 0.5 ? 0 : 2;
-        return Math.random() < farChance ? 2 - from : 1;
-    }
-
     private async phaseFollow(): Promise<void> {
         this.startSmoke();
         this.targetChance = 0.3;
         await this.wait(1200); // the first puffs fill the room before the cat moves
 
+        // the cat roams in short moves and picks a new way at every spot, hiding for a moment whenever it goes under a sofa or the table
         const start = this.time.now;
         while (this.time.now - start < FOLLOW_MS) {
             if (this.done) return;
-            await this.hop(this.otherSofa(this.current));
-            await this.wait(Phaser.Math.Between(200, 350));
+            const to = this.nextSpot();
+            await this.move(to);
+            if (SPOTS[to].under !== undefined) {
+                this.face('up');
+                await this.wait(Phaser.Math.Between(...HIDE_MS));
+            } else await this.wait(Phaser.Math.Between(...PAUSE_MS));
         }
 
-        // fake-out: it ducks half way under a sofa, comes back out and hops on
+        // fake-out: it ducks half way under another sofa, comes back out and walks on
         this.targetChance = 0.2;
-        await this.hop(this.otherSofa(this.current, 0));
-        await this.walkFront();
-        await this.slideUnder(FEET_UNDER + 18, 210);
+        const fake = SOFA_SPOT[Phaser.Math.RND.pick([0, 1, 2].filter((i) => i !== this.hideIndex && SOFA_SPOT[i] !== this.spot))];
+        await this.walkTo(this.approaches(fake));
+        const back = this.spot;
+        await this.move(fake, { part: 0.5 });
         await this.wait(100);
-        await this.popOut();
+        await this.move(back, { under: true });
         if (this.done) return;
 
         // the real hiding place; Giuggiu stops and the smoke thins out so a careful player can see it
         this.targetChance = 0;
         this.thinSmoke();
-        await this.hop(this.otherSofa(this.current, 0));
-        if (this.current !== this.hideIndex) await this.hop(this.hideIndex);
-        await this.wait(200);
-        await this.walkFront();
-        await this.wait(150);
-        await this.slideUnder(FEET_UNDER, 400);
+        const target = SOFA_SPOT[this.hideIndex];
+        await this.walkTo(this.approaches(target));
+        this.face('up');
+        await this.wait(500); // the smoke has thinned out by now (600 ms fade)
+        await this.move(target, { ms: FINAL_SLIDE_MS });
+        this.face('up');
         // the player may already pick the sofa the cat went under: keys count from here on, not only from the countdown
         // (root cause of the "wrong sofa" bug: a pick made before the countdown was thrown away and the round was lost)
         this.picking = true;
@@ -419,9 +489,10 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.selected = i;
         this.cursor.clear();
         if (i < 0) return;
-        const x = SOFA_X[i];
-        this.cursor.lineStyle(3, 0xffe27a).strokeRect(x - SOFA_W / 2 - 4, SOFA_Y - SOFA_H / 2 - 4, SOFA_W + 8, SOFA_H + 8);
-        this.cursor.fillStyle(0xffe27a).fillTriangle(x - 10, SOFA_Y - SOFA_H / 2 - 22, x + 10, SOFA_Y - SOFA_H / 2 - 22, x, SOFA_Y - SOFA_H / 2 - 9);
+        const { cx, cy } = SOFAS[i];
+        const { w, h } = this.sofaSize(i);
+        this.cursor.lineStyle(3, 0xffe27a).strokeRect(cx - w / 2 - 4, cy - h / 2 - 4, w + 8, h + 8);
+        this.cursor.fillStyle(0xffe27a).fillTriangle(cx - 10, cy - h / 2 - 22, cx + 10, cy - h / 2 - 22, cx, cy - h / 2 - 9);
     }
 
     private onKey(e: KeyboardEvent): void {
@@ -467,7 +538,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
     }
 
     private lift(i: number): Promise<void> {
-        return this.tween({ targets: this.sofas[i], y: SOFA_Y - 74, duration: 520, ease: 'Back.Out' });
+        return this.tween({ targets: this.sofas[i], y: SOFAS[i].cy - SOFAS[i].lift, duration: 520, ease: 'Back.Out' });
     }
 
     private async reveal(choice: number): Promise<void> {
@@ -478,14 +549,14 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         if (won) {
             this.cat.setDepth(DEPTH.cat);
             this.face('down');
-            await this.tween({ targets: this.cat, y: FEET_UNDER + 10, duration: 240 });
+            await this.tween({ targets: this.cat, y: SPOTS[SOFA_SPOT[this.hideIndex]].y + 12, duration: 240 });
             audio.sfx('meow');
             this.tweens.add({ targets: this.cat, scaleX: CAT_SCALE * 1.15, scaleY: CAT_SCALE * 1.15, duration: 160, yoyo: true, repeat: 1 });
             await this.wait(500);
         } else {
             // nothing under that sofa: dust on the bare floor, then the right sofa goes up too
             if (choice >= 0) {
-                const dust = this.add.graphics({ x: SOFA_X[choice], y: SOFA_Y + 14 }).setDepth(DEPTH.floor + 2);
+                const dust = this.add.graphics({ x: SOFAS[choice].cx, y: SOFAS[choice].cy + 14 }).setDepth(DEPTH.floor + 2);
                 dust.fillStyle(0x6e4a30).fillCircle(-18, 0, 6).fillCircle(4, 6, 8).fillCircle(24, -2, 5);
                 audio.sfx('miss');
             }
