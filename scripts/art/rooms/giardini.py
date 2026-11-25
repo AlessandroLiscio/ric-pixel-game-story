@@ -88,6 +88,7 @@ def build():
     m.point("door", 24, 14, 2, 2)
     m.point("liscio", 6, 9)
     m.point("dogwalker", 21, 11)
+    m.point("rosanna", 16, 10)  # Rosanna, the Erasmus-trip organiser (an extra), on the grass above the path
 
     # a few people on the grass
     for (n, x, y, face, per) in [(5, 4, 10, "up", 2600), (9, 13, 12, "right", 2900), (12, 14, 12, "left", 2400),

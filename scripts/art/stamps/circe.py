@@ -6,9 +6,13 @@ white cabinet, the navy sofa (it opens into a bed with a quilted cover) under th
 door with a standing lamp, a scooter and a coat rack, a long table with a red damask cloth, ghost chairs and white folding chairs.
 
 Wall stamps (4 tiles tall, `walls` layer, the map blocks their cells): `circe_wall_stairs` 6 wide, `circe_wall_shelf` 3, `circe_wall_door`
-2, `circe_wall_kitchen` 6, `circe_wall_sofa` 5. Reusable pieces for the night scene (`divano`): `circe_sofa_front`, `circe_sofa_front_throw`,
-`circe_sofa_back`, `circe_sofa_bed`, `circe_tv_unit`, `circe_wall_stairs`, `circe_rug`, `circe_coffee_table`. Every name starts with `circe_`."""
+2, `circe_wall_kitchen` 6 (and `circe_wall_kitchen_flip`, the same mirrored, with the fridge at the left), `circe_wall_sofa` 5. The
+dinner table comes in two turns: `circe_table` (4 x 2, east to west) and `circe_table_v` (3 x 4, north to south, as on the owner's floor
+plan). Reusable pieces for the night scene (`divano`): `circe_sofa_front`, `circe_sofa_front_throw`, `circe_sofa_back`, `circe_sofa_bed`,
+`circe_tv_unit`, `circe_wall_stairs`, `circe_rug`, `circe_coffee_table`. Every name starts with `circe_`."""
 import math
+
+from PIL import Image, ImageDraw
 
 from tilepaint import (LETTERS, Canvas, T, dark, hx, light, make_ramp, mix, rng)
 from tiles_objects import bottle
@@ -576,6 +580,16 @@ def wall_kitchen():
     return c
 
 
+def wall_kitchen_flip():
+    """The kitchen run mirrored, so the tall unit (the fridge) stands in the corner and the oven and the sink follow, as on the floor plan."""
+    c = wall_kitchen()
+    f = Canvas(c.w, c.h)
+    f.im = c.im.transpose(Image.FLIP_LEFT_RIGHT)
+    f.d = ImageDraw.Draw(f.im)
+    f.px = f.im.load()
+    return f
+
+
 # ---------------------------------------------------------------- the sofa wall
 
 SCRATCH = ["#1b2440", "#2a3556"]
@@ -915,6 +929,38 @@ def xmas_tree():
 
 # ---------------------------------------------------------------- the dining table and the chairs
 
+# the golden plates and cups of the dinner table, shared by the long table and the one turned north to south
+def _plate(c, cx, cy, tone="#efc04a", rx=10, ry=4, food=None):
+    c.ell(cx, cy + 1, rx + 1, ry + 1, "#8a5a18")
+    c.ell(cx, cy, rx, ry, tone)
+    c.ell(cx - 1, cy - 1, rx - 3, ry - 2, light(hx(tone), .3))
+    if food == "tort":
+        for (fx, fy) in ((-5, 0), (-2, -1), (1, 0), (4, -1), (-3, 1), (2, 1), (6, 0)):
+            c.set(cx + fx, cy + fy, "#e8c070")
+            c.set(cx + fx + 1, cy + fy, "#b8863a")
+    elif food == "ham":
+        for (fx, fy) in ((-6, 0), (-2, -1), (3, 0), (1, 1)):
+            c.rect(cx + fx, cy + fy, cx + fx + 3, cy + fy + 1, "#e8808c")
+        c.set(cx + 5, cy, "#6aa04a")
+    elif food == "salad":
+        for (fx, fy) in ((-5, 0), (-1, -1), (3, 0), (0, 1), (5, 1)):
+            c.set(cx + fx, cy + fy, "#5aa65a")
+            c.set(cx + fx + 1, cy + fy, "#e84a3a")
+    elif food == "bread":
+        for (fx, fy) in ((-5, 0), (-1, -1), (3, 0), (1, 1)):
+            c.rect(cx + fx, cy + fy, cx + fx + 2, cy + fy + 1, "#d8a040")
+
+
+def _cup(c, cx, cy):
+    c.rect(cx - 2, cy - 6, cx + 2, cy, "#d9a02a")
+    c.hline(cx - 2, cx + 2, cy - 6, "#f8d870")
+    c.vline(cx - 2, cy - 5, cy, "#f0c860")
+    c.vline(cx + 2, cy - 5, cy, "#a8741c")
+    c.hline(cx - 2, cx + 2, cy, "#8a5a18")
+    c.set(cx, cy - 8, "#c8c8d0")           # a fork in the cup
+    c.set(cx + 1, cy - 7, "#c8c8d0")
+
+
 def table():
     """4 x 2 tiles: the long table with the red damask cloth: golden plates of tortellini and ham, golden cups with forks, a candle,
     a teal napkin, the cloth hanging at the front."""
@@ -934,34 +980,8 @@ def table():
     c.hline(2, 125, 46, RED_C[0])
     c.hline(1, 126, 59, RED_C[0])
     # the table top is seen from above: items stand on it
-    def plate(cx, cy, tone="#efc04a", rx=10, ry=4, food=None):
-        c.ell(cx, cy + 1, rx + 1, ry + 1, "#8a5a18")
-        c.ell(cx, cy, rx, ry, tone)
-        c.ell(cx - 1, cy - 1, rx - 3, ry - 2, light(hx(tone), .3))
-        if food == "tort":
-            for (fx, fy) in ((-5, 0), (-2, -1), (1, 0), (4, -1), (-3, 1), (2, 1), (6, 0)):
-                c.set(cx + fx, cy + fy, "#e8c070")
-                c.set(cx + fx + 1, cy + fy, "#b8863a")
-        elif food == "ham":
-            for (fx, fy) in ((-6, 0), (-2, -1), (3, 0), (1, 1)):
-                c.rect(cx + fx, cy + fy, cx + fx + 3, cy + fy + 1, "#e8808c")
-            c.set(cx + 5, cy, "#6aa04a")
-        elif food == "salad":
-            for (fx, fy) in ((-5, 0), (-1, -1), (3, 0), (0, 1), (5, 1)):
-                c.set(cx + fx, cy + fy, "#5aa65a")
-                c.set(cx + fx + 1, cy + fy, "#e84a3a")
-        elif food == "bread":
-            for (fx, fy) in ((-5, 0), (-1, -1), (3, 0), (1, 1)):
-                c.rect(cx + fx, cy + fy, cx + fx + 2, cy + fy + 1, "#d8a040")
-
-    def cup(cx, cy):
-        c.rect(cx - 2, cy - 6, cx + 2, cy, "#d9a02a")
-        c.hline(cx - 2, cx + 2, cy - 6, "#f8d870")
-        c.vline(cx - 2, cy - 5, cy, "#f0c860")
-        c.vline(cx + 2, cy - 5, cy, "#a8741c")
-        c.hline(cx - 2, cx + 2, cy, "#8a5a18")
-        c.set(cx, cy - 8, "#c8c8d0")           # a fork in the cup
-        c.set(cx + 1, cy - 7, "#c8c8d0")
+    plate = lambda *a, **k: _plate(c, *a, **k)
+    cup = lambda *a, **k: _cup(c, *a, **k)
 
     plate(30, 22, food="tort")
     plate(66, 20, "#f4d878", 12, 5, "ham")
@@ -980,6 +1000,47 @@ def table():
     c.hline(58, 70, 36, "#5ac0c0")
     c.ell(92, 12, 6, 2.6, "#2a8a9a")
     c.ell(92, 11, 4, 1.6, "#6ac8d0")
+    c.outline()
+    return c
+
+
+def table_v():
+    """3 x 4 tiles: the same dinner table turned to run north to south, as the owner's floor plan has it (chairs on its two long sides):
+    the red damask cloth, golden plates, cups with forks, a candle, a teal napkin, the cloth hanging at the south end."""
+    c = Canvas(3 * T, 4 * T)
+    c.shadow(48, 125, 44, 2.6, 80)
+    damask(c, 2, 8, 93, 110, RED_C[2], RED_C[1], RED_C[3], 6)
+    c.rect(2, 8, 93, 9, RED_C[3])
+    c.hline(2, 93, 8, RED_C[4])
+    c.vline(2, 9, 110, RED_C[3])
+    c.vline(93, 9, 110, RED_C[1])
+    c.rect(1, 111, 94, 122, RED_C[1])                 # the front drop of the cloth
+    for x in range(1, 95):
+        c.vline(x, 111, 122 + (1 if x % 8 < 4 else 0), RED_C[1] if (x // 4) % 2 else RED_C[2])
+    for x in range(1, 95, 8):
+        c.vline(x, 113, 121, RED_C[0])
+    c.hline(1, 94, 111, RED_C[0])
+    c.hline(2, 93, 110, RED_C[0])
+    c.hline(1, 94, 123, RED_C[0])
+    plate = lambda *a, **k: _plate(c, *a, **k)
+    cup = lambda *a, **k: _cup(c, *a, **k)
+    plate(28, 26, food="tort")
+    plate(66, 42, "#f4d878", 12, 5, "ham")
+    plate(30, 68, "#efc04a", 10, 4, "salad")
+    plate(66, 86, "#efc04a", 9, 4, "bread")
+    plate(44, 100, "#efc04a", 9, 3.4, "tort")
+    for (cx, cy) in ((54, 20), (20, 46), (52, 62), (82, 66), (14, 90), (80, 104)):
+        cup(cx, cy)
+    c.rect(66, 18, 71, 22, "#e8e0d0")     # a candle in a glass, with its flame
+    c.rect(67, 16, 70, 18, "#f4e8c8")
+    c.set(68, 13, "#ffd870")
+    c.set(68, 14, "#ff9a3a")
+    c.set(69, 14, "#ff9a3a")
+    c.glow(68, 14, 8, "#ffd070", 90)
+    c.rect(36, 78, 48, 81, "#2f8a8a")     # a teal napkin and a turquoise bowl
+    c.hline(36, 48, 78, "#5ac0c0")
+    c.ell(78, 28, 6, 2.6, "#2a8a9a")
+    c.ell(78, 27, 4, 1.6, "#6ac8d0")
     c.outline()
     return c
 
@@ -1291,6 +1352,7 @@ def define(reg):
     reg.stamp("circe_wall_shelf", wall_shelf(), "walls")
     reg.stamp("circe_wall_door", wall_door(), "walls")
     reg.stamp("circe_wall_kitchen", wall_kitchen(), "walls")
+    reg.stamp("circe_wall_kitchen_flip", wall_kitchen_flip(), "walls")
     reg.stamp("circe_wall_sofa", wall_sofa(), "walls")
     reg.stamp("circe_entrance", entrance_gap(), "walls")
     reg.stamp("circe_sofa_front", sofa_front(), "objects", mask=["...", "###"])
@@ -1301,6 +1363,7 @@ def define(reg):
     reg.stamp("circe_tv_unit", tv_unit(), "objects", mask=["...", "###"])
     reg.stamp("circe_xmas_tree", xmas_tree(), "objects", mask=[".", "#"])
     reg.stamp("circe_table", table(), "objects", mask=["####", "####"])
+    reg.stamp("circe_table_v", table_v(), "objects", mask=["###", "###", "###", "###"])
     for kind in ("ghost", "white"):
         for face in "nsew":
             reg.stamp("circe_chair_%s_%s" % (kind, face), chair(kind, face), "objects")

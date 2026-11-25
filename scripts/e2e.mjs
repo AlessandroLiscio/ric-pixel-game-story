@@ -196,7 +196,7 @@ try {
         // a tile room takes door and friend positions from its map: read the resolved entry from the live scene
         const live = await page.evaluate(() => {
             const d = window.__ricGame.scene.getScene('world').def;
-            return { friend: d.friend, door: d.door };
+            return { friend: d.friend, friend2: d.friend2, door: d.door };
         });
         const def = { ...SCENES[i], ...live };
         const before = (await entered()).length;
@@ -233,6 +233,46 @@ try {
                 await test('skip'); // arrival lines
                 await sleep(150);
             }
+            // room objects: X on Giuggiu's pouf makes Ric doze there and get up again; at Circe's the TV has its lines and the lamp toggles
+            const ricAt = () => page.evaluate(() => { const r = window.__ricGame.scene.getScene('world').ric; return { x: r.x, y: r.y }; });
+            if (SCENES[i].id === 'giuggiu') {
+                await teleport(104, 336); // right of the pouf (tile 2,10)
+                await sleep(200);
+                await press('x');
+                await sleep(800);
+                check((await ricAt()).x < 100, 'X next to the pouf did not sit Ric on it');
+                let back = false;
+                for (let k = 0; k < 40 && !back; k++) {
+                    await sleep(250);
+                    const p = await ricAt();
+                    back = Math.abs(p.x - 104) < 2 && Math.abs(p.y - 336) < 2;
+                }
+                check(back, 'Ric did not get up from the pouf');
+                await sleep(300);
+                await closeDialogue(); // the pouf line after the doze
+                note('objects: the pouf doze runs and Ric gets up where he sat down');
+            }
+            if (SCENES[i].id === 'circe') {
+                const glowsOn = () => page.evaluate(() => window.__ricGame.scene.getScene('world').tw.glows.filter((g) => g.img.visible).length);
+                await teleport(368, 200); // below the TV (tiles 10-12, 4-5)
+                await sleep(200);
+                await press('x');
+                await sleep(1500); // the line types itself out
+                const tvLine = await page.evaluate(() => { const w = window.__ricGame.scene.getScene('world'); return w.dialog.isOpen ? w.dialog.body.text : ''; });
+                check(tvLine.includes('Vampire Diaries'), `X below the TV said "${tvLine}"`);
+                await closeDialogue();
+                await teleport(566, 200); // left of the floor lamp (tile 18, 3-5)
+                await sleep(200);
+                const before = await glowsOn();
+                await press('x');
+                await sleep(300);
+                const after = await glowsOn();
+                check(after !== before, `the lamp did not toggle (${before} lit glows before, ${after} after)`);
+                await press('x');
+                await sleep(300);
+                check((await glowsOn()) === before, 'a second X did not switch the lamp back');
+                note('objects: the Circe TV lines and the lamp toggle work');
+            }
             if (i === 1) {
                 // the first bin of the run holds the portal gun; P before the scene is done gets the "not yet" line
                 const bin = SCENES[i].bins[0];
@@ -257,12 +297,16 @@ try {
                 await closeDialogue();
                 note('bin: the first one gave the portal gun, a second one a joke, P before the minigame said the not-yet line');
             }
-            await teleport(def.friend.x - 22, def.friend.y);
+            // circe: talk to Giusy (friend2) first, then Ros; each plays only her own minigame, whatever the order
+            const talks = def.friend2 ? [def.friend2, def.friend] : [def.friend];
+            await teleport(talks[0].x - 22, talks[0].y);
             for (let n = 0; n < 600; n++) {
                 s = await state();
                 if (want.every((id) => s.party.includes(id))) break;
                 if (s.scene.startsWith('minigame-')) {
                     await playMinigame(s.scene.slice('minigame-'.length));
+                    talks.shift();
+                    if (talks.length) await teleport(talks[0].x - 22, talks[0].y);
                 } else {
                     await press('x');
                     await sleep(120);
@@ -299,7 +343,9 @@ try {
         s = await until((x) => (i === 5 ? x.scene === 'ending' : world(i + 1)(x)), `leaving scene ${i} (${SCENES[i].id})`, 15000);
         const went = (await entered()).slice(before);
         check(s.party.join() === party.join(), `scene ${i} ${SCENES[i].id}: party ${s.party}, wanted ${party}`);
-        check(went.join() === minigamesOf(SCENES[i]).join(), `scene ${i} ${SCENES[i].id}: minigames entered [${went}], wanted [${minigamesOf(SCENES[i])}]`);
+        // circe is talked to Giusy first, so her mash comes before Ros's d20
+        const wanted = SCENES[i].friend2 ? [...minigamesOf(SCENES[i])].reverse() : minigamesOf(SCENES[i]);
+        check(went.join() === wanted.join(), `scene ${i} ${SCENES[i].id}: minigames entered [${went}], wanted [${wanted}]`);
         note(`scene ${i} ${SCENES[i].id} (${real ? 'real keys' : 'teleport + skip'}): minigames [${went}], party ${s.party}`);
     }
 
@@ -346,18 +392,18 @@ try {
         sc.tweens.timeScale = 4; // the hops and the hiding play four times faster, the logic is the same
         sc.time.timeScale = 4;
     });
-    // hidden = under the sofa body (depth 5, feet at 272) and no tween moving it any more; read the sofa from the cat, not from the scene's own field
+    // hidden for good = the scene takes picks (it does only after the last slide) with the cat under the sofa body (depth 5) and no tween moving it; read the sofa from the cat, not from the scene's own field
     await page.waitForFunction(
         () => {
             const sc = window.__ricGame.scene.getScene('minigame-cat-smoke');
-            return sc.cat.depth === 5 && sc.cat.y <= 273 && sc.tweens.getTweensOf(sc.cat).length === 0;
+            return sc.picking === true && sc.cat.depth === 5 && sc.tweens.getTweensOf(sc.cat).length === 0;
         },
         null,
         { timeout: 60000, polling: 50 }
     );
     const sofaOfCat = await page.evaluate(() => {
-        const x = window.__ricGame.scene.getScene('minigame-cat-smoke').cat.x;
-        return x < 230 ? 0 : x < 410 ? 1 : 2;
+        const x = window.__ricGame.scene.getScene('minigame-cat-smoke').cat.x; // the sofas stand at x 46 (left), 320 (middle), 594 (right)
+        return x < 183 ? 0 : x < 457 ? 1 : 2;
     });
     await press(['ArrowLeft', 'ArrowUp', 'ArrowRight'][sofaOfCat]);
     await press('x');

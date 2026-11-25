@@ -15,8 +15,9 @@ const ID = 'rhythm';
 const PERFECT = 0.06; // seconds either side of the note
 const GOOD = 0.12;
 const EARLY = 0.26; // a press this close to a note, but outside GOOD, counts that note as missed (no double penalty)
-// Tuned with a scripted player on the 91-note chart (see docs/music.md): a perfect run reaches 100 only near the end of the song, a player who
-// hits about 7 notes in 10 still finishes with 50 or more, and a player who presses nothing loses after about 24 seconds.
+// Tuned with a scripted player on the old 91-note chart and checked by hand on the 77-note chart of the 36 s song (see docs/music.md): a
+// perfect run reaches 100 only near the end of the song, a player who hits about 7 notes in 10 still finishes with 50 or more, and a player
+// who presses nothing loses after about 24 seconds.
 const GAIN = { perfect: 0.7, good: 0.5, miss: -1.25 };
 const START_APPROVAL = 50;
 const FALL_SECONDS = 1.6; // time a note needs to fall from the top of the screen to the hit line
@@ -78,6 +79,7 @@ export default class RhythmMinigame extends Phaser.Scene {
     private clock = -10;
     private useWall = false;
     private endAt = 0;
+    private soloShown = false;
     private finished = false;
     private doneEmitted = false;
     private bound = false;
@@ -136,6 +138,7 @@ export default class RhythmMinigame extends Phaser.Scene {
         this.useWall = false;
         this.clock = -10;
         this.finished = false;
+        this.soloShown = false;
         this.doneEmitted = false;
         this.endAt = (rhythmTrack.steps * 60) / rhythmTrack.bpm / 4 - 0.2;
     }
@@ -432,7 +435,22 @@ export default class RhythmMinigame extends Phaser.Scene {
         for (const f of this.falling) {
             if (f.state === 'wait' && f.n.t < clock - GOOD) this.miss(f);
         }
+        // the bass solo is announced as its first notes start to fall
+        const soloAt = this.chart.find((n) => n.solo)?.t;
+        if (!this.soloShown && soloAt !== undefined && clock >= soloAt - FALL_SECONDS - 0.4) this.showSolo();
         if (clock >= this.endAt) this.finish(this.approval >= 50);
+    }
+
+    private showSolo(): void {
+        this.soloShown = true;
+        const txt = this.add
+            .text(GAME_WIDTH / 2, 64, LABELS.solo, { ...pixelStyle(32, '#ffe27a'), shadow: SHADOW, stroke: '#0a1040', strokeThickness: 4 })
+            .setOrigin(0.5)
+            .setDepth(20);
+        this.tweens.add({ targets: txt, scale: { from: 2.4, to: 1 }, duration: 260, ease: 'Back.Out' });
+        this.tweens.add({ targets: txt, alpha: 0.35, delay: 300, duration: 220, yoyo: true, repeat: 5 });
+        this.tweens.add({ targets: txt, alpha: 0, delay: 3200, duration: 400, onComplete: () => txt.destroy() });
+        this.cameras.main.shake(260, 0.006);
     }
 
     private updateVisuals(dt: number, clock: number): void {

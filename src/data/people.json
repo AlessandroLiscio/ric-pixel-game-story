@@ -197,5 +197,68 @@
     "sprite": "char-sconosciuta",
     "portrait": "portrait-sconosciuta",
     "portraitSource": "parametric"
+  },
+  {
+    "id": "alessandro",
+    "name": "Alessandro",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "short", "hairStyle": "side-part", "hairColor": "black", "outfitTop": "shirt-long:white", "outfitBottom": "trousers:charcoal/charcoal", "accessory": ["stubble"], "height": 1.05 },
+    "sprite": "char-alessandro",
+    "portrait": "portrait-alessandro",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "rosanna",
+    "name": "Rosanna",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-straight", "hairColor": "black", "outfitTop": "tee:charcoal", "outfitBottom": "trousers:khaki/charcoal", "accessory": ["sunglasses"], "height": 0.95 },
+    "sprite": "char-rosanna",
+    "portrait": "portrait-rosanna",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "roberto",
+    "name": "Roberto",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "short", "hairStyle": "curly", "hairColor": "chestnut", "outfitTop": "shirt-long:charcoal", "outfitBottom": "trousers:charcoal/charcoal", "accessory": ["stubble"], "height": 1.0 },
+    "sprite": "char-roberto",
+    "portrait": "portrait-roberto",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "armando",
+    "name": "Armando",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "short", "hairStyle": "curly", "hairColor": "brown", "outfitTop": "shirt:khaki", "outfitBottom": "trousers:charcoal/charcoal", "accessory": ["stubble"], "height": 1.0 },
+    "sprite": "char-armando",
+    "portrait": "portrait-armando",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "carolina",
+    "name": "Carolina",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-straight", "hairColor": "auburn", "outfitTop": "tee:charcoal", "outfitBottom": "trousers:charcoal/charcoal", "accessory": [], "height": 0.93 },
+    "sprite": "char-carolina",
+    "portrait": "portrait-carolina",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "papa",
+    "name": "Papà di Ric",
+    "role": "npc",
+    "traits": { "skin": "tan", "hair": "short", "hairStyle": "short", "hairColor": "black", "outfitTop": "shirt-long:navy", "outfitBottom": "trousers:charcoal/charcoal", "accessory": ["beard"], "height": 1.0 },
+    "sprite": "char-papa",
+    "portrait": "portrait-papa",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "mamma",
+    "name": "Mamma di Ric",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-wavy", "hairColor": "grey", "outfitTop": "shirt-long:khaki", "outfitBottom": "trousers:charcoal/charcoal", "accessory": ["glasses"], "height": 0.92 },
+    "sprite": "char-mamma",
+    "portrait": "portrait-mamma",
+    "portraitSource": "parametric"
   }
 ]

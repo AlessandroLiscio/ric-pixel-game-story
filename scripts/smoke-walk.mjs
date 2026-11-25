@@ -71,7 +71,7 @@ try {
         await page.waitForFunction((sid) => window.__ricGame.scene.getScene('world').def?.id === sid, SCENES[i].id, { timeout: 10000 });
         const live = await page.evaluate(() => {
             const d = window.__ricGame.scene.getScene('world').def;
-            return { friend: d.friend, door: d.door };
+            return { friend: d.friend, friend2: d.friend2, door: d.door };
         });
         const def = { ...SCENES[i], ...live };
         await skipArrival();
@@ -94,6 +94,8 @@ try {
                     await sleep(300);
                     await test(s.scene === `minigame-${LOSE}` ? 'lose' : 'win');
                     await until((x) => x.scene === 'world', 'back to world');
+                    // circe: Ros plays only her minigame, then Giusy (friend2) plays hers
+                    if (def.friend2 && seen.size === 1) await teleport(def.friend2.x - 22, def.friend2.y);
                 } else {
                     await page.keyboard.press('x');
                     await sleep(120);

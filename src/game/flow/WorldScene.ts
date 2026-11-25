@@ -16,6 +16,7 @@ import { ACTIVE_MINIGAME_KEY, getRun, type RunState } from './RunState';
 import type { BinDef, Facing, NpcDef, Rect, SceneDef } from './sceneTypes';
 import { divanoEggs, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
 import { MAPS, TILE, TileWorld, resolveMapScene, feetOf } from './tileMap';
+import { dozeOnPuf, objectNear, roomObjects, toggleLamp, type RoomObject } from './objects';
 
 const SPEED = 80; // px per second
 const RUN_FACTOR = 1.8; // holding Shift
@@ -56,10 +57,12 @@ export class WorldScene extends Phaser.Scene {
     private busy = true; // true while a dialogue, a minigame or a fade owns the player
     private doorOpen = false;
     private leaving = false;
+    private metFriend = false; // the scene's meet lines played (circe: only once, when Ros is the first one talked to)
     private shift!: Phaser.Input.Keyboard.Key;
     /** Sprites of the bins the flow draws itself (the others are part of the room map); Ric cannot walk into them. */
     private binSprites: Phaser.GameObjects.Image[] = [];
     private binHint!: Phaser.GameObjects.Text;
+    private objects: RoomObject[] = [];
     private menuClosedAt = -1000; // performance.now() when the Esc menu closed: ignores the key press that closed it
     private portalWalk = false; // Ric is walking into a portal: his walk animation is not reset to idle
 
@@ -74,6 +77,7 @@ export class WorldScene extends Phaser.Scene {
         this.facing = 'down';
         this.busy = true;
         this.doorOpen = false;
+        this.metFriend = false;
         this.leaving = false;
         this.doorHint = undefined;
         this.binSprites = [];
@@ -118,6 +122,7 @@ export class WorldScene extends Phaser.Scene {
         this.talkHint = this.add.text(0, 0, t('ui.talk'), { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 1).setDepth(900).setVisible(false);
         this.dialog = new DialogBox(this);
         this.spawnBins();
+        this.objects = roomObjects(def.id, this.tw);
         this.showKeyHints();
 
         const kb = this.input.keyboard!;
@@ -275,6 +280,7 @@ export class WorldScene extends Phaser.Scene {
         const npc = this.nearestTalkable();
         if (!npc) {
             if (this.nearestBin()) void this.checkBin();
+            else if (this.nearestObject()) void this.useObject(this.nearestObject()!);
             return;
         }
         this.busy = true;
@@ -286,7 +292,13 @@ export class WorldScene extends Phaser.Scene {
     private async talkToFriend(friend?: Npc): Promise<void> {
         const { def, run } = this;
         const L = (key: string) => lines(`scenes.${def.id}.${key}`);
-        await this.say(L('meet'));
+        // circe has two friends, each with her own minigame (friend: minigame, friend2: minigame2): talking to one plays only
+        // her part, in any order; the group joins once both parts are done
+        const games = minigamesOf(def);
+        const second = !!def.friend2 && friend?.def === def.friend2;
+        const mine = def.friend2 ? games.filter((_, i) => (i === 1) === second) : games;
+        if (!second && !this.metFriend) await this.say(L('meet'));
+        this.metFriend ||= !second;
 
         if (def.id === 'divano') {
             for (const egg of divanoEggs(run.results)) await this.say(lines(`easterEggs.${egg}`));
@@ -295,8 +307,9 @@ export class WorldScene extends Phaser.Scene {
             return;
         }
 
-        for (const [i, id] of minigamesOf(def).entries()) {
-            const n = i ? String(i + 1) : ''; // circe: minigameIntro2 / win2 / lose2 for the second one
+        for (const id of mine) {
+            if (id in run.results) continue; // this friend's part is already done
+            const n = games.indexOf(id) ? String(games.indexOf(id) + 1) : ''; // circe: minigameIntro2 / win2 / lose2 for the second one
             await this.say(L(`minigameIntro${n}`));
             const result = await this.runMinigame(id);
             run.results[id] = result.won;
@@ -304,6 +317,7 @@ export class WorldScene extends Phaser.Scene {
             audio.sfx(result.won ? 'win' : 'lose'); // the minigame already showed its own result panel; only the jingle stays
             await this.say(L(`${result.won ? 'win' : 'lose'}${n}`));
         }
+        if (!games.every((id) => id in run.results)) return; // the other friend's part is still to play
         const egg = eggAfterMinigame(def);
         if (egg) await this.say(lines(`easterEggs.${egg}`));
         await this.say(L('join'));
@@ -393,9 +407,31 @@ export class WorldScene extends Phaser.Scene {
     }
 
     private updateBinHint(): void {
-        const bin = !this.busy && !this.nearestTalkable() ? this.nearestBin() : undefined;
-        this.binHint.setVisible(!!bin);
+        const free = !this.busy && !this.nearestTalkable();
+        const bin = free ? this.nearestBin() : undefined;
+        const obj = free && !bin ? this.nearestObject() : undefined;
+        this.binHint.setVisible(!!bin || !!obj);
         if (bin) this.binHint.setPosition(bin.x, bin.y - 28);
+        else if (obj) this.binHint.setPosition(obj.x + obj.w / 2, obj.y - 4);
+    }
+
+    private nearestObject(): RoomObject | undefined {
+        return objectNear(this.objects, this.ric.x, this.ric.y);
+    }
+
+    /** X next to an object of the room: its lines, or its action (the lamp switches, Ric naps on the pouf). */
+    private async useObject(o: RoomObject): Promise<void> {
+        this.busy = true;
+        if (o.id === 'lamp' && this.tw) {
+            toggleLamp(this, this.tw, o);
+            audio.sfx('confirm');
+        } else if (o.id === 'puf') {
+            await dozeOnPuf(this, this.ric, o);
+        }
+        const said = lines(`objects.${this.def.id}.${o.id}`);
+        if (said.length && o.id !== 'lamp') await this.say(said);
+        if (o.id === 'cat') this.cameras.main.shake(150, 0.004); // Giuggiu's sneeze
+        this.busy = this.leaving;
     }
 
     /** X next to a bin. The first one Ric checks in a run holds Rick's portal gun; the others hold a joke. */

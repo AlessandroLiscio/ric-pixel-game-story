@@ -8,7 +8,12 @@ export interface ChartNote {
     lane: number;
     /** The lead note name, e.g. "E5". */
     pitch: string;
+    /** Part of the bass solo (see SOLO_MAX_OCTAVE). */
+    solo: boolean;
 }
+
+/** Lead notes in octave 3 or lower are the bass solo: there every eighth (step % 2 = 0) becomes a chart note, twice the usual density. */
+export const SOLO_MAX_OCTAVE = 3;
 
 /** Pitch class (0 = C) to lane: C | D E | F G | A B, so a rising melody moves to the right. Black keys join their lower neighbour's lane. */
 export const LANE_OF_PC = [0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3];
@@ -49,7 +54,8 @@ export function buildChartInfo(track: Track): Chart {
         const name = lead[s % lead.length];
         const pc = pitchClass(name);
         if (pc === null) continue;
-        if (BEATS_ONLY && s % 4 !== 0) {
+        const solo = Number(/(-?\d)$/.exec(name as string)?.[1]) <= SOLO_MAX_OCTAVE;
+        if (BEATS_ONLY && s % (solo ? 2 : 4) !== 0) {
             skippedOffbeat++;
             continue;
         }
@@ -61,7 +67,7 @@ export function buildChartInfo(track: Track): Chart {
             continue;
         }
         lastOnLane[lane] = t;
-        notes.push({ t, lane, pitch: name as string });
+        notes.push({ t, lane, pitch: name as string, solo });
     }
     return { notes, skippedOffbeat, dropped };
 }

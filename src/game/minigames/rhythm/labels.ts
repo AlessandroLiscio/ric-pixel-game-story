@@ -6,5 +6,6 @@ export const LABELS = {
     good: 'Bene',
     miss: 'Mancato',
     wrong: 'Tasto sbagliato',
-    go: 'Via!'
+    go: 'Via!',
+    solo: 'ASSOLO DI BASSO!'
 } as const;

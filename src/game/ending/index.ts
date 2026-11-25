@@ -39,8 +39,8 @@ type Phase = 'credits' | 'finale';
 
 /**
  * The `ending` scene: Casa Circe late at night, the real tile room of the divano scene (src/data/maps/divano.json) as the backdrop.
- * The sofa is opened into a bed, the TV plays a fish documentary, and the whole party is asleep or half asleep on the bed, the
- * chairs and the floor. The credits roll over a dark column on the right, then "Buon compleanno Ric!" and the way back to the title.
+ * The TV plays a fish documentary, and the whole party is asleep or half asleep on the sofa (seen from behind, facing the TV), the
+ * chairs of the dinner table and the floor. The credits roll over a dark column on the right, then "Buon compleanno Ric!" and the way back to the title.
  */
 export class EndingScene extends Phaser.Scene {
     private tv!: FishTv;
@@ -61,6 +61,7 @@ export class EndingScene extends Phaser.Scene {
     private dim!: Phaser.GameObjects.Rectangle;
     private ricStand: Phaser.GameObjects.Sprite | null = null;
     private keyX!: Phaser.Input.Keyboard.Key;
+    private keyShift!: Phaser.Input.Keyboard.Key;
     private canRestart = false;
     private leaving = false;
     private showEnd: (() => void) | null = null;
@@ -98,6 +99,7 @@ export class EndingScene extends Phaser.Scene {
         startTvFx(this);
 
         this.keyX = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+        this.keyShift = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         this.input.keyboard!.on('keydown', this.onKey, this);
         this.game.events.on('test-skip', this.onSkip, this); // emitted by test builds only
         this.events.once('shutdown', () => {
@@ -147,14 +149,14 @@ export class EndingScene extends Phaser.Scene {
         const slackline = results.slackline === true;
         const cat = results['cat-smoke'] === true;
 
-        // the bed: Liscio and Ric (Ros while Ric balances on the chair) lean on the backrest, Lara lies across the foot on the quilt
-        this.person('liscio', SPOTS.bedLeft);
-        this.person(slackline ? 'ros' : 'ric', SPOTS.bedRight);
-        this.lying('lara', SPOTS.bedFoot, Math.PI / 2);
+        // the sofa, seen from behind, facing the TV: Liscio, Ric (Ros while Ric balances on the chair) and Lara
+        this.person('liscio', SPOTS.sofaLeft, FACE.up);
+        this.person(slackline ? 'ros' : 'ric', SPOTS.sofaMid, FACE.up);
+        this.person('lara', SPOTS.sofaRight, FACE.up);
 
-        // the chairs: Giusy asleep on the left one, the right one is Ric's stage when he won the slackline
+        // the chairs of the dinner table: Giusy asleep on the left one (it faces east), the right one (it faces west) is Ric's stage when he won the slackline
         const { chairLeft, chairRight, chairRightStand } = SPOTS;
-        this.person('giusy', chairLeft);
+        this.person('giusy', chairLeft, FACE.right);
         this.sleepy(chairLeft.x + 8, chairLeft.y - 38);
         if (slackline) {
             // standing on one foot on the seat, wobbling
@@ -257,7 +259,7 @@ export class EndingScene extends Phaser.Scene {
     }
 
     private rollCredits(delta: number): void {
-        this.scroll += (this.maxScroll / CREDITS_MS) * delta * (this.keyX.isDown ? FAST : 1);
+        this.scroll += (this.maxScroll / CREDITS_MS) * delta * (this.keyX.isDown ? FAST : this.keyShift.isDown ? 2 : 1); // Shift: twice as fast
         for (const line of this.credits) {
             const y = Math.round(line.y - this.scroll);
             line.obj.setY(y);
