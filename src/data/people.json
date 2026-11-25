@@ -26,7 +26,7 @@
       "skin": "light",
       "hair": "medium",
       "hairStyle": "long-wavy",
-      "hairColor": "chestnut",
+      "hairColor": "brown",
       "outfitTop": "dress:white:buttons",
       "outfitBottom": "dress:white/white",
       "accessory": [],
@@ -47,7 +47,7 @@
       "hairColor": "brown",
       "outfitTop": "tee:grey:chain",
       "outfitBottom": "shorts:khaki/white",
-      "accessory": ["stubble", "necklace"],
+      "accessory": ["beard", "necklace"],
       "height": 1.0
     },
     "sprite": "char-liscio",
@@ -79,8 +79,8 @@
     "traits": {
       "skin": "tan",
       "hair": "short",
-      "hairStyle": "curly",
-      "hairColor": "black",
+      "hairStyle": "short",
+      "hairColor": "brown",
       "outfitTop": "tee:navy",
       "outfitBottom": "shorts:khaki/white",
       "accessory": ["beard", "sunglasses-on-head"],
@@ -115,7 +115,7 @@
     "traits": {
       "skin": "tan",
       "hair": "short",
-      "hairStyle": "short",
+      "hairStyle": "curly",
       "hairColor": "black",
       "outfitTop": "tee:white:logo",
       "outfitBottom": "shorts:navy/charcoal",
@@ -133,8 +133,8 @@
     "traits": {
       "skin": "olive",
       "hair": "long",
-      "hairStyle": "long-wavy",
-      "hairColor": "black",
+      "hairStyle": "long-straight",
+      "hairColor": "brown",
       "outfitTop": "dress:charcoal:floral",
       "outfitBottom": "dress:charcoal/white",
       "accessory": [],
@@ -238,7 +238,7 @@
     "id": "carolina",
     "name": "Carolina",
     "role": "npc",
-    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-straight", "hairColor": "auburn", "outfitTop": "tee:charcoal", "outfitBottom": "trousers:charcoal/charcoal", "accessory": [], "height": 0.93 },
+    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-wavy", "hairColor": "auburn", "outfitTop": "tee:charcoal", "outfitBottom": "trousers:charcoal/charcoal", "accessory": [], "height": 0.93 },
     "sprite": "char-carolina",
     "portrait": "portrait-carolina",
     "portraitSource": "parametric"
