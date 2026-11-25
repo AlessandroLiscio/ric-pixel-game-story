@@ -100,6 +100,7 @@ export class WorldScene extends Phaser.Scene {
             if (def.door?.draw) this.add.rectangle(def.door.x, def.door.y, def.door.w, def.door.h, 0x5a3a22).setOrigin(0).setStrokeStyle(2, 0xd9b27a).setDepth(0);
         }
         audio.playTrack(def.music);
+        audio.playAmbience(def.id);
 
         ensureCharAnims(this, 'ric');
         this.ric = this.add.sprite(def.spawn.x, def.spawn.y, 'char-ric', 1).setOrigin(0.5, 1);
@@ -112,7 +113,7 @@ export class WorldScene extends Phaser.Scene {
 
         this.spawnNpcs();
         if (map && this.tw) this.spawnCrowd();
-        startAmbient(this, { sceneId: def.id, lights: this.tw?.data.lights, spriteOf: (id) => this.npcs.find((n) => n.def.personId === id)?.sprite });
+        startAmbient(this, { sceneId: def.id, map: this.tw?.data, spriteOf: (id) => this.npcs.find((n) => n.def.personId === id)?.sprite });
         if (this.tw) {
             const cam = this.cameras.main;
             cam.setBounds(0, 0, this.tw.widthPx, this.tw.heightPx);
