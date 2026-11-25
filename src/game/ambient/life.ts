@@ -212,12 +212,8 @@ function cinema(scene: Phaser.Scene, map: MapData): void {
     const cone: Beam = { x0: s.x + s.w / 2, y0: map.height * TILE - 18, w0: 6, x1: pic.x + pic.w / 2, y1: pic.y + pic.h, w1: pic.w };
     beamImage(scene, 'amb-cone-cinema', cone, '#cfe4ff', 0.22, 0.1, Phaser.BlendModes.ADD, LIT);
     motes(scene, inBeam(cone), 0xdfeaff, LIT, 240, 5200);
-    const screen = scene.add.rectangle(pic.x, pic.y, pic.w, pic.h, 0xffffff).setOrigin(0).setBlendMode(Phaser.BlendModes.ADD).setDepth(GLOW);
-    const next = (): void => {
-        screen.setAlpha(Phaser.Math.FloatBetween(0, 0.16)).setFillStyle(Phaser.Utils.Array.GetRandom([0xcfe4ff, 0xffe8c0, 0xb0c8ff]));
-        scene.time.delayedCall(Phaser.Math.Between(80, 260), next);
-    };
-    next();
+    const screen = scene.add.image(pic.x, pic.y, dot(scene)).setOrigin(0).setDisplaySize(pic.w, pic.h).setBlendMode(Phaser.BlendModes.ADD).setDepth(GLOW);
+    jitter(scene, screen, 0, 0.16, [0xcfe4ff, 0xffe8c0, 0xb0c8ff]);
 }
 
 /** The flat: three slanted shafts of daylight through the window panes, onto the floor, with dust floating in them. */
@@ -300,19 +296,14 @@ function nightWindow(scene: Phaser.Scene, win: Rect): void {
     scene.add.circle(moon.x, moon.y, 3, 0xf4f0d8).setDepth(GLOW);
     const halo = glowAt(scene, moon.x, moon.y, 44, 44, GLOW).setTint(0xcfd8ff).setAlpha(0.45);
     scene.tweens.add({ targets: halo, alpha: 0.7, duration: 3200, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    scene.add
-        .particles(0, 0, dot(scene), {
-            emitZone: { type: 'random', source: inRect({ ...glass, y: glass.y + glass.h * 0.35, h: glass.h * 0.65 }) },
-            tint: 0xd6ff5a,
-            alpha: { values: [0, 1, 0.3, 1, 0], interpolation: 'linear' },
-            speedX: { min: -5, max: 5 },
-            speedY: { min: -5, max: 3 },
-            lifespan: 3600,
-            frequency: 650,
-            maxAliveParticles: 6,
-            blendMode: 'ADD'
-        })
-        .setDepth(GLOW + 1);
+    // fireflies
+    motes(scene, inRect({ ...glass, y: glass.y + glass.h * 0.35, h: glass.h * 0.65 }), 0xd6ff5a, GLOW + 1, 650, 3600, 1, {
+        alpha: { values: [0, 1, 0.3, 1, 0], interpolation: 'linear' },
+        speedX: { min: -5, max: 5 },
+        speedY: { min: -5, max: 3 },
+        lifespan: 3600,
+        maxAliveParticles: 6
+    });
 }
 
 /** Starts the living details of a room. Called once from startAmbient. */
