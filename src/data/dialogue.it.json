@@ -422,8 +422,20 @@
       { "speaker": "liscio", "text": "Digli che il cane può provarci.\nMa niente zampate sulla slack." }
     ],
     "extra-3": [
-      { "speaker": "narratore", "text": "Barista: «Un'altra birra per il bassista?\nOffre la casa. Bel concerto!»" },
-      { "speaker": "ric", "text": "Grazie! Ma prima suono.\nPoi brindiamo." }
+      { "speaker": "alessandro", "text": "Ragazzi! Cosa vi porto? Spritz al\nlimoncello o spritz al lambrusco?" },
+      { "speaker": "alessandro", "text": "Oppure un frangelico. Il frangelico\nnon delude mai." },
+      { "speaker": "ric", "text": "Dopo il concerto, Ale. Prima suono,\npoi brindiamo." }
+    ],
+    "extra-rosanna": [
+      { "speaker": "rosanna", "text": "Ric! Il mese prossimo parto per un\nprogetto Erasmus in Estonia." },
+      { "speaker": "rosanna", "text": "Tre giorni a costruire igloo con dei\nfinlandesi e un ukulele. Vieni?" },
+      { "speaker": "ric", "text": "Meh. Ci penso. (No.)" }
+    ],
+    "extra-genitori": [
+      { "speaker": "mamma", "text": "Ric! Passavamo di qui e siamo saliti\na salutare." },
+      { "speaker": "papa", "text": "Ros, lo sai? Ci siamo fatti un tiro di\ntrellone con lui. Che serata!" },
+      { "speaker": "mamma", "text": "Shh! Non dirlo a nessuno.\nSoprattutto alla nonna." },
+      { "speaker": "ric", "text": "(Questa non la racconto. Mai.)" }
     ]
   },
   "credits": {

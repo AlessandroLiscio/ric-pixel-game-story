@@ -12,7 +12,7 @@ python -m venv "$HOME\.venvs\chibis"
 & "$HOME\.venvs\chibis\Scripts\python.exe" scripts\art\chibis.py
 ```
 
-A clean run prints one `OK` line per stage (sheets, portraits, check) and `PASS characters: 11 sheets 96x128, 11 portraits 96x96`. On a failure it prints a `FAIL` line with the log path and the first error. The full log of each stage is written to `logs/chibis/run_<timestamp>/<stage>.log` (the last 10 runs are kept; the folder must stay out of git). `--verbose` also streams the log to the console and `--preview <path>` writes a contact sheet PNG of every sheet and portrait (a review aid, not committed).
+A clean run prints one `OK` line per stage (sheets, portraits, check) and `PASS characters: 18 sheets 96x128, 18 portraits 96x96`. On a failure it prints a `FAIL` line with the log path and the first error. The full log of each stage is written to `logs/chibis/run_<timestamp>/<stage>.log` (the last 10 runs are kept; the folder must stay out of git). `--verbose` also streams the log to the console and `--preview <path>` writes a contact sheet PNG of every sheet and portrait (a review aid, not committed).
 
 The outputs are `public/assets/characters/<id>.png` (sheet 96x128) and `public/assets/portraits/<id>.png` (portrait 96x96). The cat has a sheet and a portrait (`draw_cat` in `scripts/art/portraits.py`).
 
@@ -61,3 +61,5 @@ The painted portraits add, from the same photos: Ric's long face, thick brows, f
 - La sconosciuta: no photo, invented.
 
 Skin tones were matched only to the nearest of the three shared tones. A photo-based portrait variant needs each friend's consent and is out of scope here.
+
+Extras (comparse) added from the photos in `reference_photos/personaggi/comparse/` (viewed only): Alessandro, the waiter (white shirt, swept black hair, stubble, wide smile), barista of the Cortile Cafe; Rosanna (long black hair, tie-dye bucket hat, aviators, black tee under a brown fleece vest), at the Giardini; Ric's parents (dad: salt-and-pepper beard, dark hair, blazer over a navy shirt; mum: long ash-grey wavy hair, red headband, rectangular glasses, brown jacket), at Casa Circe; Roberto (top hat, red bow tie, light-brown hair, short beard), Armando (messy dark hair, goatee, flannel shirt over a black hoodie) and Carolina (copper hair, red lips, nose ring, black top) have a sprite and a portrait but no scene yet.

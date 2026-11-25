@@ -23,7 +23,8 @@ MAX_COLOURS = 64
 SKIN = {"light": (250, 220, 196), "medium": (238, 198, 164), "tan": (226, 176, 136), "olive": (206, 152, 110)}
 HAIR = {
     "black": (44, 34, 48), "darkbrown": (64, 42, 34), "brown": (96, 62, 42), "chestnut": (146, 96, 60),
-    "auburn": (170, 72, 58), "greybrown": (132, 122, 112),
+    "auburn": (170, 72, 58), "greybrown": (132, 122, 112), "copper": (200, 108, 56), "lightbrown": (140, 100, 66),
+    "ash": (156, 146, 136), "salt": (104, 98, 98),
 }
 EYES = {"brown": (92, 56, 36), "darkbrown": (60, 38, 30), "hazel": (120, 96, 52), "green": (84, 118, 70)}
 
@@ -60,6 +61,28 @@ FACES = {
     "sconosciuta": dict(skin="light", hair="chestnut", eyes="green", style="ponytail", fw=19, chin=71, cw=3.0,
                         brow=1.3, eye=(10.5, 6.8), mouth="smile", blush=True, acc=[],
                         top=("straps", (150, 214, 184), None)),
+    # extras (comparse), traits from the photos the owner added
+    "alessandro": dict(skin="light", hair="black", eyes="darkbrown", style="swept", fw=19.5, chin=74, cw=3.5, brow=1.9,
+                       eye=(10, 5.4), mouth="grin", squint=True, beard="stubble", acc=[], male=True,
+                       top=("collar", (244, 242, 236), None)),
+    "rosanna": dict(skin="light", hair="black", eyes="darkbrown", style="longstraight", fw=19.5, chin=72, cw=3.5,
+                    brow=1.5, eye=(10, 6.0), mouth="neutral", acc=["sunglasses", "buckethat"],
+                    top=("tee", (40, 36, 40), "vest")),
+    "roberto": dict(skin="light", hair="lightbrown", eyes="brown", style="swept", fw=19.5, chin=73, cw=3.5, brow=1.7,
+                    eye=(10, 5.0), mouth="smile", squint=True, beard="short", acc=["tophat", "bowtie"], male=True,
+                    top=("blazer", (30, 28, 34), (240, 236, 226))),
+    "armando": dict(skin="light", hair="darkbrown", eyes="darkbrown", style="swept", fw=19.5, chin=74, cw=3.0,
+                    brow=2.2, eye=(10, 5.2), mouth="neutral", beard="goatee", acc=[], male=True,
+                    top=("tee", (150, 118, 40), "plaid")),
+    "carolina": dict(skin="light", hair="copper", eyes="brown", style="longstraight", fw=19.5, chin=72, cw=3.5,
+                     brow=1.4, eye=(10, 6.2), mouth="smile", lip=(176, 28, 40), squint=True, acc=["nosering"],
+                     top=("vneck", (34, 32, 36), None)),
+    "papa": dict(skin="tan", hair="salt", eyes="darkbrown", style="quiff", fw=20, chin=74, cw=4.0, brow=2.0,
+                 eye=(9.5, 4.8), mouth="smile", squint=True, beard="full", acc=["lines"], male=True,
+                 top=("blazer", (70, 76, 92), (36, 44, 80))),
+    "mamma": dict(skin="light", hair="ash", eyes="brown", style="longwavy", fw=19.5, chin=72, cw=3.5, brow=1.4,
+                  eye=(10, 5.8), mouth="grin", squint=True, acc=["rectglasses", "headband", "lines"],
+                  top=("blazer", (104, 62, 40), (236, 228, 212))),
 }
 
 
@@ -232,8 +255,18 @@ def torso(cv, f, rng, skin):
         clothes = shoulders & ~poly([(41, 77), (48, 95), (55, 77)])
     elif kind == "collar":
         clothes = shoulders & ~poly([(43, 78), (48, 89), (53, 78)])
+    elif kind == "blazer":  # pat is the shirt colour under the jacket
+        shirt = shoulders & poly([(39, 74), (57, 74), (48, 97)])
+        cv.cel(shirt, pat, sd=(1.0, 1.0), hi=None, lw=2)
+        for s in (-1, 1):
+            cv.cel(poly([(48 + s * 7, 74), (48 + s * 1.5, 84), (48 + s * 9, 82)]) & shoulders, light(pat, 0.3), sd=(0.6, 0.6), hi=None, lw=2)
+        clothes = shoulders & ~poly([(40, 74), (56, 74), (48, 97)])
+        pat = None
     cv.cel(clothes, col, sd=(2.0, 1.6), sd2=(3.5, 0) if kind != "straps" else None, hi=(-1, -1), lw=3,
            grad=(80, 96, 0.45))
+    if kind == "blazer":
+        for s in (-1, 1):  # lapels
+            cv.fill(stroke([(48 + s * 8.5, 75), (48 + s * 2, 95)], 0.6), light(col, 0.6))
     pattern(cv, clothes, col, pat, rng)
     if kind == "straps":
         for s in (-1, 1):
@@ -254,6 +287,19 @@ def torso(cv, f, rng, skin):
 
 def pattern(cv, m, col, pat, rng):
     if not pat:
+        return
+    if pat == "plaid":  # a flannel shirt over a black hoodie: dark checks, the hood around the neck
+        for x0 in np.arange(12, 90, 7):
+            cv.fill(m & (np.abs(X - x0) < 1.3), shade(col, 1.2))
+        for y0 in np.arange(80, 98, 6):
+            cv.fill(m & (np.abs(Y - y0) < 1.1), shade(col, 1.4))
+        cv.fill(m & (np.abs(Y - 89) < 0.35), (230, 222, 200))
+        hood = ell(48, 80, 14, 6.5) & ~ell(48, 79, 9.5, 4.6)
+        cv.cel(hood, (30, 28, 32), sd=(1, 1), hi=None, lw=2)
+        return
+    if pat == "vest":  # a brown fleece vest open over the tee
+        vest = m & (np.abs(X - 48) > 9)
+        cv.cel(vest, (122, 84, 46), sd=(1.4, 1.2), hi=(-0.8, -0.8), lw=2)
         return
     if pat == "stripes":
         for x0 in np.arange(10, 90, 3.2):
@@ -352,7 +398,7 @@ def nose(cv, skin):
 
 def mouth(cv, f, skin):
     kind = f["mouth"]
-    lip = mix(shade(skin, 1.3), (180, 70, 80), 0.35)
+    lip = f.get("lip") or mix(shade(skin, 1.3), (180, 70, 80), 0.35)
     my = 66.0 if f["chin"] >= 73 else 65.0
     if kind == "grin":
         top = bez((41.0, my - 1.4), (48, my + 0.2), (55.0, my - 1.4))
@@ -393,6 +439,13 @@ def beard(cv, f, face, skin, rng):
         cv.fill(m, mix(skin, grey, 0.12))
         cv.fill(m & noise, mix(skin, grey, 0.24))
         cv.fill(stroke(bez((42.5, my - 2.6), (48, my - 3.8), (53.5, my - 2.6)), 1.2, "both"), mix(skin, grey, 0.26))
+        return
+    if kind == "goatee":  # a moustache and a pointed tuft on the chin
+        col = mix(HAIR[f["hair"]], (96, 70, 56), 0.2)
+        tuft = (face & ell(48, f["chin"] - 2.2, 4.6, 4.4) & (Y > my + 2.2)) | stroke(bez((46, my + 3), (48, f["chin"] + 1.2), (50, my + 3)), 2.0)
+        cv.cel(tuft, col, sd=(0.6, 0.8), hi=None, lw=2)
+        must = stroke(bez((42, my - 0.4), (45, my - 3.2), (48, my - 2.6)), 1.8, "end") | stroke(bez((54, my - 0.4), (51, my - 3.2), (48, my - 2.6)), 1.8, "end")
+        cv.cel(must, col, sd=(0, 0.8), hi=None, lw=2)
         return
     full = kind == "full"
     grow = ell(48, f["chin"] - (0.5 if full else 2.5), rx - (6 if full else 9.5), 6.5 if full else 3.2)
@@ -744,7 +797,52 @@ def draw(pid):
     for which in ("glasses", "sunglasses", "shades-on-head"):
         if which in f["acc"]:
             glasses(cv, f, which)
+    wearables(cv, f)
     return finish(cv.image())
+
+
+def wearables(cv, f):
+    """Hats, bow tie, headband, rectangular glasses and a nose ring for the extras."""
+    acc, fw = f["acc"], f["fw"]
+    if "rectglasses" in acc:
+        frame = (60, 36, 34)
+        for cx in (38, 58):
+            outer = poly([(cx - 6.4, 48), (cx + 6.4, 48), (cx + 6.0, 56), (cx - 6.0, 56)])
+            inner = poly([(cx - 5.3, 49), (cx + 5.3, 49), (cx + 4.9, 55), (cx - 4.9, 55)])
+            cv.fill(inner, (220, 232, 240), 0.15)
+            cv.fill(outer & ~inner, frame)
+        cv.fill(stroke(bez((44.4, 50), (48, 49), (51.6, 50)), 0.8), frame)
+        cv.fill(stroke([(31.6, 50), (48 - fw + 0.5, 49.5)], 0.8) | stroke([(64.4, 50), (48 + fw - 0.5, 49.5)], 0.8), frame)
+    if "nosering" in acc:
+        cv.fill(ell(50.6, 60.4, 1.0, 1.0) & ~ell(50.6, 60.0, 0.45, 0.45), (226, 226, 232))
+    if "headband" in acc:
+        band = stroke(bez((48 - fw - 2, 34), (48, 15), (48 + fw + 2, 34)), 1.6)
+        cv.cel(band & ell(48, 40, fw + 4, 27), (196, 40, 60), sd=(0, 0.6), hi=None, lw=2)
+    if "bowtie" in acc:
+        red = (184, 30, 40)
+        tie = poly([(41.5, 74), (48, 77.5), (41.5, 81)]) | poly([(54.5, 74), (48, 77.5), (54.5, 81)])
+        cv.cel(tie, red, sd=(0.6, 0.6), hi=(-0.4, -0.4), lw=2)
+        cv.cel(ell(48, 77.5, 1.6, 1.8), shade(red, 0.4), sd=(0.4, 0.4), hi=None, lw=2)
+    if "tophat" in acc:
+        black = (32, 30, 36)
+        brim = ell(49, 27, fw + 9, 3.6)
+        crown = poly([(36, 27), (35, 1), (63, 0), (62, 27)])
+        cv.cel(crown, black, sd=(1.6, 0), hi=(-1.2, 0), lw=3)
+        cv.fill(crown & (Y > 21) & (Y < 24.5), (60, 56, 66))  # band
+        cv.cel(brim, black, sd=(0, 1.0), hi=(0, -0.8), lw=3)
+    if "buckethat" in acc:
+        dome = ell(48, 30, fw + 5, 15) & (Y < 33)
+        brim = ell(48, 33, fw + 11, 6) & ~ell(48, 30, fw + 3, 3)
+        hat = dome | brim
+        # tie-dye: soft rainbow bands that wobble across the hat
+        band = np.sin((Y + 2.2 * np.sin(X * 0.35)) * 0.55)
+        cols = [(232, 120, 196), (170, 120, 226), (248, 168, 96), (120, 196, 220)]
+        cv.cel(hat, cols[0], sd=(1.6, 1.4), hi=None, lw=0)
+        for k, c in enumerate(cols[1:], 1):
+            cv.fill(hat & erode(hat, 3) & (np.abs(band - (k / 2 - 1)) < 0.22), c)
+        cv.fill(rim(hat, 1.6, 1.4), shade(cols[1], 0.6))
+        cv.fill(hat & ~erode(hat, 3), (90, 50, 90))
+        cv.fill(stroke(bez((48 + fw + 1, 36), (48 + fw + 3, 52), (48 + fw, 72)), 0.6), (196, 40, 60))  # chin cord
 
 
 CROP = (8, 7, 88, 87)  # the 80x80 window (96-px units) that fills the 96x96 frame: a 1.2x close-up

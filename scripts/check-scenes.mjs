@@ -21,7 +21,7 @@ const PRESETS = {
   tween: ['flicker', 'sway', 'pulse'],
   sprite: ['heads-bob']
 };
-const EXTRA_EGGS = ['extra-1', 'extra-2', 'extra-3'];
+const EXTRA_EGGS = ['extra-1', 'extra-2', 'extra-3', 'extra-rosanna']; // extra-genitori goes into circe once the rebuilt room is in
 
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);

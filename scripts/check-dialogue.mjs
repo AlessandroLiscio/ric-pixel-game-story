@@ -7,13 +7,13 @@ import { dirname, join } from 'node:path';
 const file = process.argv[2] ?? join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'dialogue.it.json');
 const MAX_LINES = 3;
 const MAX_CHARS = 44;
-const PERSONS = ['ric', 'lara', 'liscio', 'ros', 'lollino', 'fede', 'giuggiu', 'giusy', 'pinolo', 'gatto', 'sconosciuta', 'narratore'];
+const PERSONS = ['ric', 'lara', 'liscio', 'ros', 'lollino', 'fede', 'giuggiu', 'giusy', 'pinolo', 'gatto', 'sconosciuta', 'alessandro', 'rosanna', 'roberto', 'armando', 'carolina', 'papa', 'mamma', 'narratore'];
 const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile', 'divano'];
 const SCENE_KEYS = ['arrival', 'meet', 'minigameIntro', 'win', 'lose', 'join'];
 const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
 const SCENE_EXTRA_KEYS = { circe: ['minigameIntro2', 'win2', 'lose2'] };
 const MINIGAMES = ['simon', 'cat-smoke', 'slackline', 'd20', 'mash', 'rhythm'];
-const EGGS = ['pinolo-pinhole', 'gatto', 'ric-sedia', 'ros-trellone', 'giusy-divano', 'ric-sopra', 'fede', 'extra-1', 'extra-2', 'extra-3', 'portalFound', 'binEmpty', 'portalNotYet'];
+const EGGS = ['pinolo-pinhole', 'gatto', 'ric-sedia', 'ros-trellone', 'giusy-divano', 'ric-sopra', 'fede', 'extra-1', 'extra-2', 'extra-3', 'extra-rosanna', 'extra-genitori', 'portalFound', 'binEmpty', 'portalNotYet'];
 const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look'];
 const MENU_KEYS = ['title', 'diary', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 

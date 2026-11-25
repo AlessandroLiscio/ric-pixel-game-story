@@ -45,7 +45,8 @@
     "walk": [],
     "friend": { "personId": "liscio", "facing": "right", "at": "liscio" },
     "extras": [
-      { "personId": "sconosciuta", "facing": "left", "egg": "extra-2", "tint": "#ffd08a", "at": "dogwalker" }
+      { "personId": "sconosciuta", "facing": "left", "egg": "extra-2", "tint": "#ffd08a", "at": "dogwalker" },
+      { "personId": "rosanna", "facing": "down", "egg": "extra-rosanna", "at": "rosanna" }
     ],
     "minigame": "slackline",
     "exit": "edge",
@@ -80,7 +81,7 @@
     "walk": [],
     "friend": { "personId": "lara", "facing": "up", "at": "lara" },
     "extras": [
-      { "personId": "sconosciuta", "facing": "down", "egg": "extra-3", "at": "barista" }
+      { "personId": "alessandro", "facing": "down", "egg": "extra-3", "at": "barista" }
     ],
     "minigame": "rhythm",
     "bins": [{ "x": 48, "y": 380 }],
