@@ -24,65 +24,67 @@ SKIN = {"light": (250, 220, 196), "medium": (238, 198, 164), "tan": (226, 176, 1
 HAIR = {
     "black": (44, 34, 48), "darkbrown": (64, 42, 34), "brown": (96, 62, 42), "chestnut": (146, 96, 60),
     "auburn": (170, 72, 58), "greybrown": (132, 122, 112), "copper": (200, 108, 56), "lightbrown": (140, 100, 66),
-    "ash": (156, 146, 136), "salt": (104, 98, 98),
+    "ash": (156, 146, 136), "salt": (104, 98, 98), "mahogany": (92, 40, 42), "wavybrown": (84, 52, 38),
+    "inkbrown": (52, 40, 40), "pinbrown": (122, 104, 90), "silverbrown": (148, 132, 120), "ginger": (208, 118, 62),
 }
-EYES = {"brown": (92, 56, 36), "darkbrown": (60, 38, 30), "hazel": (120, 96, 52), "green": (84, 118, 70)}
+EYES = {"brown": (92, 56, 36), "darkbrown": (60, 38, 30), "hazel": (120, 96, 52), "green": (84, 118, 70),
+        "hazelgreen": (112, 116, 66)}
 
 # Per-person features. fw = half face width, chin = chin y, cw = chin half width, brow = stroke width,
 # eye = (width, height), mouth = grin | smile | soft | neutral, squint = smiling lower lids.
 FACES = {
-    "ric": dict(skin="tan", hair="darkbrown", eyes="darkbrown", style="bun", fw=19.5, chin=74, cw=3.5, brow=2.2,
-                eye=(10, 5.2), mouth="soft", beard="full", acc=["sunglasses"], male=True,
+    "ric": dict(skin="tan", hair="darkbrown", eyes="darkbrown", style="bun", fw=18.8, chin=75, cw=3.5, brow=2.4,
+                eye=(10, 5.2), mouth="soft", beard="full", acc=["sunglasses"], male=True, messy=True,
                 top=("shirt", (128, 36, 52), "hawaii")),
-    "lara": dict(skin="light", hair="chestnut", eyes="brown", style="longwavy", fw=19.5, chin=71, cw=3.0, brow=1.3,
-                 eye=(10, 6.6), mouth="grin", squint=True, blush=True, acc=["necklace"],
-                 top=("straps", (246, 243, 236), "buttons")),
-    "liscio": dict(skin="tan", hair="darkbrown", eyes="brown", style="swept", fw=20, chin=73, cw=3.5, brow=1.9,
-                   eye=(10, 5.4), mouth="grin", squint=True, beard="stubble", acc=["chain"], male=True,
+    "lara": dict(skin="tan", hair="wavybrown", eyes="darkbrown", style="longwavy", fw=19.5, chin=72, cw=3.0, brow=2.6,
+                 eye=(10, 6.0), mouth="smile", lip=(196, 110, 108), acc=["beadearrings", "mole"],
+                 ombre=(178, 118, 72), top=("straps", (246, 243, 236), "buttons")),
+    "liscio": dict(skin="tan", hair="darkbrown", eyes="brown", style="swept", fw=19.2, chin=75, cw=3.5, brow=2.5,
+                   eye=(10, 5.0), mouth="smile", beard="short", acc=["chain", "hoop"], male=True,
                    top=("tee", (168, 172, 180), None)),
-    "ros": dict(skin="light", hair="auburn", eyes="hazel", style="bob", fw=19.5, chin=71, cw=3.0, brow=1.3,
-                eye=(10.5, 6.8), mouth="neutral", blush=True, acc=["earrings"],
+    "ros": dict(skin="light", hair="auburn", eyes="hazel", style="bob", fw=19.5, chin=71, cw=3.0, brow=1.5,
+                eye=(10.5, 6.8), mouth="soft", blush=True, acc=["bighoops", "goldchain"],
                 top=("straps", (52, 44, 56), "ditsy")),
-    "lollino": dict(skin="tan", hair="brown", eyes="brown", style="curls", fw=20.5, chin=73, cw=4.0, brow=2.0,
-                    eye=(10, 5.4), mouth="grin", squint=True, beard="short", acc=["shades-on-head"], male=True,
-                    top=("tee", (40, 48, 82), None)),
+    "lollino": dict(skin="medium", hair="darkbrown", eyes="hazelgreen", style="tousle", fw=19.8, chin=74, cw=4.0,
+                    brow=2.5, eye=(10, 5.6), mouth="grin", squint=True, beard="short", acc=["shades-on-head"],
+                    male=True, vol=1.15, fringe=True, top=("tee", (40, 48, 82), None)),
     "fede": dict(skin="medium", hair="darkbrown", eyes="darkbrown", style="longstraight", fw=19.5, chin=71, cw=3.0,
                  brow=1.4, eye=(10, 6.4), mouth="grin", squint=True, blush=True, acc=[],
                  top=("straps", (226, 196, 70), "ditsy-light")),
-    "giuggiu": dict(skin="medium", hair="black", eyes="darkbrown", style="quiff", fw=21, chin=74, cw=5.0, brow=2.1,
-                    eye=(9.5, 5.2), mouth="smile", beard="short", acc=[], male=True,
+    "giuggiu": dict(skin="tan", hair="black", eyes="darkbrown", style="tousle", fw=20.5, chin=75, cw=5.0, brow=2.6,
+                    eye=(9.5, 5.4), mouth="smile", beard="short", acc=[], male=True, vol=0.6, bumps=True, drop=8,
                     top=("tee", (244, 244, 240), "logo")),
-    "giusy": dict(skin="olive", hair="black", eyes="darkbrown", style="longblack", fw=19, chin=71, cw=2.6, brow=1.6,
-                  eye=(10.5, 6.6), mouth="soft", acc=["earrings"], lashes=True,
+    "giusy": dict(skin="tan", hair="mahogany", eyes="darkbrown", style="longstraight", fw=19, chin=71, cw=2.6, brow=1.6,
+                  eye=(10.5, 6.4), mouth="grin", squint=True, acc=["chain"], lashes=True, part=41,
                   top=("vneck", (40, 30, 44), "floral")),
-    "pinolo": dict(skin="light", hair="greybrown", eyes="brown", style="sidepart", fw=20.5, chin=74, cw=4.5, brow=1.8,
-                   eye=(9, 5.0), mouth="smile", acc=["glasses", "lines"], male=True,
-                   top=("collar", (176, 204, 232), "stripes")),
+    "pinolo": dict(skin="light", hair="pinbrown", eyes="brown", style="sidepart", fw=21.5, chin=74, cw=5.0, brow=2.0,
+                   eye=(9, 5.0), mouth="smile", acc=["glasses", "lines"], male=True, gframe=(38, 30, 32), gthick=1.6,
+                   browcol=(86, 66, 56), top=("collar", (176, 204, 232), "stripes")),
     "sconosciuta": dict(skin="light", hair="chestnut", eyes="green", style="ponytail", fw=19, chin=71, cw=3.0,
                         brow=1.3, eye=(10.5, 6.8), mouth="smile", blush=True, acc=[],
                         top=("straps", (150, 214, 184), None)),
     # extras (comparse), traits from the photos the owner added
-    "alessandro": dict(skin="light", hair="black", eyes="darkbrown", style="swept", fw=19.5, chin=74, cw=3.5, brow=1.9,
-                       eye=(10, 5.4), mouth="grin", squint=True, beard="stubble", acc=[], male=True,
-                       top=("collar", (244, 242, 236), None)),
-    "rosanna": dict(skin="light", hair="black", eyes="darkbrown", style="longstraight", fw=19.5, chin=72, cw=3.5,
-                    brow=1.5, eye=(10, 6.0), mouth="neutral", acc=["sunglasses", "buckethat"],
+    "alessandro": dict(skin="light", hair="black", eyes="darkbrown", style="tousle", fw=18.8, chin=75, cw=3.5, brow=1.7,
+                       eye=(10, 5.4), mouth="grin", squint=True, beard="stubble", acc=[], male=True, vol=0.75,
+                       drop=11, top=("collar", (244, 242, 236), None)),
+    "rosanna": dict(skin="light", hair="darkbrown", eyes="darkbrown", style="longstraight", fw=19.5, chin=73, cw=3.5,
+                    brow=1.6, eye=(10, 6.0), mouth="neutral", acc=["aviator", "buckethat"],
                     top=("tee", (40, 36, 40), "vest")),
-    "roberto": dict(skin="light", hair="lightbrown", eyes="brown", style="swept", fw=19.5, chin=73, cw=3.5, brow=1.7,
-                    eye=(10, 5.0), mouth="smile", squint=True, beard="short", acc=["tophat", "bowtie"], male=True,
-                    top=("blazer", (30, 28, 34), (240, 236, 226))),
-    "armando": dict(skin="light", hair="darkbrown", eyes="darkbrown", style="swept", fw=19.5, chin=74, cw=3.0,
-                    brow=2.2, eye=(10, 5.2), mouth="neutral", beard="goatee", acc=[], male=True,
-                    top=("tee", (150, 118, 40), "plaid")),
-    "carolina": dict(skin="light", hair="copper", eyes="brown", style="longstraight", fw=19.5, chin=72, cw=3.5,
-                     brow=1.4, eye=(10, 6.2), mouth="smile", lip=(176, 28, 40), squint=True, acc=["nosering"],
-                     top=("vneck", (34, 32, 36), None)),
-    "papa": dict(skin="tan", hair="salt", eyes="darkbrown", style="quiff", fw=20, chin=74, cw=4.0, brow=2.0,
-                 eye=(9.5, 4.8), mouth="smile", squint=True, beard="full", acc=["lines"], male=True,
-                 top=("blazer", (70, 76, 92), (36, 44, 80))),
-    "mamma": dict(skin="light", hair="ash", eyes="brown", style="longwavy", fw=19.5, chin=72, cw=3.5, brow=1.4,
-                  eye=(10, 5.8), mouth="grin", squint=True, acc=["rectglasses", "headband", "lines"],
-                  top=("blazer", (104, 62, 40), (236, 228, 212))),
+    "roberto": dict(skin="light", hair="brown", eyes="hazel", style="swept", fw=18.8, chin=75, cw=3.5, brow=1.7,
+                    eye=(10, 5.0), mouth="smile", squint=True, beard="short", acc=["tophat", "bowtie", "sidecurls"],
+                    male=True, top=("blazer", (30, 28, 34), (240, 236, 226))),
+    "armando": dict(skin="light", hair="darkbrown", eyes="darkbrown", style="tousle", fw=18.8, chin=75, cw=3.0,
+                    brow=2.5, eye=(10, 5.0), mouth="neutral", beard="goatee", acc=[], male=True, vol=1.3,
+                    drop=12, top=("tee", (150, 118, 40), "plaid")),
+    "carolina": dict(skin="light", hair="ginger", eyes="brown", style="longwavy", fw=19.5, chin=72, cw=3.5,
+                     brow=1.5, eye=(10, 6.2), mouth="smile", lip=(150, 20, 38), squint=True, acc=["nosering"],
+                     part=53, browcol=(132, 76, 44), top=("vneck", (34, 32, 36), None)),
+    "papa": dict(skin="tan", hair="inkbrown", eyes="darkbrown", style="quiff", fw=20, chin=74, cw=4.0, brow=2.7,
+                 eye=(9.5, 4.8), mouth="smile", squint=True, beard="full", acc=["lines", "browlines"], male=True,
+                 bcol=(112, 104, 104), top=("blazer", (70, 76, 92), (36, 44, 80))),
+    "mamma": dict(skin="light", hair="silverbrown", eyes="brown", style="longwavy", fw=19.5, chin=72, cw=3.5, brow=1.5,
+                  eye=(10, 5.8), mouth="grin", squint=True, acc=["rectglasses", "headband", "lines", "browlines"],
+                  browcol=(96, 72, 62), top=("blazer", (104, 62, 40), (236, 228, 212))),
 }
 
 
@@ -379,7 +381,7 @@ def eye(cv, f, cx, side, skin):
 
 def brow(cv, f, cx, side):
     hc = HAIR[f["hair"]]
-    col = ink(hc) if f["hair"] != "greybrown" else shade(hc, 1.4)
+    col = f.get("browcol") or (ink(hc) if f["hair"] != "greybrown" else shade(hc, 1.4))
     cy = 52 - f["eye"][1] / 2 - 3.4
     inner, outer = cx - side * 5.2, cx + side * 5.6
     pts = bez((inner, cy + 0.6), (cx - side * 0.5, cy - 1.4), (outer, cy + 0.6))
@@ -441,7 +443,7 @@ def beard(cv, f, face, skin, rng):
         cv.fill(stroke(bez((42.5, my - 2.6), (48, my - 3.8), (53.5, my - 2.6)), 1.2, "both"), mix(skin, grey, 0.26))
         return
     if kind == "goatee":  # a moustache and a pointed tuft on the chin
-        col = mix(HAIR[f["hair"]], (96, 70, 56), 0.2)
+        col = f.get("bcol") or mix(HAIR[f["hair"]], (96, 70, 56), 0.2)
         tuft = (face & ell(48, f["chin"] - 2.2, 4.6, 4.4) & (Y > my + 2.2)) | stroke(bez((46, my + 3), (48, f["chin"] + 1.2), (50, my + 3)), 2.0)
         cv.cel(tuft, col, sd=(0.6, 0.8), hi=None, lw=2)
         must = stroke(bez((42, my - 0.4), (45, my - 3.2), (48, my - 2.6)), 1.8, "end") | stroke(bez((54, my - 0.4), (51, my - 3.2), (48, my - 2.6)), 1.8, "end")
@@ -452,7 +454,7 @@ def beard(cv, f, face, skin, rng):
     top = np.array([[0.0]]) + np.vectorize(lambda x: top_at(x, rx, full))(X[0])[None, :]
     hole = ell(48, my + 1.0, 3.0, 1.2) if f["mouth"] != "grin" else ell(48, my + 1.8, 7.2, 4.4)
     m = ((face | grow) & (Y > top)) & ~hole
-    col = mix(hc, (96, 70, 56), 0.25) if full else mix(mix(hc, (96, 70, 56), 0.3), skin, 0.12)
+    col = f.get("bcol") or (mix(hc, (96, 70, 56), 0.25) if full else mix(mix(hc, (96, 70, 56), 0.3), skin, 0.12))
     cv.cel(m, col, sd=(1.6, 1.6), hi=(-0.8, -1.0), lw=3, grad=(52, f["chin"] + 6, 0.5))
     # cheek edge fades into the skin, then a few hair strokes for texture
     edge = m & ~sh(m, 0, -1.2) & ~erode(m, 6)
@@ -499,6 +501,12 @@ def shine(cv, m, col, y0):
         cv.fill(stroke(pts, 0.9, "both") & inner, light(col, 0.9 if k % 2 == 0 else 0.55))
 
 
+def ombre(cv, m, col, y0):
+    """Sun-bleached ends: blend the lower hair towards col."""
+    t = (np.clip((Y - y0) / 30, 0, 1) * 0.8)[m][:, None]
+    cv.rgb[m] = cv.rgb[m] * (1 - t) + np.array(col) * t
+
+
 def locks(roots, tip, ctrl, w):
     """Union of tapered locks from each root towards tip(root) through ctrl(root)."""
     m = np.zeros((N, N), bool)
@@ -531,6 +539,10 @@ def hair(f, rng):
         for x0 in (33, 41, 55, 63):
             paths.append(bez((x0, 33 + abs(x0 - 48) * 0.25), ((x0 + 50) / 2, 26), (50, 20)))
         paths += [bez((45, 16), (51, 11), (57, 15))]
+        if f.get("messy"):  # loose tufts round the knot and a few wisps at the temples
+            for cx, cy, r in ((41.5, 13.5, 2.6), (60.5, 12.5, 2.4), (58.5, 18.5, 2.2), (43, 19.5, 2.0)):
+                front |= ell(cx, cy, r, r * 0.85)
+            front |= stroke(bez((32, 33), (29.5, 40), (31.5, 50)), 1.4, "end") | stroke(bez((63, 33), (66, 40), (64.5, 50)), 1.4, "end")
         front |= stroke(bez((31, 31), (28.5, 38), (30, 46)), 1.3, "end") | stroke(bez((64, 30), (68, 36), (67, 44)), 1.2, "end")
     elif st == "swept":
         c = ell(48, 42, fw + 2.5, 26)
@@ -567,6 +579,27 @@ def hair(f, rng):
         front |= c & (np.abs(X - 48) > fw - 2.0) & (Y < 50)
         for x0 in (38, 44, 50, 56):
             paths.append(bez((x0, 32), (x0 - 1, 24), (x0 + 4, 18)))
+    elif st == "tousle":  # a tousled mass swept up and back; vol = height, drop = how far the temples come down
+        vol = f.get("vol", 1.0)
+        top = 15.0 - 5.0 * vol
+        c = ell(48, 42, fw + 3.0, 42 - top)
+        hl = 29.5 + 2.5 * np.cos((X - 48) * 0.5) + f.get("drop", 12) * np.clip(np.abs(X - 48) / fw, 0, 1) ** 2.0
+        front = c & hairline(hl)
+        front |= c & (np.abs(X - 48) > fw - 1.8) & (Y < 46)
+        if f.get("bumps"):  # short curls along the crown
+            for x0 in np.arange(33, 64, 4.2):
+                yy = 42 - (42 - top) * math.sqrt(max(0.0, 1 - ((x0 - 48) / (fw + 3.0)) ** 2))
+                front |= ell(x0 + rng.uniform(-0.6, 0.6), yy + 2.0, 3.4, 3.0)
+        else:  # wavy lobes, uneven in height, so the crown reads as loose hair and not as spikes
+            for x0 in np.arange(31, 66, 5.0):
+                yy = 42 - (42 - top) * math.sqrt(max(0.0, 1 - ((x0 - 48) / (fw + 3.0)) ** 2))
+                front |= ell(x0 + rng.uniform(-0.8, 0.8), yy + rng.uniform(0.6, 2.4), rng.uniform(4.4, 5.6), rng.uniform(3.6, 4.8))
+        if f.get("fringe"):
+            front |= stroke(bez((50, 19), (40, 24), (35.5, 36)), 4.2, "end")
+        front |= stroke(bez((30.5, 33), (27.5, 40), (29.5, 47)), 2.2, "end") | \
+            stroke(bez((65.5, 33), (68.5, 40), (66.5, 47)), 2.2, "end")
+        for x0 in (34, 40, 46, 52, 58, 62):
+            paths.append(bez((x0, 30 + abs(x0 - 48) * 0.2), (x0 + (x0 - 48) * 0.1, 22), (x0 + 3, top + 4)))
     elif st == "sidepart":
         c = cap(fw, 20.5, 0.8)
         # the fringe sweeps from the part down towards the right temple, the left temple recedes a little
@@ -586,7 +619,7 @@ def hair(f, rng):
             paths.append(bez((38, y0), (33, y0 + 2), (29, y0 + 10)))
     elif st in ("longwavy", "longblack"):
         big = st == "longblack"
-        px = 44 if not big else 53
+        px = f.get("part", 44 if not big else 53)
         sp = 8.5 if big else 6
         wave = 1.4 if big else 1.1
         ys = np.linspace(44, 97, 30)
@@ -607,8 +640,9 @@ def hair(f, rng):
             paths.append(bez((px, 18), ((px + tx) / 2, 20), (tx, 31 + abs(tx - 48) * 0.1)))
     elif st == "longstraight":
         back = poly([(48 - fw - 5, 44), (48 - fw - 6.5, 97), (48 + fw + 6.5, 97), (48 + fw + 5, 44)]) | ell(48, 42, fw + 5, 27)
+        px = f.get("part", 48)
         c = cap(fw, 17, 3.0)
-        front = c & hairline(26.5 + 1.7 * np.abs(X - 48) ** 0.7)
+        front = c & hairline(26.5 + 1.7 * np.abs(X - px) ** 0.7)
         front |= curtain(-1, fw, 30, 96, 4.5, 0.0, inner=2.2, spread=0.12)
         front |= curtain(1, fw, 30, 96, 4.5, 0.0, inner=2.2, spread=0.12)
         front |= c & (np.abs(X - 48) > fw - 3) & (Y < 50)
@@ -617,8 +651,8 @@ def hair(f, rng):
                 x0 = 48 + s * (fw + 0.8 + k * 1.8)
                 paths.append([(x0 - s * 0.8, 36), (x0, 62), (x0 + s * 0.6, 96)])
             for k in range(3):
-                paths.append(bez((48, 19), (48 + s * (8 + k * 2), 21), (48 + s * (18 + k * 0.5), 31 + k)))
-        extras.append(("part", stroke([(48, 17.5), (48, 23)], 0.6)))
+                paths.append(bez((px, 19), (px + s * (8 + k * 2), 21), (48 + s * (18 + k * 0.5), 31 + k)))
+        extras.append(("part", stroke([(px, 17.5), (px, 23)], 0.6)))
     elif st == "bob":
         back = ell(48, 47, fw + 6.5, 26) & (Y < 71)
         c = cap(fw, 16, 4.0)
@@ -652,15 +686,26 @@ def hair(f, rng):
 
 def glasses(cv, f, which):
     if which == "glasses":
-        frame = (70, 44, 34)
+        frame = f.get("gframe", (70, 44, 34))
+        t = f.get("gthick", 1.1)
         for cx in (38, 58):
-            ring = ell(cx, 52, 6.4, 5.6) & ~ell(cx, 52, 5.3, 4.5)
-            cv.fill(ell(cx, 52, 5.3, 4.5), (220, 232, 240), 0.18)
+            ring = ell(cx, 52, 6.4, 5.6) & ~ell(cx, 52, 6.4 - t, 5.6 - t * 0.8)
+            cv.fill(ell(cx, 52, 6.4 - t, 5.6 - t * 0.8), (220, 232, 240), 0.18)
             cv.fill(ring, frame)
-            cv.fill(ring & (Y < 49) & (X < cx), (150, 104, 80))
+            cv.fill(ring & (Y < 49) & (X < cx), light(frame, 0.5) if "gframe" in f else (150, 104, 80))
         cv.fill(stroke(bez((43.6, 51), (48, 49.5), (52.4, 51)), 0.9), frame)
         cv.fill(stroke([(31.6, 51), (48 - f["fw"] + 0.5, 50)], 0.9) | stroke([(64.4, 51), (48 + f["fw"] - 0.5, 50)], 0.9),
                 frame)
+    elif which == "aviator":  # teardrop lenses, thin gold frame and double bridge
+        gold = (206, 176, 96)
+        for cx in (38.5, 57.5):
+            narrow = 7.6 * (1 - 0.3 * np.clip((Y - 48) / 11, 0, 1))
+            lens = ell(cx, 52.0, 7.6, 6.6) & (np.abs(X - cx) < narrow) & (Y > 46.4)
+            cv.vgrad(lens, (34, 38, 38), (92, 96, 94), 46, 59)
+            cv.fill(lens & (np.abs((X - cx) + (Y - 51) * 1.1 + 2.5) < 0.9), (170, 176, 170))
+            cv.fill(lens & ~erode(lens, 2), gold)
+        cv.fill(stroke(bez((45.6, 49.2), (48, 47.6), (50.4, 49.2)), 0.7) | stroke([(45.8, 51.6), (50.2, 51.6)], 0.6), gold)
+        cv.fill(stroke([(31, 49.5), (48 - f["fw"] + 0.5, 49.5)], 0.7) | stroke([(65, 49.5), (48 + f["fw"] - 0.5, 49.5)], 0.7), gold)
     elif which == "sunglasses":
         frame = (24, 20, 28)
         for cx in (38.5, 57.5):
@@ -740,6 +785,8 @@ def draw(pid):
     if back is not None:
         cv.cel(back, shade(hc, 0.55), sd=(2, 1.5), hi=None, lw=3, grad=(30, 96, 0.6))
         strands(cv, back, shade(hc, 0.55), paths[: len(paths) // 2], 0.6)
+        if f.get("ombre"):
+            ombre(cv, back, shade(f["ombre"], 0.5), 58)
     neck, shoulders, clothes = torso(cv, f, rng, skin)
     if "necklace" in f["acc"]:
         cv.fill(stroke(bez((41, 76), (48, 87), (55, 76)), 0.55) & ~clothes, (214, 178, 90))
@@ -747,6 +794,10 @@ def draw(pid):
     if "chain" in f["acc"]:
         cv.fill(stroke(bez((40.5, 78), (48, 90), (55.5, 78)), 0.65), (196, 198, 206))
         cv.fill(ell(48, 90.6, 1.2, 1.6), (220, 222, 230))
+    if "goldchain" in f["acc"]:  # two gold chains, the short one with a small pendant
+        cv.fill(stroke(bez((40, 76), (48, 85), (56, 76)), 0.7), (222, 184, 96))
+        cv.fill(stroke(bez((42, 78), (48, 92), (54, 78)), 0.55), (236, 204, 120))
+        cv.fill(ell(48, 92.0, 0.9, 1.3), (236, 206, 120))
     cv.cel(ears, skin, sd=(0.8, 0.8), hi=None, lw=3)
     cv.fill(stroke([(48 - f["fw"] - 0.8, 51), (48 - f["fw"] - 0.6, 55)], 0.9) |
             stroke([(48 + f["fw"] + 0.8, 51), (48 + f["fw"] + 0.6, 55)], 0.9), shade(skin, 1.0))
@@ -760,10 +811,15 @@ def draw(pid):
         for cx in (35.5, 60.5):
             cv.fill(ell(cx, 59, 3.4, 1.7), (240, 140, 140), 0.28)
     for cx, side in ((38, -1), (58, 1)):
-        if "sunglasses" not in f["acc"]:
+        if "sunglasses" not in f["acc"] and "aviator" not in f["acc"]:
             eye(cv, f, cx, side, skin)
         brow(cv, f, cx, side)
     nose(cv, skin)
+    if "mole" in f["acc"]:
+        cv.fill(ell(60.5, 60.5, 0.75, 0.75), (112, 70, 54))
+    if "browlines" in f["acc"]:
+        for y0 in (38.5, 41.5):
+            cv.fill(stroke(bez((38, y0), (48, y0 - 1.0), (58, y0)), 0.5, "both"), shade(skin, 0.5))
     if "lines" in f["acc"]:
         for s in (-1, 1):
             cv.fill(stroke(bez((48 + s * 4.2, 60), (48 + s * 6.4, 63), (48 + s * 6.0, 66)), 0.6, "both"), shade(skin, 0.8))
@@ -788,13 +844,15 @@ def draw(pid):
         strands(cv, front, hc, paths)
         top = np.nonzero(front[:, 44 * SS:52 * SS].any(axis=1))[0]
         shine(cv, front, hc, (top[0] / SS if len(top) else 18) + 6.5)
+        if f.get("ombre"):
+            ombre(cv, front, f["ombre"], 56)
         cv.fill(front & ~erode(front, 3), ink(hc))
     for name, m in extras:
         if name == "part":
             cv.fill(m, shade(skin, 0.3))
         elif name == "tie":
             cv.cel(m, (220, 110, 140), sd=(0.6, 0.6), hi=None, lw=2)
-    for which in ("glasses", "sunglasses", "shades-on-head"):
+    for which in ("glasses", "aviator", "sunglasses", "shades-on-head"):
         if which in f["acc"]:
             glasses(cv, f, which)
     wearables(cv, f)
@@ -804,6 +862,26 @@ def draw(pid):
 def wearables(cv, f):
     """Hats, bow tie, headband, rectangular glasses and a nose ring for the extras."""
     acc, fw = f["acc"], f["fw"]
+    if "sidecurls" in acc:  # curls that stick out from under the hat at ear level
+        hc = HAIR[f["hair"]]
+        for s in (-1, 1):
+            for cy, r, dx in ((34.5, 2.8, 0.6), (39.5, 2.6, 1.6)):
+                cv.cel(ell(48 + s * (fw + dx), cy, r, r), hc, sd=(1.0, 1.0), hi=(-0.8, -0.8), lw=2)
+    if "bighoops" in acc:  # chunky gold hoops, a small one above each
+        for s in (-1, 1):
+            x0 = 48 + s * (fw + 0.4)
+            cv.fill(ell(x0, 61.5, 3.0, 3.6) & ~ell(x0, 61.5, 2.0, 2.6), (230, 190, 92))
+            cv.fill(ell(x0 + s * 0.3, 56.5, 1.5, 1.8) & ~ell(x0 + s * 0.3, 56.5, 0.8, 1.1), (230, 190, 92))
+    if "beadearrings" in acc:  # long beaded fringe: blue, white, orange and black bands
+        bands = [(52, 96, 150), (240, 240, 236), (232, 140, 48), (36, 32, 40), (240, 240, 236), (52, 96, 150)]
+        for s in (-1, 1):
+            x0 = 48 + s * (fw + 1.0)
+            for k, col in enumerate(bands):
+                cv.fill(poly([(x0 - 1.1, 58 + k * 2.3), (x0 + 1.1, 58 + k * 2.3), (x0 + 0.7, 60.2 + k * 2.3),
+                              (x0 - 0.7, 60.2 + k * 2.3)]), col)
+    if "hoop" in acc:  # a small silver hoop on the right ear
+        x0 = 48 + fw + 0.8
+        cv.fill(ell(x0, 59.5, 1.6, 2.0) & ~ell(x0, 59.5, 0.9, 1.3), (214, 216, 224))
     if "rectglasses" in acc:
         frame = (60, 36, 34)
         for cx in (38, 58):
