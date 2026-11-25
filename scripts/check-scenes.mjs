@@ -21,7 +21,7 @@ const PRESETS = {
   tween: ['flicker', 'sway', 'pulse'],
   sprite: ['heads-bob']
 };
-const EXTRA_EGGS = ['extra-1', 'extra-2', 'extra-3', 'extra-rosanna']; // extra-genitori goes into circe once the rebuilt room is in
+const EXTRA_EGGS = ['extra-1', 'extra-2', 'extra-3', 'extra-rosanna', 'extra-genitori'];
 
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -139,7 +139,7 @@ function mapScene(at, sc, id) {
     const where = `${at} extras[${j}]`;
     person(where, e, e.egg !== undefined);
     if (e.egg !== undefined) {
-      usedEggs.push(e.egg);
+      usedEggs.push(`${at}|${e.egg}`);
       if (!eggs.has(e.egg)) err(where, `egg "${e.egg}" is not in dialogue.it.json easterEggs`);
     }
     if (e.egg === undefined && e.intro !== true && e.sfx === undefined) err(where, 'an extra needs one of egg, intro or sfx');
@@ -209,7 +209,7 @@ const usedEggs = [];
     const w = `${at} extras[${j}]`;
     personOk(w, e, walk);
     if (e.egg !== undefined) {
-      usedEggs.push(e.egg);
+      usedEggs.push(`${at}|${e.egg}`);
       if (!eggs.has(e.egg)) err(w, `egg "${e.egg}" is not in dialogue.it.json easterEggs`);
     }
     if (e.egg === undefined && e.intro !== true && e.sfx === undefined) err(w, 'an extra needs one of egg, intro or sfx');
@@ -227,8 +227,9 @@ const usedEggs = [];
 });
 
 for (const egg of EXTRA_EGGS) {
-  const n = usedEggs.filter((e) => e === egg).length;
-  if (n !== 1) err('extras', `egg "${egg}" is used ${n} times, expected once`);
+  // two extras may share one egg (Ric's parents), but only within one scene
+  const n = new Set(usedEggs.filter((e) => e.endsWith(`|${egg}`)).map((e) => e.split('|')[0])).size;
+  if (n !== 1) err('extras', `egg "${egg}" is used in ${n} scenes, expected one`);
 }
 
 if (errors.length) {
