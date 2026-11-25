@@ -10,6 +10,7 @@ export interface RicState {
     sceneIndex: number;
     results: RunState['results'];
     party: string[];
+    portalGun: boolean;
 }
 
 declare global {
@@ -24,7 +25,7 @@ export function installFlowGlobals(game: Phaser.Game): void {
     window.__ricState = () => {
         const run = getRun(game);
         const active = game.scene.getScenes(true);
-        return { scene: active[active.length - 1]?.scene.key ?? '', sceneIndex: run.sceneIndex, results: { ...run.results }, party: [...run.party] };
+        return { scene: active[active.length - 1]?.scene.key ?? '', sceneIndex: run.sceneIndex, results: { ...run.results }, party: [...run.party], portalGun: run.portalGun };
     };
 
     // Debug keys (W2 debug worker) jump to a scene or force the running minigame's result.

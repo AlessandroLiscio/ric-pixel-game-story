@@ -10,10 +10,51 @@
     "confirm": "X: conferma",
     "fastForward": "Z: salta",
     "talk": "X: parla",
-    "exit": "Esci dalla porta",
+    "exit": "Esci dalla stanza",
+    "run": "Shift: corri",
+    "menu": "Esc: menu",
+    "look": "X: controlla",
     "loading": "Caricamento...",
     "joined": "si unisce al gruppo!",
     "theEnd": "Fine"
+  },
+  "menu": {
+    "title": "Menu",
+    "diary": "Diario",
+    "controls": "Comandi",
+    "quit": "Esci al menu principale",
+    "back": "Indietro",
+    "sure": "Sei sicuro?",
+    "sureNote": "La partita in corso andrà persa.",
+    "yes": "Sì",
+    "no": "No",
+    "diaryTitle": "Diario di Ric",
+    "controlsTitle": "Comandi",
+    "done": "Fatto",
+    "todo": "Da fare",
+    "pageHint": "Frecce: sfoglia    Esc: indietro",
+    "backHint": "Esc: indietro"
+  },
+  "controls": {
+    "rows": [
+      "Frecce o WASD: cammina",
+      "Shift: corri",
+      "X, Invio o Spazio: parla e conferma",
+      "X vicino a un cestino: guarda dentro",
+      "Z: testo veloce, indietro nei menu",
+      "Esc: menu",
+      "M: audio sì/no",
+      "F: schermo intero"
+    ],
+    "portal": "P davanti a un muro: apri il portale"
+  },
+  "diary": {
+    "universita": "Trova Lollino all'Università ed evita le\nlezioni di Pinolo, o ci resti fino a sera.\nPoi dimostra di avere memoria: ripeti le\nfrecce nell'ordine giusto.",
+    "giuggiu": "Passa da Giuggiu e saluta il Gatto di Paz\n(lui non saluta nessuno). Vinci il gioco\ndel fumo e Giuggiu viene con te.",
+    "giardini": "Ai Giardini Margherita c'è Liscio con la\nslack. Cammina sulla slack senza cadere.\nRegola uno: non guardare i cani che\npassano. Regola due: guardali.",
+    "circe": "A Casa Circe ti aspettano Ros e Giusy.\nTira il d20 e spera nel venti, poi martella\nX finché Giusy non ha pietà di te.\nOcchio al trellone di Ros.",
+    "cortile": "Al Cortile Cafe suona la musica. Tieni il\nritmo per Lara. Se qualcuno chiede di Fede:\nha paccato, inutile cercarlo.",
+    "divano": "Ultima tappa: il divano di Casa Circe.\nSiete tutti qui, in una normalissima sera\ndi venerdì. Goditi i titoli di coda."
   },
   "titleScreen": {
     "title": "Ric 30: Un Venerdì a Bologna",
@@ -254,6 +295,21 @@
     }
   },
   "easterEggs": {
+    "portalFound": [
+      { "speaker": "narratore", "text": "Nel cestino brilla qualcosa. Una pistola\nverde, con una lucina che pulsa piano." },
+      { "speaker": "ric", "text": "Questa è la portal gun di Rick Sanchez!\nChi la butta nella spazzatura?" },
+      { "speaker": "ric", "text": "Wubba lubba dub dub! Davanti a un muro\npremo P e si apre un portale. Comodo." }
+    ],
+    "binEmpty": [
+      { "speaker": "ric", "text": "Una lattina vuota e un fazzoletto. Niente\nportali, solo raccolta differenziata." },
+      { "speaker": "ric", "text": "Uno scontrino del 2019. Non è nemmeno\nmio. Lo rimetto dove l'ho trovato." },
+      { "speaker": "ric", "text": "Puzza di caffè vecchio. Non ci frugo\nancora: ho una dignità. Poca, ma ce l'ho." },
+      { "speaker": "ric", "text": "Solo carta e briciole. Vorrebbe essere\nun portale, ma resta un cestino." },
+      { "speaker": "ric", "text": "Vuoto. Speravo in un tesoro, trovo\nun'aria di tristezza." }
+    ],
+    "portalNotYet": [
+      { "speaker": "ric", "text": "Meh, non abbiamo mica finito qui.\nC'è ancora da fare." }
+    ],
     "pinolo-pinhole": [
       { "speaker": "ric", "text": "Ragazzi, sapete come funziona la camera\noscura? Un foro, e l'immagine si capovolge." },
       { "speaker": "lara", "text": "Zzz... mh? Camera... che?" },

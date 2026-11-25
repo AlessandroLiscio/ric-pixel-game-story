@@ -1,6 +1,6 @@
 # Dialogue (Italian) for the Ric game
 
-All player-visible text lives in `src/data/dialogue.it.json`, written in Italian and following the dialogue contract (`ui`, `scenes`, `minigames`, `easterEggs`, `credits`, `titleScreen`). Check it with `node scripts/check-dialogue.mjs`: it prints `PASS dialogue: <N> lines, all within limits` or the first 20 problems.
+All player-visible text lives in `src/data/dialogue.it.json`, written in Italian and following the dialogue contract (`ui`, `menu`, `controls`, `diary`, `scenes`, `minigames`, `easterEggs`, `credits`, `titleScreen`). Check it with `node scripts/check-dialogue.mjs`: it prints `PASS dialogue: <N> lines, all within limits` or the first 20 problems.
 
 ## Structure
 
@@ -10,7 +10,7 @@ A Line is `{ "speaker", "text", "pause"? }`. One Line is one box page: at most 3
 
 Deviations from the contract, both needed by the story and listed here for the flow worker. First, `scenes.circe` also has `minigameIntro2`, `win2` and `lose2` for the second minigame of the scene: `minigameIntro`, `win` and `lose` belong to the d20 (Ros) and the `*2` keys to mash (Giusy); `join` closes the scene and covers Ros and Giusy together. Second, `scenes.divano` has no minigame, so `minigameIntro`, `win` and `lose` are empty arrays; `meet` is the sofa banter during the fish documentary, the easter eggs play after `meet` in the order the flow chooses, and `join` is the last pair of pages before the credits.
 
-`minigames.<id>` has `title` (max 32 characters), `instructions` (max 2 rows of 44), `winText` and `loseText` (max 2 rows of 44, a short result card). `easterEggs` holds the ten eggs; `credits` and `titleScreen` follow the contract. `ui` has the keys the contract names plus a few extras (`confirm`, `fastForward`, `talk`, `exit`, `loading`, `joined`, `theEnd`) that the UI worker may use or ignore.
+`minigames.<id>` has `title` (max 32 characters), `instructions` (max 2 rows of 44), `winText` and `loseText` (max 2 rows of 44, a short result card). `easterEggs` holds the ten eggs plus the portal gun lines (`portalFound`, `binEmpty` where each entry is one variant picked at random, and `portalNotYet`, the one fixed line Ric says on P before the scene is done); `menu`, `controls` and `diary` (one entry per scene id, up to 4 rows of 44) hold the text of the Esc menu; `credits` and `titleScreen` follow the contract. `ui` has the keys the contract names plus a few extras (`confirm`, `fastForward`, `talk`, `look`, `run`, `menu`, `exit` (the hint "Esci dalla stanza"), `loading`, `joined`, `theEnd`) that the UI worker may use or ignore.
 
 ## Easter egg triggers (assumed)
 

@@ -21,6 +21,11 @@ export interface NpcDef extends Point {
     at?: string;
 }
 
+/** A litter bin at `x`,`y` (its feet, pixels). `draw: false` means the room map already draws it; otherwise the flow draws a bin there. */
+export interface BinDef extends Point {
+    draw?: boolean;
+}
+
 /** One entry of scenes.json. Coordinates are 640x360 pixels; a character's x,y is where its feet are. */
 export interface SceneDef {
     id: string;
@@ -33,6 +38,10 @@ export interface SceneDef {
     /** null in the last scene (divano), which has no door. */
     door: (Rect & { draw?: boolean }) | null;
     walk: Rect[];
+    /** `"edge"`: once the scene is done Ric also leaves by walking to any edge of the map (a room with no visible door). */
+    exit?: 'edge';
+    /** Litter bins Ric can check with X (the first one he checks in a run holds the portal gun). */
+    bins?: BinDef[];
     /** null in the last scene (divano), which has no friend to talk to. */
     friend: NpcDef | null;
     /** The second friend who joins in the same scene (circe: Giusy). */
@@ -71,6 +80,10 @@ export interface MinigameTexts {
 
 export interface Dialogue {
     ui: Record<string, string>;
+    /** The Esc menu: its labels, the key list (`portal` is shown once the portal gun is found) and one diary entry per scene id. */
+    menu: Record<string, string>;
+    controls: { rows: string[]; portal: string };
+    diary: Record<string, string>;
     scenes: Record<string, SceneLines>;
     minigames: Record<string, MinigameTexts>;
     easterEggs: Record<string, Line[]>;
