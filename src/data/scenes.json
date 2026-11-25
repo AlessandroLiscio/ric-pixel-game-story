@@ -14,7 +14,7 @@
       { "personId": "sconosciuta", "facing": "left", "egg": "extra-1", "tint": "#9fb8ff", "at": "studente" }
     ],
     "minigame": "simon",
-    "bins": [{ "x": 656, "y": 186, "draw": false }],
+    "bins": [{ "x": 656, "y": 412, "draw": false }],
     "ambient": []
   },
   {

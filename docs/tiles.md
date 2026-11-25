@@ -138,29 +138,25 @@ The room is 22 x 14 tiles, rebuilt from the three photos `cortile-cafe-lato-scal
 | the floor in front packed with the crowd | twenty-two idle people of twenty different sheets facing the band and three dancers |
 | the street door at the front | `cortile_entrance` and a doormat at the bottom left, a cool pool of street light |
 
-## Lecture hall (universita), photo feature -> map
+## Cinema Bellinzona (universita), photo feature -> map
 
-The room is 22 x 14 tiles, rebuilt from `aula-lato-cattedra-professore.jpg` and `aula-lato-spalti-studenti.jpg` (the photo of Prof. Pinolo only for his sprite, which already exists). Stamps in `scripts/art/stamps/universita.py`, map in `scripts/art/rooms/universita.py`. The photos show the hall from behind the benches, so the front wall is the top of the map and the benches fill the floor below it. Daylight: a mild warm mood, with the sun of the left windows falling on the benches.
+The room is 22 x 14 tiles, rebuilt from `cinema-bellinzona-lato-palco.jpg` and `cinema-bellinzona-lato-posteriore.jpeg`. The scene id stays `universita`, so the stamps are in `scripts/art/stamps/universita.py` (names `universita_*`) and the map in `scripts/art/rooms/universita.py`. The front wall with the screen is the top of the map and the seats face it. Indoor mood: a mild dim grey violet, with pools of light under the round wall lights and a bright pool at the screen.
 
 | Photo feature | In the map |
 | --- | --- |
-| warm tan ashlar walls with a carved dentil cornice under the ceiling | `universita_wall_front` (20 x 4 tiles, one picture): courses of tan stone, a cornice with dentils |
-| the long side wall with tall wooden windows (white glazing bars, roller blinds half down, green trees outside) over a gallery balustrade of turned wooden balusters with a panelled base, strip lamps between the windows | the left six tiles of the front wall: two windows, two white strip lamps, the balustrade with its base, the wall in shade under the gallery |
-| under the gallery: a wooden door with a glazed panel, a green exit sign, a wall unit | the same bay: the glazed door, an exit sign redrawn in our own pixels, a grey wall box |
-| the front wall: olive green panels with round relief medallions (tondi) | two olive panels with a bronze tondo, above the small door and above the big doorway |
-| a small arched dark wooden door left of the screen | `arched_door_small` with a pale stone surround, two panels, a brass handle |
-| the big white projection screen between two whiteboards, dark wooden pilasters on both sides | `projection_screen` (steel casing, white surface), two `whiteboard`s (a pinhole camera sketched in marker on the left one), two `pilaster`s |
-| the inlaid honey wood panel behind the lectern | `inlaid_panel`: a dark border, a diamond lattice, a medallion |
-| the big arched wooden doorway at the right, a lit corridor and a vending machine beyond it, a green exit sign above | `arched_doorway` with a thick dark arch and a keystone, the daylit corridor and a glowing vending machine, `exit_sign`; its two tiles on row 4 are the exit |
-| two recycling bins beside the doorway | `universita_bins` (blue and green and yellow) |
-| the long panelled wooden lectern with a document camera, a laptop, a microphone | `universita_lectern` (6 x 2 tiles) with all three on the top; Prof. Pinolo stands behind it |
-| the blue grey carpet of the lecturer's floor | the carpet of `universita_bowl`: the half ellipse in front of the lectern and a band along the whole front wall |
-| concentric curved benches of honey wood desks with dark risers, rising to the back, around the lecturer | `universita_bowl` (20 x 8 tiles): rows of elliptical arcs around the foot of the screen, a lit nose, honey desks, a dark lip, the seat boards in the desk's shade and a dark riser; all those cells are blocked |
-| students seated along the rows, seen from behind, papers and laptops on the desks | busts cut from the crowd sheets and pasted on the rows (the lower body hides behind the next row's desk), seats left empty here and there, papers, notebooks and laptops on the desks |
-| the steps between the benches, the dark slate slabs of the aisles, the curved wooden bench ends with the turned ball newel at the foot of the handrail | two stair aisles (tiles 6 and 7, 17 and 18) and a side aisle along the left wall, slate slabs in running bond with a lit nosing and a shadow on every step, a wooden end panel and a ball newel at every bench end |
-| sun through the windows on the benches | two soft parallelograms of light baked into the bowl, and two warm pools of light in the map |
-| a walkway along the back wall | row 12, slate, joining the three aisles |
-| how the scene plays | Ric comes in through the small arched door (spawn on row 5 under it), Lollino waits two tiles to the right on the same row, Prof. Pinolo stands at the left end of the lectern, the exit is the big arched doorway at the right end of row 5 (the smoke test walks the room blind with the right arrow along that row), the student extra sits in the right aisle |
+| a long hall with grey plaster walls | `universita_wall_front` (20 x 3 tiles) and the two long walls `universita_wall_left` and `universita_wall_right` (1 x 12 tiles each): grey plaster with faint panel joints, a skirting |
+| round white wall lights in rows along the side walls | a round lamp with a halo at rows 2, 8, 10 and 12 on both long walls and two on each flank of the front wall, each with a pool of light in the map |
+| small black loudspeakers on brackets | `speaker` on the flanks of the front wall and on the long walls |
+| the big white screen between dark side frames and curtains, under a dark soffit | the recess of `universita_wall_front` (tiles 5 to 16): a lowered dark soffit, pleated dark curtains on both sides and a 224 x 66 px screen with a black masking frame, a white surface and a soft blue slide (our own drawing: a title, lines and a play triangle) for the lesson Prof. Pinolo projects; the screen has a steady glow and a slow pulse of light |
+| a low light grey stage under the screen | row 4 of `universita_hall`: a stage 12 tiles wide (tiles 5 to 16) in light grey with seams, a front step and the shadow it throws on the front aisle; walkable, Prof. Pinolo stands on it at the left end (tile 6,4) |
+| a dark glossy floor | `floor_px`: a quiet checker of two dark blue greys, slab joints and long soft reflections; darker under the seats |
+| many rows of red velvet seats with wooden armrests facing the screen | `universita_hall`: six rows (map rows 6 to 11) in two blocks of seven seats (tiles 3 to 9 and 12 to 18), every seat a red velvet back with a lit rim and a stitched seam between two wooden armrests, an empty seat with its folded cushion; every seat blocks |
+| a full house, an audience of many people | heads and shoulders cut from the crowd sheets (`paste_person`, rows seen from behind, a few turned to the side) in about nine of ten seats, the lower body hidden by the seat back; the front row of the right block is half empty |
+| side aisles along the long walls, exit doors with green exit signs | two side aisles two tiles wide (tiles 1 and 2, 19 and 20) and a centre aisle (tiles 10 and 11); a grey metal door with a push bar and a green exit sign over it on each long wall at rows 5 and 6; a walkway along the back (row 12) and the front aisle (row 5) |
+| a small notice on the wall and a grey box | a pinned notice and a small wall box on each flank of the front wall |
+| two recycling bins | `universita_bins` in the back right corner (tile 20,12), the litter bin of the scene (`bins` in `scenes.json`, x 656, y 412) |
+| how the scene plays | Ric comes in through the left exit door (spawn at tile 1,5) and walks right along the front aisle; Lollino sits in the first seat of the front row (tile 3,6, not blocked: `universita_seat_lollino` is an object drawn over his sprite, so he is hidden from the chest down); Prof. Pinolo stands on the stage; the student extra stands in the right aisle (tile 20,9); the exit is the matching door of the right wall (door at tiles 20,5 to 20,6, the smoke test walks the room blind with the right arrow along row 5) |
+| things the game can interact with (named points, tile units `x, y, w, h`) | `obj_screen` 7,1,8,3 (the big screen) and `obj_seats` 12,6,7,1 (the front row of the right block of seats) |
 
 ## Giuggiu's living room, photo feature -> map
 
