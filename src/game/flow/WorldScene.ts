@@ -259,7 +259,7 @@ export class WorldScene extends Phaser.Scene {
 
     private onKey(e: KeyboardEvent): void {
         if (e.repeat || this.busy || this.time.now - this.dialog.lastClosed < 250 || performance.now() - this.menuClosedAt < 250) return;
-        if (e.code === 'Escape') return this.openMenu();
+        if (e.code === 'Escape' || e.code === 'KeyC') return this.openMenu(); // C too: the browser keeps Esc to leave fullscreen
         if (e.code === 'KeyP') return void this.usePortal();
         if (!CONFIRM_CODES.includes(e.code)) return;
         const npc = this.nearestTalkable();

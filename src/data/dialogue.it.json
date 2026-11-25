@@ -12,7 +12,7 @@
     "talk": "X: parla",
     "exit": "Esci dalla stanza",
     "run": "Shift: corri",
-    "menu": "Esc: menu",
+    "menu": "Esc o C: menu",
     "look": "X: controlla",
     "loading": "Caricamento...",
     "joined": "si unisce al gruppo!",
@@ -42,7 +42,7 @@
       "X, Invio o Spazio: parla e conferma",
       "X vicino a un cestino: guarda dentro",
       "Z: testo veloce, indietro nei menu",
-      "Esc: menu",
+      "Esc o C: menu",
       "M: audio sì/no",
       "F: schermo intero"
     ],

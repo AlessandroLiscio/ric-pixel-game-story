@@ -10,7 +10,7 @@ import { panelTexture } from '../ui/panel';
 type Mode = 'main' | 'diary' | 'controls' | 'confirm';
 
 const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
-const BACK_CODES = ['Escape', 'KeyZ'];
+const BACK_CODES = ['Escape', 'KeyZ', 'KeyC'];
 const GOLD = '#ffe27a';
 const SHADOW = { offsetX: 1, offsetY: 1, color: '#0a1040', blur: 0, stroke: false, fill: true };
 
