@@ -352,6 +352,7 @@ export class EndingScene extends Phaser.Scene {
         this.leaving = true;
         audio.sfx('confirm');
         audio.stopTrack();
+        audio.stopAmbience();
         resetRun(this.game);
         this.cameras.main.fadeOut(500, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('title'));

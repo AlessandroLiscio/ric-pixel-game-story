@@ -1,11 +1,13 @@
 // Ambient pixelfx effects of a room. Nothing here knows a room's geometry: positions come from the map's `lights` at runtime, so a rebuilt
 // or a new tile room gets them for free. Rules by light kind: a group of two or more `pulse` lights (stage spots) throws golden beams with dust
 // through them. `flicker` and `steady` lights get nothing: the map already flickers their glow, and its tables carry their own candles.
-// Smoke puffs (trellone) follow the people named in JOINTS. Called once from WorldScene.create.
+// Smoke puffs (trellone) follow the people named in JOINTS. The rest of a room's life (screens, candles, steam, shafts, park, night window)
+// is in life.ts. Called once from WorldScene.create.
 import type Phaser from 'phaser';
 import { fx } from '../fx';
 import type { FxHandle } from '../fx';
 import type { MapData } from '../flow/tileMap';
+import { startLife } from './life';
 
 type Light = MapData['lights'][number];
 
@@ -15,13 +17,14 @@ const JOINTS: Record<string, string[]> = { giuggiu: ['giuggiu'], circe: ['ros'] 
 export interface AmbientContext {
     sceneId: string;
     /** Set in a tile room. */
-    lights?: Light[];
+    map?: MapData;
     /** The sprite of a person standing in the room, if there is one. */
     spriteOf: (personId: string) => Phaser.GameObjects.Sprite | undefined;
 }
 
 export function startAmbient(scene: Phaser.Scene, ctx: AmbientContext): void {
-    if (ctx.lights) lightFx(scene, ctx.lights);
+    if (ctx.map) lightFx(scene, ctx.map.lights);
+    startLife(scene, ctx.sceneId, ctx.map);
     for (const id of JOINTS[ctx.sceneId] ?? []) smokePuff(scene, () => ctx.spriteOf(id));
 }
 

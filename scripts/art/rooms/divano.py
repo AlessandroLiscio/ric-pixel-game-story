@@ -90,6 +90,7 @@ def build():
     m.point("seat_floor", 10, 8)                         # on the rug in front of the coffee table
     m.point("seat_cat", 12, 10)                         # the cat curls up at the end of the sofa
     m.point("bed", 18, 4, 3, 4)                         # the sofa bed under the world map (out of sight of the credits)
+    m.point("window", 16, 2, 2, 3)                      # the curtained glass door onto the night: the ambient code puts a moon glow and fireflies behind it
 
     # lights, in pixels: the TV is the main one, then the fairy lights, the standing lamp, the tree
     tvx, tvy = 8 * T + 64, 3 * T + 34

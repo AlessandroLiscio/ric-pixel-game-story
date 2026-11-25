@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { getAudioContext } from '../audioContext';
+import { Ambience } from './Ambience';
 import { Sequencer, type Track } from './Sequencer';
 import { playSfx, SFX_NAMES, type SfxName } from './sfx';
 import { voice } from './synth';
@@ -25,6 +26,7 @@ export class AudioEngine {
     private master: GainNode | null = null;
     private musicBus: GainNode | null = null;
     private sequencer: Sequencer | null = null;
+    private ambience: Ambience | null = null;
     private tracks: Map<string, Track> | null = null;
     private volume = DEFAULT_VOLUME;
     private muted = false;
@@ -42,6 +44,7 @@ export class AudioEngine {
         this.musicBus.gain.value = MUSIC_GAIN;
         this.musicBus.connect(this.master);
         this.sequencer = new Sequencer(ctx, this.musicBus);
+        this.ambience = new Ambience(ctx, this.master); // straight into the master: mute and volume apply, the music bus gain does not
         this.applyGain();
 
         // Browsers keep the context suspended until a gesture: resume it on the first input (W0 spike).
@@ -92,6 +95,15 @@ export class AudioEngine {
     stopTrack(): void {
         this.wanted = null;
         this.sequencer?.stop();
+    }
+
+    /** The quiet looping bed of a scene (fades in, crossfades on the next scene, waits for the first user gesture). */
+    playAmbience(sceneId: string): void {
+        this.ambience?.play(sceneId);
+    }
+
+    stopAmbience(): void {
+        this.ambience?.stop();
     }
 
     /** Seconds since the current track started; 0 when none plays. */
