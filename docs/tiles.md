@@ -117,26 +117,30 @@ def build():
 
 `crowd.py` draws small chibi people in the proportions and the outline of the character sheets. Each entry of `PEOPLE` is a dict with `skin` (pale, light, tan, olive, brown, dark), `hair` (a colour), `style` (short, bob, long, pony, bun, curly, bald), `top` and `tops` (tee, hoodie, jacket, dress, stripes, band), `bottom`, `shoe` and an optional `extra` (cap, beanie, headband, glasses, beard, with `cap` as its colour); there are twenty. A sheet is 96x128 like the character sheets (rows down, left, right, up); columns 0 and 2 are the two dance poses (an arm up, a foot lifted) and column 1 the standing pose the idle crowd uses. To add a person append a dict to `PEOPLE`; the new sheet is `crowd-<n>` with n the position in the list starting at 1, and appending keeps the numbers of the others.
 
-## Cortile Cafe, photo feature -> map
+## Cortile Cafe, plan and photo feature -> map
 
-The room is 22 x 14 tiles, rebuilt from the three photos `cortile-cafe-lato-scale.jpeg`, `cortile-cafe-palco.jpeg` and `cortile-cafe-lato-ingresso.jpg`.
+The room is 22 x 18 tiles, laid out from the owner's hand-drawn floor plan `cortile-caffe-sketch.jpeg` and dressed from the three photos `cortile-cafe-lato-scale.jpeg`, `cortile-cafe-palco.jpeg` and `cortile-cafe-lato-ingresso.jpg`. Seen from the street door the plan reads like this: the stage at the back, the staircase beside it along the right wall, the bar and its two screens down the left wall under the upper floor, three round tables with chairs along the right wall, a third screen on the front wall, the crowd in the middle. The rows marked "plan" come from the sketch, the others from the photos. Named points: `spawn` (11, 15), `door` (10, 17, 2 x 1), `lara` (12, 8) in front of the stage, `barista` (6, 11) behind the bar, and `obj_bar` (7, 8, 1 x 8), the interactable footprint of the counter.
 
 | Photo feature | In the map |
 | --- | --- |
-| a small narrow vaulted hall, warm cream plaster walls | 22 x 14 tiles, plaster drawn into the three wall stamps, an arch and darker spandrels on the middle wall |
-| no big stage: the band plays at floor level in the back-right corner on a very low step | `riser_*` tiles, a very low step at the front and left of an 8 x 3 tile corner, drums, two amps, guitar and bass on stands, wedges and mic stands |
+| a small narrow vaulted hall, warm cream plaster walls | 22 x 18 tiles, plaster drawn into the three wall stamps, an arch and darker spandrels on the middle wall |
+| plan: the stage (hatched) fills the back of the hall from the left pier to the stairs, under the logo; photos: no big stage, the band plays at floor level on a very low step | `riser_*` tiles, a very low step at the front and left of a 9 x 3 tile stage (x 9 to 17, rows 5 to 7), amps at the pier end, drums under the logo, guitar and bass on stands, wedges and mic stands; Lara stands in front of it |
+| plan: the bar is a long counter down the left side of the hall, ending near the front wall, with the upper floor behind and above it | `cortile_bar_side_*`: an 8 tile counter at x 7 (rows 8 to 15, blocked) with a register, glasses, taps, bottles and a south end panel, three stools in front, the staff walk behind it, open at both ends; `cortile_backbar_a` and `_b` are its shelves on the left wall, `cortile_mezz_side_*` the upper floor above |
+| plan: two screens (schermo) on the bar | the two `tv` tiles of `cortile_bar_side_tv` on the counter, with blue light pools |
+| plan: a third screen on the front wall, right of the door | `cortile_tv_front` (3 tiles, x 16 to 18 of the bottom row): a dark wooden wall panel with a screen, drawn facing the player, with a blue light pool |
+| plan: three round tables with seats along the right wall below the stairs, the last one the biggest | three `cortile_table_big` (2 x 2 tiles, each with a candle, a plate and glasses) at x 19, rows 9, 12 and 14, with `chair_*` around them |
+| plan: the street door in the front wall, left of centre | `cortile_entrance` at x 10 and 11 of the bottom row, a doormat, a cool pool of street light; the litter bin stands in the bottom right corner |
 | the mezzanine balcony along the left and the back above the bar, black frame, glass railing, people leaning over | `cortile_wall_left` (people over a glass railing above a concrete beam) and `cortile_mezz_side_*` (the same balcony seen along the left wall) |
-| the bar under the mezzanine: dark niche with bottle shelves, counter, concrete pillar | the niche in `cortile_wall_left`, `bar_counter_5` with taps, glasses and a cash register, `bar_stool`, `cortile_pillar` with flyers and a brass lamp |
+| the bar under the mezzanine: dark niche with bottle shelves, concrete pillar | the niche in `cortile_wall_left` above the staff area, `cortile_pillar` with flyers and a brass lamp at the corner of the stage; behind the bar two small tables, a plant, crates and barrels |
 | a hanging chalkboard menu, small warm wall lamps and pendant lamps | the chalkboard and three pendant lamps in `cortile_wall_left`, two brass wall lamps in `cortile_wall_mid`, lights with pools |
 | the back wall between bar and band: framed black and white portraits, a big lightning-bolt poster, a round vinyl-record sign | `cortile_wall_mid`: eight frames, the painted poster, the record |
 | the white wall of the band corner with the painted logo "il cortile café" in black lowercase and a red squiggle | `cortile_wall_right`: the white wall, the lettering and the squiggle redrawn in pixel letters |
-| the staircase along the back-right white wall, dark red wooden handrail, up to the balcony landing | `cortile_wall_right`: a diagonal handrail on a white wall, a stringer, a newel post, a landing with people at its top |
+| the staircase along the back-right white wall, dark red wooden handrail, up to the balcony landing; plan: the stairs run along the right wall beside the stage | `cortile_wall_right`: a diagonal handrail on a white wall, a stringer, a newel post, a landing with people at its top; `cortile_stairs` (3 x 4 tiles, blocked) continues it on the floor at x 18 to 20, rows 5 to 8, eight steps under a dark red handrail |
 | the lighting truss with spots, a skull mask on it, two black PA speakers | the truss with four coloured spots and the skull in `cortile_wall_right`, two wall speakers, four coloured light pools on the band |
 | the black wrought-iron birdcage chandelier hanging from the vault | `cortile_chandelier` in the `above` layer, with a light pool |
 | a projector image glowing on the vault, wall TVs with blue screens | a pale projected portrait on the arch and two TVs in `cortile_wall_mid`, with blue light pools |
 | drums with the "Cortile Cafe" kick drum, amps, mic stands, a guitar on a stand | `drum_kit` (ring logo on the kick), `amp`, `mic_stand`, `guitar_stand`, `bass_stand` |
-| the floor in front packed with the crowd | twenty-two idle people of twenty different sheets facing the band and three dancers |
-| the street door at the front | `cortile_entrance` and a doormat at the bottom left, a cool pool of street light |
+| the floor in front packed with the crowd; plan: a few people standing in the middle | twenty-seven idle people of twenty different sheets (two behind the bar) and three dancers, facing the stage, with a free lane at x 12 and the two bottom rows from the door up to Lara |
 
 ## Cinema Bellinzona (universita), photo feature -> map
 

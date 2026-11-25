@@ -11,7 +11,7 @@ Every name starts with `cortile_`: the registry refuses anything else from a roo
 import math
 
 from tilepaint import (GOLD, LOWER, METAL, WOOD, Canvas, T, dark, hx, light, make_ramp, mix, rng)
-from tiles_objects import bottle
+from tiles_objects import bottle, glass, panel
 
 WARM = make_ramp("#e9c58b", 4, 1)           # cream plaster
 CONC = make_ramp("#8f8b86", 5, 2, dark_hue=255, sh=18)   # concrete
@@ -690,7 +690,207 @@ def entrance_gap():
     return c
 
 
+BOTTLE_TONES = ["#3a7240", "#8a4a20", "#c8423f", "#2f4aa0", "#e8b83a", "#d8e0e0", "#6a3a7a"]
+
+
+def bar_side(kind):
+    """One tile of the bar counter that runs north to south down the left side of the hall: lit wooden top, the panelled front facing
+    the hall on the right, a brass foot rail. `kind`: top (north end with the cash register), glasses, tv (a flat screen on the
+    counter), taps (beer tower), bottles, bot (south end: the end panel faces the viewer)."""
+    c = Canvas()
+    y0, y1 = (3 if kind == "top" else 0), (23 if kind == "bot" else T - 1)
+    if kind != "bot":
+        c.shadow(24, 28, 9, 3, 60)
+    c.rect(1, y0, 22, y1, WOOD[3])                    # the top
+    c.vline(1, y0, y1, WOOD[4])
+    c.vline(2, y0, y1, light(WOOD[3], .22))
+    c.vline(20, y0, y1, WOOD[2])
+    c.vline(21, y0, y1, light(WOOD[3], .1))
+    c.vline(22, y0, y1, WOOD[1])
+    c.rect(23, y0, 30, y1, WOOD[1])                   # the front facing the hall
+    c.vline(23, y0, y1, dark(WOOD[0], .1))
+    c.vline(24, y0, y1, WOOD[2])
+    c.vline(30, y0, y1, dark(WOOD[0], .1))
+    for py in range(y0 + 3, y1, 16):                  # recessed panels
+        if py + 11 <= y1:
+            panel(c, 25, py, 28, py + 11, WOOD, inset=True)
+    c.vline(29, y0, y1, GOLD[2])                      # brass foot rail
+    r = rng("barside" + kind)
+    for _ in range(3):                                # a few long grain lines on the top
+        x, y = r.randrange(5, 16), r.randrange(y0 + 4, max(y0 + 6, y1 - 12))
+        for k in range(r.randrange(5, 10)):
+            c.set(x, y + k, mix(WOOD[3], WOOD[2], .5))
+    if kind == "top":
+        c.hline(2, 29, y0, WOOD[4])
+        c.rect(7, 9, 19, 23, "#d8cdb0")                 # the cash register seen from the side
+        c.hline(7, 19, 9, "#ffffff")
+        c.vline(7, 9, 23, "#ffffff")
+        c.vline(19, 9, 23, "#8a7a62")
+        c.rect(10, 12, 16, 19, "#8a7a62")
+        c.rect(11, 13, 15, 14, "#2f6a52")
+        for k in (15, 17):
+            c.set(12, k, "#e8d8b0")
+            c.set(14, k, "#e8d8b0")
+    elif kind == "glasses":
+        for (gx, gy, liq) in ((7, 9, "#e8b83a"), (13, 13, "#f4f1ea"), (8, 20, None), (14, 25, "#e8b83a"), (7, 29, None)):
+            glass(c, gx, gy, liquid=liq)
+    elif kind == "bottles":
+        for k, (gx, gy) in enumerate(((7, 12), (12, 19), (7, 26), (13, 30))):
+            bottle(c, gx, gy, 11, BOTTLE_TONES[(k * 2 + 1) % len(BOTTLE_TONES)], label="#f4f1ea")
+    elif kind == "taps":
+        c.rect(11, 6, 17, 28, METAL[2])                 # drip tray, then the chrome tower with three coloured handles
+        c.vline(11, 6, 28, METAL[3])
+        c.rect(6, 6, 8, 26, METAL[3])
+        c.vline(6, 6, 26, METAL[4])
+        c.vline(8, 6, 26, METAL[1])
+        for k, tone in ((8, "#c8423f"), (15, "#e8b83a"), (22, "#4f72d0")):
+            c.rect(9, k - 1, 12, k + 1, METAL[2])
+            c.rect(3, k - 2, 5, k + 2, tone)
+            c.set(3, k - 2, light(hx(tone), .5))
+    elif kind == "tv":
+        c.rect(4, 28, 18, 30, "#2a2a32")                # stand
+        c.poly([(6, 2), (18, 6), (18, 25), (6, 29)], "#0e0e14")          # a flat screen turned toward the hall
+        c.poly([(8, 5), (16, 8), (16, 22), (8, 26)], "#2a66d8")
+        c.poly([(8, 5), (12, 6), (12, 17), (8, 17)], "#6aa8ff")
+        c.poly([(12, 10), (16, 11), (16, 15), (12, 14)], "#ff5a3a")
+        c.rect(12, 18, 15, 19, "#ffffff")
+        c.set(8, 5, "#d8ecff")
+        c.vline(6, 3, 28, "#4a4a56")
+    elif kind == "bot":
+        c.rect(2, 24, 29, 29, WOOD[1])                  # the south end panel
+        c.hline(2, 29, 24, WOOD[4])
+        c.hline(2, 29, 25, WOOD[2])
+        panel(c, 5, 26, 26, 29, WOOD, inset=True)
+        c.hline(2, 29, 30, dark(WOOD[0], .4))
+        glass(c, 8, 14, liquid="#e8b83a")
+        glass(c, 14, 18)
+        bottle(c, 6, 21, 11, "#3a7240", label="#f4f1ea")
+    c.outline()
+    return c
+
+
+def backbar_side(variant):
+    """The back of the bar on the left wall, one tile: a dark wall with two lit shelves of bottles and jars seen from the side, and the
+    soft shade the wall throws on the floor to the right."""
+    c = Canvas()
+    r = rng("backbar%d" % variant)
+    c.vgrad(0, 0, 25, T - 1, hx("#34201a"), hx("#1c110e"))
+    c.vline(0, 0, T - 1, hx("#4a2e22"))
+    for k, sy in enumerate((13, 27)):                  # the two shelf boards
+        c.rect(0, sy, 27, sy + 2, WOOD[3])
+        c.hline(0, 27, sy, WOOD[4])
+        c.hline(0, 27, sy + 2, WOOD[0])
+        x = 2
+        while x < 22:
+            tone = BOTTLE_TONES[(r.randrange(len(BOTTLE_TONES)) + k) % len(BOTTLE_TONES)]
+            if (x // 6 + k + variant) % 4 == 3:        # a jar instead of a bottle
+                c.rect(x, sy - 6, x + 5, sy - 1, mix(tone, "#ffffff", .25))
+                c.hline(x, x + 5, sy - 6, "#ffffff")
+                c.rect(x + 1, sy - 4, x + 4, sy - 2, tone)
+            else:
+                bottle(c, x, sy - 1, 11 if (x + variant) % 2 else 9, tone, label="#f4f1ea" if (x // 5) % 2 else None)
+            x += 6
+    if variant == 1:                                    # a small lamp glow between the shelves
+        c.rect(10, 1, 12, 8, "#ffd27a")
+    for x in range(26, T):                              # the shade on the floor to the right
+        a = int(86 * (1 - (x - 26) / 6.0) ** 1.3)
+        c.vline(x, 0, T - 1, (26, 12, 40, max(0, a)))
+    return c
+
+
+def stairs():
+    """The wooden staircase of the band corner, 3 tiles wide and 4 tall, climbing north along the right wall toward the balcony
+    landing: eight steps with lit treads and dark red risers, a dark red handrail with posts on the left, the white wall on the right."""
+    W, H = 3 * T, 4 * T
+    c = Canvas(W, H)
+    wood_t, wood_r = hx("#b07a48"), hx("#5a1e24")
+    c.rect(0, 0, W - 1, H - 1, hx("#3a1c1c"))
+    for i in range(8):
+        y0 = i * 16
+        k = .5 + .5 * i / 7.0                           # the upper steps sit deeper in the shade of the landing
+        tread = mix(hx("#2a1418"), wood_t, k)
+        c.rect(7, y0, W - 8, y0 + 9, tread)
+        c.hline(7, W - 8, y0, light(tread, .3))
+        c.hline(7, W - 8, y0 + 1, light(tread, .12))
+        c.hline(7, W - 8, y0 + 9, dark(tread, .3))
+        c.rect(7, y0 + 10, W - 8, y0 + 15, mix(hx("#1c0e12"), wood_r, k))
+        c.hline(7, W - 8, y0 + 10, mix(hx("#2a1418"), hx("#7a2a30"), k))
+        c.hline(7, W - 8, y0 + 15, hx("#1a0c10"))
+        for gx in range(14, W - 10, 9):                 # grain
+            c.set(gx, y0 + 4, mix(tread, hx("#7a4a28"), .5))
+    c.vgrad(W - 6, 0, W - 1, H - 1, hx("#c8baa6"), hx("#efe6d4"))   # the white wall on the right, a dark skirting where the steps meet it
+    c.vline(W - 7, 0, H - 1, hx("#a89a88"))
+    c.vline(W - 8, 0, H - 1, hx("#5a3a2a"))
+    c.rect(0, 0, 4, H - 1, hx("#7a2a30"))                # the handrail on the left, a post every second step
+    c.vline(0, 0, H - 1, hx("#c0606a"))
+    c.vline(1, 0, H - 1, hx("#a04048"))
+    c.vline(4, 0, H - 1, hx("#3a1018"))
+    c.rect(5, 0, 6, H - 1, hx("#1a0c10"))
+    for y in range(8, H, 32):
+        c.rect(0, y, 6, y + 4, hx("#a04048"))
+        c.hline(0, 6, y, hx("#d8808a"))
+        c.hline(0, 6, y + 4, hx("#3a1018"))
+    for y in range(0, 20):                              # the top of the flight fades into the dark of the upper floor
+        c.hline(7, W - 8, y, (16, 8, 20, int(110 * (1 - y / 20.0))))
+    return c
+
+
+def table_big():
+    """A big round cafe table, 2 x 2 tiles: a lit wooden top with a front edge, a pedestal and foot, a candle jar, a plate and glasses."""
+    c = Canvas(2 * T, 2 * T)
+    cx = 32
+    c.shadow(cx, 59, 24, 4.5, 76)
+    c.ell(cx, 57, 14, 4.2, WOOD[0])
+    c.ell(cx, 56, 12, 3.2, WOOD[2])
+    c.hline(21, 28, 55, WOOD[3])
+    c.rect(28, 36, 36, 56, WOOD[1])
+    c.vline(28, 36, 56, WOOD[3])
+    c.vline(29, 36, 56, WOOD[2])
+    c.vline(36, 36, 56, WOOD[0])
+    c.ell(cx, 35, 28, 13.5, WOOD[1])                    # front edge
+    c.ell(cx, 33, 28, 13.5, mix(WOOD[1], WOOD[3], .4))
+    c.ell(cx, 31, 28, 13.5, WOOD[3])
+    c.ell(cx - 1, 29.8, 25, 11.4, light(WOOD[3], .1))
+    c.ell(cx - 9, 25, 9, 3, light(WOOD[3], .4))
+    for (gx, gy, gl) in ((-14, 3, 6), (2, -3, 5), (11, 6, 4)):   # grain
+        for k in range(gl):
+            c.set(cx + gx + k, 31 + gy, mix(WOOD[3], WOOD[2], .5))
+    c.ell(cx - 3, 33, 7, 2.8, "#e8e2d4")                 # a plate with a slice
+    c.ell(cx - 3, 32.5, 5, 2, "#f6f2ea")
+    c.ell(cx - 4, 32, 2.2, 1.2, "#d89a52")
+    c.rect(cx + 8, 20, cx + 12, 25, "#e86a3a")           # candle jar
+    c.hline(cx + 8, cx + 12, 20, "#f8a070")
+    c.hline(cx + 8, cx + 12, 25, dark(hx("#e86a3a"), .35))
+    c.rect(cx + 9, 16, cx + 11, 19, "#ffe27a")
+    c.set(cx + 10, 15, "#fff6c0")
+    glass(c, cx - 16, 31, liquid="#e8b83a")
+    glass(c, cx + 14, 34, liquid="#f4f1ea")
+    glass(c, cx + 2, 25, liquid="#c8423f")
+    c.outline()
+    return c
+
+
+def tv_front(w=3):
+    """A stretch of the front wall, `w` tiles wide, with the third screen on a dark wood panel (drawn as a wall that shows its face
+    to the player, like the back wall pictures)."""
+    c = Canvas(w * T, T)
+    c.vgrad(0, 0, w * T - 1, T - 1, hx("#4a2a20"), hx("#2a1812"))
+    for x in range(0, w * T, 16):                        # vertical planks
+        c.vline(x, 0, T - 1, hx("#1a0e0a"))
+        c.vline(x + 1, 0, T - 1, hx("#5a3626"))
+    c.hline(0, w * T - 1, 0, hx("#6a4232"))
+    tv(c, (w * T - 44) // 2, 4, 44, 24)
+    return c
+
+
 def define(reg):
+    for kind in ("top", "glasses", "tv", "taps", "bottles", "bot"):
+        reg.stamp("cortile_bar_side_" + kind, bar_side(kind), "objects")
+    reg.stamp("cortile_backbar_a", backbar_side(0), "walls")
+    reg.stamp("cortile_backbar_b", backbar_side(1), "walls")
+    reg.stamp("cortile_stairs", stairs(), "objects")
+    reg.stamp("cortile_table_big", table_big(), "objects")
+    reg.stamp("cortile_tv_front", tv_front(), "walls")
     reg.stamp("cortile_wall_left", wall_left(), "walls")
     reg.stamp("cortile_wall_mid", wall_mid(), "walls")
     reg.stamp("cortile_wall_right", wall_right(), "walls")

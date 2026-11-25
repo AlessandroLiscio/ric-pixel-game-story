@@ -84,10 +84,10 @@
     "walk": [],
     "friend": { "personId": "lara", "facing": "up", "at": "lara" },
     "extras": [
-      { "personId": "alessandro", "facing": "down", "egg": "extra-3", "at": "barista" }
+      { "personId": "alessandro", "facing": "right", "egg": "extra-3", "at": "barista" }
     ],
     "minigame": "rhythm",
-    "bins": [{ "x": 48, "y": 380 }],
+    "bins": [{ "x": 656, "y": 538 }],
     "ambient": []
   },
   {
