@@ -38,9 +38,9 @@
   "controls": {
     "rows": [
       "Frecce o WASD: cammina",
-      "Shift: corri",
+      "Shift: corri (nei titoli: scorrono veloci)",
       "X, Invio o Spazio: parla e conferma",
-      "X vicino a un cestino: guarda dentro",
+      "X vicino a cestini e oggetti: guarda",
       "Z: testo veloce, indietro nei menu",
       "Esc o C: menu",
       "M: audio sì/no",
@@ -213,6 +213,9 @@
       ],
       "meet": [
         { "speaker": "lara", "text": "La band: tu al basso, io alla voce,\ndue chitarristi mai visti e un batterista." },
+        { "speaker": "ros", "text": "Aspetta... ma quello al bancone è\nDavide Gallo?" },
+        { "speaker": "ric", "text": "E anche oggi è stato nominato." },
+        { "speaker": "ros", "text": "Ah no. Però mi sembrava proprio lui,\ngiuro!" },
         { "speaker": "ric", "text": "Perfetto. Una band senza prove,\ncome nelle più grandi leggende." },
         { "speaker": "lara", "text": "Stasera si suona senza rete.\nDivertiti e fatti notare, Ric!" }
       ],
@@ -295,6 +298,56 @@
       "instructions": "Premi Q W E R a tempo con le note\nche cadono. Tieni alto il gradimento.",
       "winText": "Pubblico in delirio!",
       "loseText": "Pubblico freddo. Qualcuno sbadiglia."
+    }
+  },
+  "objects": {
+    "universita": {
+      "screen": [
+        { "speaker": "narratore", "text": "Sullo schermo, una diapositiva gigante:\n«La camera oscura: istruzioni per l'uso»." },
+        { "speaker": "ric", "text": "(Quaranta minuti sulla stessa slide.\nRecord personale del Prof. Pinolo.)" }
+      ],
+      "seats": [
+        { "speaker": "narratore", "text": "Poltroncine di velluto rosso. Così comode\nche mezza sala dorme già." }
+      ]
+    },
+    "giuggiu": {
+      "table": [
+        { "speaker": "narratore", "text": "Il posacenere straborda di drummini\nspenti." }
+      ],
+      "tv": [
+        { "speaker": "narratore", "text": "In TV: episodio #104 di Daily Dose of\nInternet. Un tizio viene schiaffeggiato\nda una carpa." }
+      ],
+      "cat": [
+        { "speaker": "ric", "text": "È il Gatto di Paz!" },
+        { "speaker": "giuggiu", "text": "Etciù! ...Lo adoro, ma il mio naso no." }
+      ],
+      "window": [
+        { "speaker": "narratore", "text": "Al semaforo rosso, due giocolieri si\nesibiscono tra le macchine ferme." }
+      ],
+      "puf": [
+        { "speaker": "narratore", "text": "Ric si appisola sul puf. Una bolla dal\nnaso cresce, cresce... e scoppia." },
+        { "speaker": "ric", "text": "Eh? Chi? Non stavo dormendo." }
+      ]
+    },
+    "circe": {
+      "tv": [
+        { "speaker": "narratore", "text": "In TV c'è The Vampire Diaries. Come al\nsolito non la sta guardando nessuno." },
+        { "speaker": "narratore", "text": "Giusy è in bagno e Ros scrolla reels\nsul telefono." },
+        { "speaker": "ric", "text": "(Madonna santa che trash.)" }
+      ],
+      "sink": [
+        { "speaker": "narratore", "text": "Il lavandino è pieno di piatti sporchi\nda chissà quanti giorni." }
+      ],
+      "shelf": [
+        { "speaker": "narratore", "text": "Lo scaffale è pieno zeppo di gingilli\ninutili e libri sul femminismo." }
+      ],
+      "coatrack": [
+        { "speaker": "narratore", "text": "L'appendiabiti ti fa pena: si regge a\nmalapena sotto cappotti e borsette." }
+      ],
+      "fridge": [
+        { "speaker": "narratore", "text": "Frigo praticamente vuoto. Superstiti:\nun barattolo di olive a metà, un sugo\npronto ai funghi," },
+        { "speaker": "narratore", "text": "un pezzo di zenzero rinsecchito e una\nbottiglia di rosso aperta... senza tappo." }
+      ]
     }
   },
   "easterEggs": {

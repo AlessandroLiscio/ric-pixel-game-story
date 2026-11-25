@@ -61,6 +61,7 @@ export class EndingScene extends Phaser.Scene {
     private dim!: Phaser.GameObjects.Rectangle;
     private ricStand: Phaser.GameObjects.Sprite | null = null;
     private keyX!: Phaser.Input.Keyboard.Key;
+    private keyShift!: Phaser.Input.Keyboard.Key;
     private canRestart = false;
     private leaving = false;
     private showEnd: (() => void) | null = null;
@@ -98,6 +99,7 @@ export class EndingScene extends Phaser.Scene {
         startTvFx(this);
 
         this.keyX = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+        this.keyShift = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         this.input.keyboard!.on('keydown', this.onKey, this);
         this.game.events.on('test-skip', this.onSkip, this); // emitted by test builds only
         this.events.once('shutdown', () => {
@@ -257,7 +259,7 @@ export class EndingScene extends Phaser.Scene {
     }
 
     private rollCredits(delta: number): void {
-        this.scroll += (this.maxScroll / CREDITS_MS) * delta * (this.keyX.isDown ? FAST : 1);
+        this.scroll += (this.maxScroll / CREDITS_MS) * delta * (this.keyX.isDown ? FAST : this.keyShift.isDown ? 2 : 1); // Shift: twice as fast
         for (const line of this.credits) {
             const y = Math.round(line.y - this.scroll);
             line.obj.setY(y);

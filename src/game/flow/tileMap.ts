@@ -100,6 +100,8 @@ export function resolveMapScene(def: SceneDef, map: MapData): SceneDef {
 export class TileWorld {
     readonly widthPx: number;
     readonly heightPx: number;
+    /** The glow image of each light with a glow, so a lamp can be switched off and on. */
+    readonly glows: { def: LightDef; img: Phaser.GameObjects.Image }[] = [];
 
     constructor(
         private readonly scene: Phaser.Scene,
@@ -285,6 +287,7 @@ export class TileWorld {
                 .setBlendMode(Phaser.BlendModes.ADD)
                 .setDepth(depth)
                 .setScale((l.r * 2) / 64);
+            this.glows.push({ def: l, img });
             if (l.kind === 'steady') {
                 img.setAlpha(0.55);
                 continue;

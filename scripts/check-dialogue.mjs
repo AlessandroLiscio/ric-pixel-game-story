@@ -66,7 +66,13 @@ try {
   process.exit(1);
 }
 
-sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'credits', 'titleScreen']);
+sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'objects', 'credits', 'titleScreen']);
+
+// objects: X next to an obj_<id> point of a room map (src/game/flow/objects.ts) plays objects.<sceneId>.<id>
+for (const [sid, objs] of Object.entries(data.objects ?? {})) {
+  if (!SCENES.includes(sid)) err(`objects.${sid}`, "not a scene id");
+  for (const [oid, arr] of Object.entries(objs)) checkLines(`objects.${sid}.${oid}`, arr);
+}
 
 // menu, controls (the Esc menu) and diary (one entry per scene, up to 4 rows)
 sameKeys('menu', data.menu ?? {}, MENU_KEYS);
