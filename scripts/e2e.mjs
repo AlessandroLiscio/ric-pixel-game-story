@@ -346,18 +346,18 @@ try {
         sc.tweens.timeScale = 4; // the hops and the hiding play four times faster, the logic is the same
         sc.time.timeScale = 4;
     });
-    // hidden = under the sofa body (depth 5, feet at 272) and no tween moving it any more; read the sofa from the cat, not from the scene's own field
+    // hidden for good = the scene takes picks (it does only after the last slide) with the cat under the sofa body (depth 5) and no tween moving it; read the sofa from the cat, not from the scene's own field
     await page.waitForFunction(
         () => {
             const sc = window.__ricGame.scene.getScene('minigame-cat-smoke');
-            return sc.cat.depth === 5 && sc.cat.y <= 273 && sc.tweens.getTweensOf(sc.cat).length === 0;
+            return sc.picking === true && sc.cat.depth === 5 && sc.tweens.getTweensOf(sc.cat).length === 0;
         },
         null,
         { timeout: 60000, polling: 50 }
     );
     const sofaOfCat = await page.evaluate(() => {
-        const x = window.__ricGame.scene.getScene('minigame-cat-smoke').cat.x;
-        return x < 230 ? 0 : x < 410 ? 1 : 2;
+        const x = window.__ricGame.scene.getScene('minigame-cat-smoke').cat.x; // the sofas stand at x 46 (left), 320 (middle), 594 (right)
+        return x < 183 ? 0 : x < 457 ? 1 : 2;
     });
     await press(['ArrowLeft', 'ArrowUp', 'ArrowRight'][sofaOfCat]);
     await press('x');

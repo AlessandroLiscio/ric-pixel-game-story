@@ -13,9 +13,9 @@ const ID = 'slackline';
 const STEPS = 5;
 const PIPS = 3;
 const TIME_LIMIT = 45000; // ms of play; running out of time counts as a fall
-/** Milliseconds for one sweep from one end of the bar to the other, per step already made (it gets faster). */
-const SWEEP_MS = [2400, 2200, 2000, 1800, 1600];
-const ZONE = 0.15; // each end zone covers this fraction of the bar
+/** Milliseconds for one sweep from one end of the bar to the other, per step already made (it gets faster). The first version was [2400, 2200, 2000, 1800, 1600]: the owner's playtest asked for triple the speed. */
+const SWEEP_MS = [800, 733, 667, 600, 533];
+const ZONE = 0.075; // each end zone covers this fraction of the bar (it was 0.15: the owner's playtest asked for half the width)
 
 const LINE_Y = 205;
 const X0 = 110;
