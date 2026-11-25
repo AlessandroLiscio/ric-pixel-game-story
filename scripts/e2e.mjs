@@ -196,7 +196,7 @@ try {
         // a tile room takes door and friend positions from its map: read the resolved entry from the live scene
         const live = await page.evaluate(() => {
             const d = window.__ricGame.scene.getScene('world').def;
-            return { friend: d.friend, door: d.door };
+            return { friend: d.friend, friend2: d.friend2, door: d.door };
         });
         const def = { ...SCENES[i], ...live };
         const before = (await entered()).length;
@@ -257,12 +257,16 @@ try {
                 await closeDialogue();
                 note('bin: the first one gave the portal gun, a second one a joke, P before the minigame said the not-yet line');
             }
-            await teleport(def.friend.x - 22, def.friend.y);
+            // circe: talk to Giusy (friend2) first, then Ros; each plays only her own minigame, whatever the order
+            const talks = def.friend2 ? [def.friend2, def.friend] : [def.friend];
+            await teleport(talks[0].x - 22, talks[0].y);
             for (let n = 0; n < 600; n++) {
                 s = await state();
                 if (want.every((id) => s.party.includes(id))) break;
                 if (s.scene.startsWith('minigame-')) {
                     await playMinigame(s.scene.slice('minigame-'.length));
+                    talks.shift();
+                    if (talks.length) await teleport(talks[0].x - 22, talks[0].y);
                 } else {
                     await press('x');
                     await sleep(120);
@@ -299,7 +303,9 @@ try {
         s = await until((x) => (i === 5 ? x.scene === 'ending' : world(i + 1)(x)), `leaving scene ${i} (${SCENES[i].id})`, 15000);
         const went = (await entered()).slice(before);
         check(s.party.join() === party.join(), `scene ${i} ${SCENES[i].id}: party ${s.party}, wanted ${party}`);
-        check(went.join() === minigamesOf(SCENES[i]).join(), `scene ${i} ${SCENES[i].id}: minigames entered [${went}], wanted [${minigamesOf(SCENES[i])}]`);
+        // circe is talked to Giusy first, so her mash comes before Ros's d20
+        const wanted = SCENES[i].friend2 ? [...minigamesOf(SCENES[i])].reverse() : minigamesOf(SCENES[i]);
+        check(went.join() === wanted.join(), `scene ${i} ${SCENES[i].id}: minigames entered [${went}], wanted [${wanted}]`);
         note(`scene ${i} ${SCENES[i].id} (${real ? 'real keys' : 'teleport + skip'}): minigames [${went}], party ${s.party}`);
     }
 
