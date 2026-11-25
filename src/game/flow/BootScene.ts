@@ -25,7 +25,8 @@ export class BootScene extends Phaser.Scene {
         this.load.on('progress', (p: number) => (bar.width = BAR_W * p));
         this.load.on('loaderror', (file: Phaser.Loader.File) => console.error(`load failed: ${file.key}`));
 
-        for (const s of SCENES) if (!s.map) this.load.image(s.background, assetUrl(`backgrounds/${s.background.replace(/^bg-/, '')}.png`));
+        // every scene, tile room or not: the simon and slackline minigames draw their scene's background (100 KB in all)
+        for (const s of SCENES) this.load.image(s.background, assetUrl(`backgrounds/${s.background.replace(/^bg-/, '')}.png`));
         this.load.spritesheet(TILESET_KEY, assetUrl('tiles/tileset.png'), { frameWidth: TILE, frameHeight: TILE });
         for (const sheet of crowdSheets()) this.load.spritesheet(`char-${sheet}`, assetUrl(`tiles/${sheet}.png`), { frameWidth: 32, frameHeight: 32 });
         for (const p of PEOPLE) {
