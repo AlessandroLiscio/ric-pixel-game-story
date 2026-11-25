@@ -67,7 +67,8 @@ class Registry:
     def stamp(self, name, canvas, layer="objects", above_rows=0, mask=None):
         """layer: objects (sorted with characters by their bottom row), walls or below (baked under everyone), above (over everyone).
         above_rows: how many top rows go to the `above` layer (tree crowns), those cells never block.
-        mask: one string per row, '#' blocks and '.' does not (default: every cell blocks in layer objects)."""
+        mask: one string per row, '#' blocks and '.' does not (default: every cell blocks in layer objects; a walls stamp blocks only where its mask says, so a
+        standing object baked under the characters, such as a bike, takes a mask)."""
         w, h = canvas.w // T, canvas.h // T
         assert canvas.w % T == 0 and canvas.h % T == 0, name
         if self.scope:
@@ -82,7 +83,7 @@ class Registry:
                     srow.append(0)
                     continue
                 tname = "%s.%d.%d" % (name, cx, cy)
-                is_solid = layer == "objects" and cy >= above_rows and (mask is None or mask[cy][cx] == "#")
+                is_solid = (layer == "objects" and cy >= above_rows and (mask is None or mask[cy][cx] == "#")) or (layer == "walls" and mask is not None and mask[cy][cx] == "#")
                 self.tile(tname, part, solid=is_solid)
                 row.append(tname)
                 srow.append(int(is_solid))

@@ -5,6 +5,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { joinFx, resultFx } from '../fx/moments';
 import { MINIGAME_DONE, type MinigameDone, type MinigameInit } from '../minigames/types';
 import { Party } from '../party/Party';
+import { idleLife } from '../party/idle';
 import { ensureCharAnims } from '../party/anims';
 import { fadeToScene } from '../transitions';
 import { DialogBox } from '../ui/DialogBox';
@@ -193,6 +194,7 @@ export class WorldScene extends Phaser.Scene {
         ensureCharAnims(this, npcDef.personId);
         const sprite = this.add.sprite(npcDef.x, npcDef.y, `char-${npcDef.personId}`, 1).setOrigin(0.5, 1).setDepth(npcDef.y);
         sprite.play(`${npcDef.personId}-idle-${npcDef.facing}`);
+        idleLife(this).add(sprite, { look: true, shift: kind !== 'friend', canLook: () => !this.busy });
         const npc: Npc = { def: npcDef, sprite, kind };
         this.npcs.push(npc);
         return npc;
@@ -206,7 +208,7 @@ export class WorldScene extends Phaser.Scene {
             const at = feetOf(c);
             const sprite = this.add.sprite(at.x, at.y, `char-${id}`, 1).setOrigin(0.5, 1).setDepth(at.y);
             sprite.play(`${id}-idle-${c.facing}`);
-            this.tweens.add({ targets: sprite, y: at.y - 1, duration: c.bob / 2, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: Phaser.Math.Between(0, c.bob) });
+            idleLife(this).add(sprite, { period: c.bob, look: true, shift: true }); // a soft breath, now and then a glance or a shift of weight
             this.crowd.push(sprite);
         }
     }

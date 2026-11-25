@@ -4,7 +4,8 @@
 //   logs/e2e/dist-prod  production: the title renders, the game starts, and no test hook ships.
 // Real input: scene 1 (universita) and the last scene (divano) are played with key presses only (arrows, X); simon, mash and d20 are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
-// slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
+// slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered. A last step plays
+// cat-smoke with real keys and picks the right sofa the moment the cat hides (regression: that pick used to be dropped and lose the round).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -224,6 +225,42 @@ try {
     s = await until(world(0), 'a new run from the title');
     check(s.party.length === 0 && Object.keys(s.results).length === 0, `second run is not fresh: ${JSON.stringify(s)}`);
     note('title replay restarted a fresh run');
+
+    // ---- cat-smoke regression: a pick made the moment the cat has slipped under the right sofa, before the countdown, must win ----
+    // (the scene used to drop keys until the countdown started, so a quick player who chose the right sofa lost the round)
+    await page.evaluate(() => {
+        const g = window.__ricGame;
+        g.scene.getScenes(true).forEach((sc) => sc.scene.stop());
+        window.__catDone = null;
+        g.events.once('minigame:done', (d) => (window.__catDone = d));
+        g.scene.start('minigame-cat-smoke', { sceneId: 'giuggiu' });
+    });
+    await sleep(700);
+    await press('x'); // closes the instruction card
+    await page.evaluate(() => {
+        const sc = window.__ricGame.scene.getScene('minigame-cat-smoke');
+        sc.tweens.timeScale = 4; // the hops and the hiding play four times faster, the logic is the same
+        sc.time.timeScale = 4;
+    });
+    // hidden = under the sofa body (depth 5, feet at 272) and no tween moving it any more; read the sofa from the cat, not from the scene's own field
+    await page.waitForFunction(
+        () => {
+            const sc = window.__ricGame.scene.getScene('minigame-cat-smoke');
+            return sc.cat.depth === 5 && sc.cat.y <= 273 && sc.tweens.getTweensOf(sc.cat).length === 0;
+        },
+        null,
+        { timeout: 60000, polling: 50 }
+    );
+    const sofaOfCat = await page.evaluate(() => {
+        const x = window.__ricGame.scene.getScene('minigame-cat-smoke').cat.x;
+        return x < 230 ? 0 : x < 410 ? 1 : 2;
+    });
+    await press(['ArrowLeft', 'ArrowUp', 'ArrowRight'][sofaOfCat]);
+    await press('x');
+    await page.waitForFunction(() => window.__catDone !== null, null, { timeout: 20000 });
+    const catDone = await page.evaluate(() => window.__catDone);
+    check(catDone.id === 'cat-smoke' && catDone.won === true, `cat-smoke: the right sofa (${sofaOfCat}) picked as soon as the cat hid did not win: ${JSON.stringify(catDone)}`);
+    note(`cat-smoke: early pick of sofa ${sofaOfCat} wins`);
 
     const bad = requests.filter((u) => !/^(file|data):/.test(u));
     check(bad.length === 0, `network requests: ${bad.slice(0, 3).join(', ')}`);
