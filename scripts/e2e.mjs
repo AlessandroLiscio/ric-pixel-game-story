@@ -5,6 +5,8 @@
 // Real input: scene 1 (universita) and the last scene (divano) are played with key presses only (arrows, X); simon, mash and d20 are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
+// Also covered: Shift runs, the Esc menu (opens, pauses the world, controls and diary, quit to the title resets the run), a litter bin
+// (the first one gives the portal gun), the portal (scene 2 is left through a wall) and the edge exit (giardini has no door).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -124,6 +126,67 @@ try {
     check(s.party.length === 0, `F1 party ${s.party}`);
     note('debug jumps F2/F1 ok');
 
+    // ---- run, the Esc menu and leaving it for the title (scene 1, before any story) ----
+    const closeDialogue = async () => {
+        for (let n = 0; n < 10; n++) {
+            await test('skip');
+            await sleep(120);
+        }
+        await sleep(350); // the world ignores a key for 250 ms after a box closes
+    };
+    const worldProp = (name) => page.evaluate((k) => window.__ricGame.scene.getScene('world')[k], name);
+    const menuProp = (name) => page.evaluate((k) => window.__ricGame.scene.getScene('menu')[k], name);
+    await closeDialogue();
+    const walkLeft = async (shift) => {
+        await teleport(240, 188);
+        await sleep(200);
+        const x0 = await page.evaluate(() => window.__ricGame.scene.getScene('world').ric.x);
+        if (shift) await page.keyboard.down('Shift');
+        await page.keyboard.down('ArrowLeft');
+        await sleep(400);
+        await page.keyboard.up('ArrowLeft');
+        if (shift) await page.keyboard.up('Shift');
+        return x0 - (await page.evaluate(() => window.__ricGame.scene.getScene('world').ric.x));
+    };
+    const [walked, ran] = [await walkLeft(false), await walkLeft(true)];
+    check(walked > 15 && ran > walked * 1.4, `Shift does not run: walked ${walked} px, ran ${ran} px in 400 ms`);
+    await teleport(240, 188);
+    await sleep(200);
+    await press('Escape');
+    await until((x) => x.scene === 'menu', 'the Esc menu');
+    await sleep(300);
+    check(await page.evaluate(() => window.__ricGame.scene.isPaused('world')), 'the world is not paused behind the menu');
+    check((await menuProp('mode')) === 'main', 'the menu does not open on its main window');
+    for (const [keys, mode] of [[['ArrowDown', 'x'], 'controls'], [['Escape', 'ArrowUp', 'x'], 'diary'], [['Escape'], 'main']]) {
+        for (const k of keys) {
+            await press(k);
+            await sleep(150);
+        }
+        check((await menuProp('mode')) === mode, `menu window "${mode}" expected, got "${await menuProp('mode')}"`);
+    }
+    await press('Escape'); // closes the menu and resumes the world
+    s = await until((x) => x.scene === 'world', 'back to the world after the menu');
+    check(!(await page.evaluate(() => window.__ricGame.scene.isPaused('world'))), 'the world stays paused after the menu closes');
+    check(s.sceneIndex === 0, `menu changed the scene: ${s.sceneIndex}`);
+    await sleep(400);
+    // Esc, "Esci al menu principale", "Sì": back to the title with a fresh run
+    await press('Escape');
+    await until((x) => x.scene === 'menu', 'the Esc menu, second time');
+    await sleep(300);
+    for (const k of ['ArrowDown', 'ArrowDown', 'x']) {
+        await press(k);
+        await sleep(150);
+    }
+    check((await menuProp('mode')) === 'confirm' && (await menuProp('sel')) === 1, 'the quit question does not default to No');
+    await press('ArrowLeft');
+    await sleep(150);
+    await press('x');
+    s = await until((x) => x.scene === 'title', 'title after quitting from the menu');
+    check(s.sceneIndex === 0 && s.party.length === 0 && Object.keys(s.results).length === 0 && !s.portalGun, `quit did not reset the run: ${JSON.stringify(s)}`);
+    await press('Enter');
+    await until(world(0), 'a new run after quitting');
+    note(`menu: opens, pauses the world, controls and diary windows, quit to the title resets the run; Shift runs (${Math.round(walked)} px walking, ${Math.round(ran)} px running in 400 ms)`);
+
     // ---- the six scenes ----
     const party = [];
     for (let i = 0; i < 6; i++) {
@@ -169,6 +232,30 @@ try {
                 await test('skip'); // arrival lines
                 await sleep(150);
             }
+            if (i === 1) {
+                // the first bin of the run holds the portal gun; P before the scene is done gets the "not yet" line
+                const bin = SCENES[i].bins[0];
+                check(!(await state()).portalGun, 'the portal gun is found before any bin was checked');
+                await teleport(bin.x - 24, bin.y);
+                await sleep(300);
+                await press('x');
+                await sleep(300);
+                check(await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.isOpen), 'X next to a bin opens no dialogue');
+                await closeDialogue();
+                check((await state()).portalGun, 'the first bin did not give the portal gun');
+                await press('p');
+                await sleep(400);
+                await press('x'); // completes the typing of the page
+                await sleep(200);
+                const said = await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.body.text);
+                check(said.replace(/\n/g, ' ') === "Meh, non abbiamo mica finito qui. C'è ancora da fare.", `P before the minigame said "${said}"`);
+                await closeDialogue();
+                await press('x'); // a second bin check: a joke line, the gun stays
+                await sleep(300);
+                check(await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.isOpen), 'a second look in the bin opens no dialogue');
+                await closeDialogue();
+                note('bin: the first one gave the portal gun, a second one a joke, P before the minigame said the not-yet line');
+            }
             await teleport(def.friend.x - 22, def.friend.y);
             for (let n = 0; n < 600; n++) {
                 s = await state();
@@ -183,12 +270,29 @@ try {
                 }
             }
             for (let n = 0; n < 20; n++) {
-                // the join banners come first; the door only opens after them
+                // the join banners come first; the exit only opens after them
                 await sleep(500);
-                await teleport(def.door.x + def.door.w / 2, def.door.y + def.door.h / 2);
-                await sleep(300);
+                if (i === 1) {
+                    // the portal gun: face the back wall and press P; the party walks in and the next scene starts
+                    await teleport(200, 156);
+                    await page.evaluate(() => (window.__ricGame.scene.getScene('world').facing = 'up'));
+                    await sleep(1200);
+                    await press('p');
+                    for (let k = 0; k < 40 && (await state()).sceneIndex <= i; k++) await sleep(200); // the portal walk takes a few seconds
+                } else if (SCENES[i].exit === 'edge') {
+                    // no door: walk to the left edge of the map
+                    await teleport(120, 470);
+                    await page.keyboard.down('ArrowLeft');
+                    await sleep(1500);
+                    await page.keyboard.up('ArrowLeft');
+                } else {
+                    await teleport(def.door.x + def.door.w / 2, def.door.y + def.door.h / 2);
+                    await sleep(300);
+                }
                 if ((await state()).sceneIndex > i || (await state()).scene === 'ending') break;
             }
+            if (i === 1) note('portal: P on the back wall took the party to the next scene');
+            if (SCENES[i].exit === 'edge') note(`${SCENES[i].id}: left by walking to the edge of the map`);
         }
 
         s = await until((x) => (i === 5 ? x.scene === 'ending' : world(i + 1)(x)), `leaving scene ${i} (${SCENES[i].id})`, 15000);

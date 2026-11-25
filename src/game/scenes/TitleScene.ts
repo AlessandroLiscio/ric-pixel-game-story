@@ -42,6 +42,7 @@ export class TitleScene extends Phaser.Scene {
         const prompt = this.add.text(cx, 188, t('titleScreen.press'), { ...pixelStyle(16, '#ffffff'), shadow: { ...shadow, offsetX: 1, offsetY: 1 } }).setOrigin(0.5);
         this.tweens.add({ targets: prompt, alpha: 0.15, duration: 520, yoyo: true, repeat: -1 });
         this.add.text(8, GAME_HEIGHT - 20, `${t('ui.fullscreen')}    ${t('ui.mute')}`, pixelStyle(16, '#9ec8ff'));
+        this.add.text(8, GAME_HEIGHT - 38, `${t('ui.run')}    ${t('ui.menu')}`, pixelStyle(16, '#9ec8ff'));
 
         this.input.keyboard!.on('keydown', this.onKey, this);
         this.events.once('shutdown', () => this.input.keyboard?.off('keydown', this.onKey, this));

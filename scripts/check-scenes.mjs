@@ -99,6 +99,26 @@ function mapScene(at, sc, id) {
     if (!reach) err(w, 'door is not reachable from the spawn over walkable tiles');
   }
   if (sc.door !== null && sc.door !== undefined && typeof sc.door !== 'object') err(at, 'door comes from the map point "door"; scenes.json door must be null');
+  if (sc.exit !== undefined && sc.exit !== 'edge') err(at, 'exit is "edge" when present');
+  // litter bins (x, y are the feet in pixels): a drawn one stands on a free tile next to a wall, away from the people and the door;
+  // one the map already draws (draw: false) sits on a blocked tile; either way a walkable tile reachable from the spawn is next to it
+  if (!Array.isArray(sc.bins) || sc.bins.length === 0) err(at, 'bins must list at least one litter bin');
+  (sc.bins ?? []).forEach((b, j) => {
+    const where = `${at} bins[${j}]`;
+    if (!isNum(b?.x) || !isNum(b?.y)) return err(where, 'x and y must be numbers (pixels)');
+    const bx = Math.floor(b.x / 32);
+    const by = Math.floor((b.y - 1) / 32);
+    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [bx + dx, by + dy]);
+    if (b.draw === false) {
+      if (free(bx, by)) err(where, `draw is false but (${bx},${by}) is a free tile: the map draws no bin there`);
+    } else {
+      if (!free(bx, by)) err(where, `(${bx},${by}) is a blocked tile`);
+      if (!near.some(([x, y]) => !free(x, y))) err(where, `(${bx},${by}) is not next to a wall`);
+      const tooClose = [spawn, door, ...Object.values(map.points ?? {})].some((p) => p && Math.abs(p.x - bx) + Math.abs(p.y - by) < 2);
+      if (tooClose) err(where, `(${bx},${by}) is right next to the spawn, the door or a person`);
+    }
+    if (!near.some(([x, y]) => seen.has(`${x},${y}`))) err(where, `no tile next to (${bx},${by}) can be reached from the spawn`);
+  });
 
   const person = (where, p, mustReach) => {
     if (p === null || typeof p !== 'object') return err(where, 'not an object');
