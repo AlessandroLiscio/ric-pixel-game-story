@@ -121,6 +121,7 @@ export class MenuScene extends Phaser.Scene {
     private quit(): void {
         this.leaving = true;
         audio.stopTrack();
+        audio.stopAmbience();
         const veil = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0).setOrigin(0).setDepth(100);
         this.tweens.add({
             targets: veil,

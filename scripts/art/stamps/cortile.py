@@ -10,7 +10,7 @@ drawn as one picture each so the plaster, the shadows and the lamps join; the ma
 Every name starts with `cortile_`: the registry refuses anything else from a room module."""
 import math
 
-from tilepaint import (GOLD, LOWER, METAL, WOOD, Canvas, T, dark, hx, light, make_ramp, mix, rng)
+from tilepaint import (GOLD, LOWER, METAL, WOOD, Canvas, T, dark, hx, light, make_ramp, mix, pxl_object, rng)
 from tiles_objects import bottle, glass, panel
 
 WARM = make_ramp("#e9c58b", 4, 1)           # cream plaster
@@ -835,41 +835,6 @@ def stairs():
     return c
 
 
-def table_big():
-    """A big round cafe table, 2 x 2 tiles: a lit wooden top with a front edge, a pedestal and foot, a candle jar, a plate and glasses."""
-    c = Canvas(2 * T, 2 * T)
-    cx = 32
-    c.shadow(cx, 59, 24, 4.5, 76)
-    c.ell(cx, 57, 14, 4.2, WOOD[0])
-    c.ell(cx, 56, 12, 3.2, WOOD[2])
-    c.hline(21, 28, 55, WOOD[3])
-    c.rect(28, 36, 36, 56, WOOD[1])
-    c.vline(28, 36, 56, WOOD[3])
-    c.vline(29, 36, 56, WOOD[2])
-    c.vline(36, 36, 56, WOOD[0])
-    c.ell(cx, 35, 28, 13.5, WOOD[1])                    # front edge
-    c.ell(cx, 33, 28, 13.5, mix(WOOD[1], WOOD[3], .4))
-    c.ell(cx, 31, 28, 13.5, WOOD[3])
-    c.ell(cx - 1, 29.8, 25, 11.4, light(WOOD[3], .1))
-    c.ell(cx - 9, 25, 9, 3, light(WOOD[3], .4))
-    for (gx, gy, gl) in ((-14, 3, 6), (2, -3, 5), (11, 6, 4)):   # grain
-        for k in range(gl):
-            c.set(cx + gx + k, 31 + gy, mix(WOOD[3], WOOD[2], .5))
-    c.ell(cx - 3, 33, 7, 2.8, "#e8e2d4")                 # a plate with a slice
-    c.ell(cx - 3, 32.5, 5, 2, "#f6f2ea")
-    c.ell(cx - 4, 32, 2.2, 1.2, "#d89a52")
-    c.rect(cx + 8, 20, cx + 12, 25, "#e86a3a")           # candle jar
-    c.hline(cx + 8, cx + 12, 20, "#f8a070")
-    c.hline(cx + 8, cx + 12, 25, dark(hx("#e86a3a"), .35))
-    c.rect(cx + 9, 16, cx + 11, 19, "#ffe27a")
-    c.set(cx + 10, 15, "#fff6c0")
-    glass(c, cx - 16, 31, liquid="#e8b83a")
-    glass(c, cx + 14, 34, liquid="#f4f1ea")
-    glass(c, cx + 2, 25, liquid="#c8423f")
-    c.outline()
-    return c
-
-
 def tv_front(w=3):
     """A stretch of the front wall, `w` tiles wide, with the third screen on a dark wood panel (drawn as a wall that shows its face
     to the player, like the back wall pictures)."""
@@ -889,7 +854,7 @@ def define(reg):
     reg.stamp("cortile_backbar_a", backbar_side(0), "walls")
     reg.stamp("cortile_backbar_b", backbar_side(1), "walls")
     reg.stamp("cortile_stairs", stairs(), "objects")
-    reg.stamp("cortile_table_big", table_big(), "objects")
+    reg.stamp("cortile_table_big", pxl_object("cortile_table_big", (33, 59, 24, 4.5, 76)), "objects")   # drawn with pxl, scripts/art/pxl/objects.px.js
     reg.stamp("cortile_tv_front", tv_front(), "walls")
     reg.stamp("cortile_wall_left", wall_left(), "walls")
     reg.stamp("cortile_wall_mid", wall_mid(), "walls")

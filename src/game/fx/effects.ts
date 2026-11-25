@@ -22,6 +22,8 @@ import * as hitSpark from '../../vendor/pixelfx/fx/impacts/hit-spark.js';
 import * as impactFrame from '../../vendor/pixelfx/fx/impacts/impact-frame.js';
 import * as bubbles from '../../vendor/pixelfx/fx/water/bubbles.js';
 import * as splash from '../../vendor/pixelfx/fx/water/splash.js';
+import * as bird from '../../vendor/pixelfx/fx/critters/bird.js';
+import * as butterfly from '../../vendor/pixelfx/fx/critters/butterfly.js';
 import * as fishSchool from '../../vendor/pixelfx/fx/critters/fish-school.js';
 import * as jellyfish from '../../vendor/pixelfx/fx/critters/jellyfish.js';
 import * as fireflies from '../../vendor/pixelfx/fx/weather/fireflies.js';
@@ -55,6 +57,8 @@ export const EFFECTS: Record<string, FxModule> = {
     'impacts/impact-frame': impactFrame,
     'water/bubbles': bubbles,
     'water/splash': splash,
+    'critters/bird': bird,
+    'critters/butterfly': butterfly,
     'critters/fish-school': fishSchool,
     'critters/jellyfish': jellyfish,
     'weather/fireflies': fireflies,

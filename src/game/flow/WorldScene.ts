@@ -100,6 +100,7 @@ export class WorldScene extends Phaser.Scene {
             if (def.door?.draw) this.add.rectangle(def.door.x, def.door.y, def.door.w, def.door.h, 0x5a3a22).setOrigin(0).setStrokeStyle(2, 0xd9b27a).setDepth(0);
         }
         audio.playTrack(def.music);
+        audio.playAmbience(def.id);
 
         ensureCharAnims(this, 'ric');
         this.ric = this.add.sprite(def.spawn.x, def.spawn.y, 'char-ric', 1).setOrigin(0.5, 1);
@@ -112,12 +113,18 @@ export class WorldScene extends Phaser.Scene {
 
         this.spawnNpcs();
         if (map && this.tw) this.spawnCrowd();
-        startAmbient(this, { sceneId: def.id, lights: this.tw?.data.lights, spriteOf: (id) => this.npcs.find((n) => n.def.personId === id)?.sprite });
+        startAmbient(this, { sceneId: def.id, map: this.tw?.data, spriteOf: (id) => this.npcs.find((n) => n.def.personId === id)?.sprite });
         if (this.tw) {
             const cam = this.cameras.main;
-            cam.setBounds(0, 0, this.tw.widthPx, this.tw.heightPx);
-            cam.startFollow(this.ric, true, 0.12, 0.12);
-            cam.centerOn(this.ric.x, this.ric.y - 16);
+            // The camera runs zoomed with origin 0 (hdCamera.ts), but its follow and clamp code assumes origin 0.5: a half-view offset on
+            // the bounds and on the follow target makes both work in the 640x360 logical space.
+            const hx = GAME_WIDTH / 2;
+            const hy = GAME_HEIGHT / 2;
+            cam.setBounds(hx, hy, this.tw.widthPx, this.tw.heightPx);
+            cam.startFollow(this.ric, true, 0.12, 0.12, hx, hy);
+            cam.setScroll(this.ric.x - hx, this.ric.y - 16 - hy); // startFollow's own first scroll assumes origin 0.5
+            cam.scrollX = cam.clampX(cam.scrollX);
+            cam.scrollY = cam.clampY(cam.scrollY);
         }
         this.talkHint = this.add.text(0, 0, t('ui.talk'), { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 1).setDepth(900).setVisible(false);
         this.dialog = new DialogBox(this);
@@ -343,7 +350,7 @@ export class WorldScene extends Phaser.Scene {
         const cam = this.cameras.main;
         // the camera centres Ric's feet exactly on the middle line, so a few pixels of margin keep the box at the bottom there
         const lowest = Math.max(this.ric.y, this.nearestTalkable()?.sprite.y ?? 0);
-        this.dialog.setAtTop(!!this.tw && lowest - cam.scrollY > GAME_HEIGHT / 2 + 4);
+        this.dialog.setAtTop(!!this.tw && lowest - cam.scrollY > GAME_HEIGHT / 2 + 4); // origin 0: scrollY is the top of the view
         await this.dialog.show(dialogLines);
     }
 

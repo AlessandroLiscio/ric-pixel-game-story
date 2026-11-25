@@ -31,6 +31,7 @@ Review aids, never committed: `--preview PATH.png` writes a contact sheet (the s
 | `scripts/art/tiles_terrain.py` | floors, wall caps, wall faces and the soft shadow strips: single seamless 32x32 tiles |
 | `scripts/art/tiles_objects.py` | furniture, stage gear, plants, signs, rugs that any room can use |
 | `scripts/art/tiles_rooms.py` | pieces drawn for the home, university and park rooms, to restyle when a room needs them |
+| `scripts/art/pxl/objects.px.js` | eight key objects drawn with pxl (`.claude/skills/pxl`), built to the committed PNGs in `scripts/art/pxl/out/sprites` that the stamps load with `pxl_object` (see `scripts/art/pxl/README.md`) |
 | `scripts/art/stamps/<sceneId>.py` | the stamps of one room, found by `tiles.py` with importlib; names must start with `<sceneId>_` |
 | `scripts/art/rooms/<sceneId>.py` | the map of one room, found by `maps.py` with importlib; `build()` returns a `mapkit.Map` with that id |
 | `scripts/art/mapkit.py` | the `Map` class every room module uses |
@@ -273,3 +274,4 @@ The room is 22 x 12 tiles, the same flat as `circe` on the night of the story, r
 | the long table with the red damask cloth and white and clear chairs, left from the dinner (`circe` photos, the plan) | `circe_table_v` at (4, 6) with its candle, `circe_chair_white_e` at (3, 7) and (3, 8), `circe_chair_ghost_w` at (7, 7) and (7, 8) |
 | blue and violet light of the screen over everything, the room otherwise dark | mood `#424e80`, a pulsing violet pool on the TV, blue pools on the rug and on the sofa |
 | the party on and around the sofa in front of the TV (the story text; the photos have people on the sofa and standing in front of the TV, redrawn here as our own characters) | the points `seat_sofa_l`, `seat_sofa_m`, `seat_sofa_r`, `seat_chair_l`, `seat_chair_r`, `seat_pouf`, `seat_floor` and `seat_cat`: the ending seats Liscio, Ric (or Ros) and Lara on the sofa with their backs to us, Giusy and Ros (or Ric standing) on the two chairs of the table that face each other, Lollino behind the pink pouf, Giuggiu asleep on the rug, the cat if its minigame was won |
+| the night outside the curtained glass door (the photo `casa-circe-divano-aperto`) | the point `window` (2 x 3 at tile 16, 2): the ambient code (`src/game/ambient/life.ts`) draws a moon with its glow and a few fireflies in the right half of it |

@@ -1,7 +1,7 @@
 // Offline build: every binary asset under public/assets is inlined as a data: URI, so the single
 // HTML file works from file:// with no other file and no network request.
 // Same signature as assetUrl.pages.ts; the two are swapped by the `asset-url` alias in vite/shared.mjs.
-const inlined = import.meta.glob('/public/assets/**/*.{png,jpg,jpeg,gif,webp,ttf,woff,woff2}', {
+const inlined = import.meta.glob('/public/assets/**/*.{png,jpg,jpeg,gif,webp,ttf,woff,woff2,ogg}', {
     query: '?inline',
     eager: true,
     import: 'default'

@@ -11,7 +11,7 @@ import math
 
 from PIL import Image
 
-from tilepaint import (Canvas, T, dark, hx, light, make_ramp, mix, rng)
+from tilepaint import (Canvas, T, dark, hx, light, make_ramp, mix, pxl_object, rng)
 
 WALLC = make_ramp("#d8cbc6", 5, 3, dark_hue=285, sh=30)            # pale lilac cream plaster
 PQ = make_ramp("#5e3d2a", 5, 2, dark_hue=300, sh=14)               # herringbone parquet
@@ -775,69 +775,6 @@ def cream_cover(c, H):
     c.set(40, 27, "#c8c8d0")
 
 
-def burg_cover(c, H):
-    c.rect(28, 38, 33, 40, "#16161c")                               # a small black USB stick on the middle cushion
-    c.rect(24, 22, 40, 30, "#2a2a40")                               # a patterned dark cushion
-    c.hline(24, 40, 22, "#5a5a80")
-    for k in range(3):
-        c.set(28 + k * 5, 26, "#d8d8e8")
-
-
-def sofa_south(R, n=4, throw=True):
-    """The navy sofa facing the viewer (south), n tiles wide: back cushions on top, a seat, two rolled arms, with the bright red throw on
-    the seat and over the right arm and a dark grey cushion on the left (the cat sleeps on this sofa)."""
-    W = n * T
-    c = Canvas(W, 2 * T)
-    c.shadow(W / 2, 61, W / 2 - 4, 2.8, 70)
-    x0, x1 = 3, W - 4
-
-    def pillow(xa, ya, xb, yb, tone, r=4):
-        c.round_rect(xa, ya, xb, yb, R[0], r)
-        c.round_rect(xa + 1, ya + 1, xb - 1, yb - 1, tone, max(1, r - 1))
-        c.hline(xa + r, xb - r, ya + 1, light(tone, .26))
-        c.vline(xa + 1, ya + r, yb - r, light(tone, .14))
-        c.hline(xa + r, xb - r, yb - 1, dark(tone, .22))
-        c.vline(xb - 1, ya + r, yb - r, dark(tone, .16))
-
-    c.rect(x0 + 6, 8, x1 - 6, 56, R[0])
-    mid = (x0 + x1) // 2
-    pillow(x0 + 11, 4, mid - 1, 27, R[2], 5)                      # two back cushions
-    pillow(mid + 1, 4, x1 - 11, 27, R[2], 5)
-    pillow(x0 + 11, 27, mid - 1, 52, R[3], 5)                     # two seat cushions
-    pillow(mid + 1, 27, x1 - 11, 52, R[3], 5)
-    pillow(x0, 8, x0 + 12, 56, R[2], 5)                           # the rolled arms
-    pillow(x1 - 12, 8, x1, 56, R[2], 5)
-    c.rect(x0 + 2, 53, x1 - 2, 58, R[1])                          # the front rail
-    c.hline(x0 + 2, x1 - 2, 53, R[2])
-    c.hline(x0 + 2, x1 - 2, 58, R[0])
-    for fx in (x0 + 2, x1 - 6):
-        c.rect(fx, 59, fx + 3, 61, "#2a2024")
-    c.rect(x0 + 3, 12, x0 + 9, 16, "#14141a")                     # the remote control on the left arm
-    for k in range(3):
-        c.set(x0 + 4 + k * 2, 14, "#c84040" if k == 0 else "#6a6a78")
-    if throw:
-        # the red throw: over the right half of the seat, down the front, over the arm, with ribs and soft folds
-        tx0 = mid + 6
-        c.poly([(tx0, 28), (x1 - 4, 22), (x1 + 0, 56), (x1 - 22, 59), (tx0 - 4, 52)], RED[2])
-        c.poly([(mid + 24, 27), (x1 - 4, 22), (x1, 48), (mid + 30, 46)], RED[3])
-        c.line(tx0, 28, x1 - 4, 22, RED[4])
-        c.line(tx0 - 4, 52, x1 - 22, 59, RED[0])
-        c.line(x1 - 22, 59, x1, 56, RED[0])
-        throw_stripes(c, tx0, 30, x1 - 4, 54, RED)
-        c.line(tx0 + 2, 40, mid + 30, 38, RED[0])
-        c.line(mid + 18, 30, mid + 24, 50, RED[1])
-        c.rect(x1 - 14, 60, x1 - 6, 63, RED[1])                   # the hem hanging in front
-        c.round_rect(x0 + 16, 29, x0 + 46, 49, "#1c1c24", 7)      # the dark grey cushion on the left of the seat, puffed up
-        c.round_rect(x0 + 17, 30, x0 + 45, 48, "#464650", 6)
-        c.hline(x0 + 24, x0 + 38, 31, "#7a7a88")
-        c.vline(x0 + 18, 36, 42, "#5e5e6a")
-        c.hline(x0 + 24, x0 + 38, 47, "#2a2a34")
-        c.set(x0 + 31, 39, "#2a2a34")
-        c.set(x0 + 30, 38, "#585864")
-    c.outline()
-    return c
-
-
 def beanbag():
     """The red bean bag pouf: a slumped sack with a gathered top and soft wrinkles."""
     c = Canvas()
@@ -875,76 +812,6 @@ def navy_cover(c, H):
 def sofa_east(rows, R, cover):
     """A sofa against the right wall facing west: the left wall version mirrored."""
     return flip(sofa_west(rows, R, R[3], R[2], cover))
-
-
-# ---------------------------------------------------------------- the low black table and the TV
-
-def black_table(n=4):
-    """The low black lacquer coffee table, n tiles wide and 2 tall: a big dark top with the window reflected in it, a thin front edge,
-    short legs; a remote, a mug and a magazine lie on it."""
-    W = n * T
-    c = Canvas(W, 2 * T)
-    BLK = make_ramp("#2c2c38", 5, 2, dark_hue=265, sh=12)
-    c.shadow(W / 2 + 2, 55, W / 2 - 6, 3, 74)
-    for lx in (8, W - 12):                                         # short dark legs
-        c.rect(lx, 50, lx + 3, 57, BLK[0])
-    c.rect(4, 20, W - 5, 46, BLK[2])                               # the top, seen from above
-    c.rect(4, 20, W - 5, 21, BLK[4])
-    c.vline(4, 20, 46, BLK[3])
-    c.rect(4, 47, W - 5, 51, BLK[1])                               # the front edge
-    c.hline(4, W - 5, 47, BLK[3])
-    c.hline(4, W - 5, 51, BLK[0])
-    c.vline(W - 5, 22, 51, BLK[0])
-    for k in range(11):                                            # the soft reflection of the window, a pale diagonal sheen
-        c.set(W // 2 - 10 + k * 2, 42 - k * 2, BLK[4])
-        c.set(W // 2 - 9 + k * 2, 42 - k * 2, BLK[3])
-    c.rect(12, 26, 19, 40, "#e8e0d0")                              # a magazine
-    c.rect(13, 27, 18, 31, "#c8423f")
-    c.hline(12, 19, 40, "#9a9484")
-    c.rect(W - 34, 28, W - 22, 32, "#16161c")                      # the remote control
-    c.set(W - 32, 30, "#c84040")
-    c.set(W - 29, 30, "#6a6a78")
-    c.disc(W - 38, 38, 4, "#f4f1ea")                               # a mug
-    c.disc(W - 38, 38, 2.4, "#5a3a28")
-    c.outline()
-    return c
-
-
-def tv_stand():
-    """The low wooden table with the old tube TV on it, seen from behind (they stand against the bottom wall and face the sofas): the
-    dark tapering back of the tube, the grey bezel showing at both sides, vents, a cable down the stand. 3 tiles wide, 2 tall."""
-    W = 3 * T
-    c = Canvas(W, 2 * T)
-    c.shadow(W / 2, 61, W / 2 - 4, 2.8, 74)
-    for lx in (8, W - 12):                                         # the table legs and the rail
-        c.rect(lx, 44, lx + 3, 61, WAL[1])
-        c.vline(lx, 44, 61, WAL[3])
-    c.rect(6, 36, W - 7, 43, WAL[3])                               # the top of the table, lit
-    c.hline(6, W - 7, 36, WAL[4])
-    c.rect(6, 43, W - 7, 50, WAL[2])                               # its back apron
-    c.hline(6, W - 7, 43, WAL[1])
-    c.hline(6, W - 7, 50, WAL[0])
-    c.rect(10, 53, W - 11, 55, WAL[1])
-    # the TV: the front frame is the far, wider part; the rear housing is narrower and nearer
-    c.rect(12, 8, W - 13, 36, "#3c3c46")                           # the bezel seen at the sides
-    c.hline(12, W - 13, 8, "#6a6a76")
-    c.vline(12, 8, 36, "#58586a")
-    c.vline(W - 13, 9, 36, "#22222a")
-    c.poly([(24, 4), (W - 25, 4), (W - 17, 9), (16, 9)], "#4a4a56")  # the top of the housing
-    c.hline(24, W - 25, 4, "#7a7a88")
-    c.rect(20, 9, W - 21, 35, "#2a2a32")                           # the back of the tube, tapering
-    c.rect(20, 9, 22, 35, "#3a3a44")
-    c.rect(W - 23, 9, W - 21, 35, "#1a1a20")
-    for vy in (14, 17, 20, 23):                                    # vent slots
-        c.hline(30, W - 31, vy, "#14141a")
-    c.rect(40, 27, 56, 32, "#46464f")                              # a socket plate
-    c.rect(44, 29, 46, 30, "#14141a")
-    c.rect(50, 29, 52, 30, "#14141a")
-    c.set(W - 28, 12, "#58f058")                                   # a standby light on the side
-    c.line(48, 32, 52, 46, "#14141a")                              # the cable down to the floor
-    c.line(52, 46, 58, 60, "#14141a")
-    c.outline()
-    return c
 
 
 # ---------------------------------------------------------------- hanging pieces (drawn above everyone)
@@ -1076,11 +943,11 @@ def define(reg):
     reg.stamp("giuggiu_chair_red", chair_red(), "objects")
     reg.stamp("giuggiu_chair_black", chair_black(), "objects")
     reg.stamp("giuggiu_sofa_cream", sofa_west(3, CRM, CRM[3], CRM[2], cream_cover), "objects", mask=["##", "##", "##"])
-    reg.stamp("giuggiu_sofa_burgundy", sofa_west(4, BURG, BURG[3], BURG[2], burg_cover), "objects", mask=["##"] * 4)
-    reg.stamp("giuggiu_sofa_navy", sofa_south(NAVY, 4), "objects", mask=["####", "####"])
+    reg.stamp("giuggiu_sofa_burgundy", pxl_object("giuggiu_sofa_burgundy", (56, 66, 6, 58, 70, 0)), "objects", mask=["##"] * 4)   # drawn with pxl, scripts/art/pxl/objects.px.js
+    reg.stamp("giuggiu_sofa_navy", pxl_object("giuggiu_sofa_navy", (64, 61, 60, 2.8, 70)), "objects", mask=["####", "####"])
     reg.stamp("giuggiu_sofa_east", sofa_east(3, NAVY, navy_cover), "walls", mask=["##", ".#", "##"])   # the cat's seat (the middle row, left cell) stays walkable
-    reg.stamp("giuggiu_table_black", black_table(4), "objects", mask=["####", "####"])
-    reg.stamp("giuggiu_tv", tv_stand(), "objects", mask=["###", "###"])
+    reg.stamp("giuggiu_table_black", pxl_object("giuggiu_table_black", (66, 55, 58, 3, 74)), "objects", mask=["####", "####"])
+    reg.stamp("giuggiu_tv", pxl_object("giuggiu_tv", (48, 61, 44, 2.8, 74)), "objects", mask=["###", "###"])
     reg.stamp("giuggiu_pouf", beanbag(), "objects")
     reg.stamp("giuggiu_chandelier", chandelier(), "above")
     reg.stamp("giuggiu_lantern", lantern(), "above")
