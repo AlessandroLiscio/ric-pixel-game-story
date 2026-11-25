@@ -22,6 +22,7 @@ const PRESETS = {
   sprite: ['heads-bob']
 };
 const EXTRA_EGGS = ['extra-1', 'extra-2', 'extra-3', 'extra-rosanna', 'extra-genitori'];
+const SHARED_EGGS = { 'extra-genitori': 2 }; // eggs said by more than one extra: how many
 
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -227,9 +228,11 @@ const usedEggs = [];
 });
 
 for (const egg of EXTRA_EGGS) {
-  // two extras may share one egg (Ric's parents), but only within one scene
-  const n = new Set(usedEggs.filter((e) => e.endsWith(`|${egg}`)).map((e) => e.split('|')[0])).size;
-  if (n !== 1) err('extras', `egg "${egg}" is used in ${n} scenes, expected one`);
+  // each egg belongs to one extra, except Ric's parents, who share theirs in one scene
+  const uses = usedEggs.filter((e) => e.endsWith(`|${egg}`));
+  const want = SHARED_EGGS[egg] ?? 1;
+  if (uses.length !== want || new Set(uses.map((e) => e.split('|')[0])).size !== 1)
+    err('extras', `egg "${egg}" is used ${uses.length} times in ${new Set(uses.map((e) => e.split('|')[0])).size} scenes, expected ${want} in one scene`);
 }
 
 if (errors.length) {

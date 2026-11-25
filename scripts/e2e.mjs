@@ -233,6 +233,46 @@ try {
                 await test('skip'); // arrival lines
                 await sleep(150);
             }
+            // room objects: X on Giuggiu's pouf makes Ric doze there and get up again; at Circe's the TV has its lines and the lamp toggles
+            const ricAt = () => page.evaluate(() => { const r = window.__ricGame.scene.getScene('world').ric; return { x: r.x, y: r.y }; });
+            if (SCENES[i].id === 'giuggiu') {
+                await teleport(104, 336); // right of the pouf (tile 2,10)
+                await sleep(200);
+                await press('x');
+                await sleep(800);
+                check((await ricAt()).x < 100, 'X next to the pouf did not sit Ric on it');
+                let back = false;
+                for (let k = 0; k < 40 && !back; k++) {
+                    await sleep(250);
+                    const p = await ricAt();
+                    back = Math.abs(p.x - 104) < 2 && Math.abs(p.y - 336) < 2;
+                }
+                check(back, 'Ric did not get up from the pouf');
+                await sleep(300);
+                await closeDialogue(); // the pouf line after the doze
+                note('objects: the pouf doze runs and Ric gets up where he sat down');
+            }
+            if (SCENES[i].id === 'circe') {
+                const glowsOn = () => page.evaluate(() => window.__ricGame.scene.getScene('world').tw.glows.filter((g) => g.img.visible).length);
+                await teleport(368, 200); // below the TV (tiles 10-12, 4-5)
+                await sleep(200);
+                await press('x');
+                await sleep(1500); // the line types itself out
+                const tvLine = await page.evaluate(() => { const w = window.__ricGame.scene.getScene('world'); return w.dialog.isOpen ? w.dialog.body.text : ''; });
+                check(tvLine.includes('Vampire Diaries'), `X below the TV said "${tvLine}"`);
+                await closeDialogue();
+                await teleport(566, 200); // left of the floor lamp (tile 18, 3-5)
+                await sleep(200);
+                const before = await glowsOn();
+                await press('x');
+                await sleep(300);
+                const after = await glowsOn();
+                check(after !== before, `the lamp did not toggle (${before} lit glows before, ${after} after)`);
+                await press('x');
+                await sleep(300);
+                check((await glowsOn()) === before, 'a second X did not switch the lamp back');
+                note('objects: the Circe TV lines and the lamp toggle work');
+            }
             if (i === 1) {
                 // the first bin of the run holds the portal gun; P before the scene is done gets the "not yet" line
                 const bin = SCENES[i].bins[0];

@@ -25,7 +25,9 @@ function rollD20(): number {
     const c = globalThis.crypto;
     if (c?.getRandomValues) {
         const a = new Uint32Array(1);
-        c.getRandomValues(a);
+        const limit = 2 ** 32 - (2 ** 32 % 20); // reject the top sliver so every face is exactly as likely
+        do c.getRandomValues(a);
+        while (a[0] >= limit);
         return (a[0] % 20) + 1;
     }
     return Math.floor(Math.random() * 20) + 1;
