@@ -1,9 +1,10 @@
 import type Phaser from 'phaser';
 import { audio } from '../audio';
 import { ensureCharAnims, idleKey, walkKey, type Dir } from './anims';
+import { idleLife } from './idle';
 
 const SAMPLE_PX = 4; // Ric's position is recorded every ~4 px of travel
-const SAMPLES_BEHIND = 12; // follower i trails Ric by 12*(i+1) samples
+const SAMPLES_BEHIND = 8; // follower i trails Ric by 8*(i+1) samples, 32 px: a third tighter than the first version (12), still clear of the one in front
 const MOVE_EPS = 0.05; // px per update below which a follower counts as stopped
 const POP_MS = 220;
 
@@ -31,6 +32,7 @@ export class Party {
         private readonly leader: Phaser.GameObjects.Sprite
     ) {
         this.history.push({ x: leader.x, y: leader.y });
+        idleLife(scene).add(leader, { look: true, reassert: true }); // Ric breathes and glances about while he stands still
     }
 
     /**
@@ -55,10 +57,14 @@ export class Party {
         sprite.setVisible(!(follower.hideUntilTrail && at.short));
         this.followers.push(follower);
 
-        if (opts.instant) return;
+        if (opts.instant) {
+            idleLife(this.scene).add(sprite, { look: true });
+            return;
+        }
         const scale = sprite.scaleX;
         sprite.setAlpha(0).setScale(scale * 0.2);
-        this.scene.tweens.add({ targets: sprite, alpha: 1, scaleX: scale, scaleY: scale, duration: POP_MS, ease: 'Back.Out' });
+        // the idle life starts once the pop-in has set the final scale
+        this.scene.tweens.add({ targets: sprite, alpha: 1, scaleX: scale, scaleY: scale, duration: POP_MS, ease: 'Back.Out', onComplete: () => idleLife(this.scene).add(sprite, { look: true }) });
         audio.sfx('confirm');
     }
 
