@@ -164,7 +164,7 @@
   },
   {
     "id": "gatto",
-    "name": "Gatto",
+    "name": "Gatto di Paz",
     "role": "animal",
     "traits": {
       "skin": "calico",
@@ -177,7 +177,7 @@
       "height": 0.5
     },
     "sprite": "char-gatto",
-    "portrait": null,
+    "portrait": "portrait-gatto",
     "portraitSource": "parametric"
   },
   {

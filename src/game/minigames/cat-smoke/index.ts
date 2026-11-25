@@ -23,15 +23,22 @@ const FEET_ON = SOFA_Y + 14; // the cat sits on the cushions
 const FEET_FRONT = SOFA_Y + 68; // in front of the sofa, on the floor
 const FEET_UNDER = SOFA_Y + 36; // hidden behind the sofa body
 const CAT_SCALE = 2;
-const HOP_SPEED = 100; // px per second along the floor; with the arc the cat stays under the 120 px/s limit (all moves are linear)
+const HOP_SPEED = 200; // px per second along the floor (the first version ran at 100: the owner's playtest asked for double)
+const HOP_MIN_MS = 500;
 const HOP_ARC = 24;
+const FOLLOW_MS = 3600; // how long the cat hops about before the fake-out; shorter hops, so about the same number of them
+const GIUGGIU_SCALE = 3;
+const GIUGGIU_FEET_Y = 344;
+const GIUGGIU_EDGE = 40; // his x from the screen edge
+const MAX_CLOUDS = 70;
+const PUFF_EVERY_MS = 1700;
 const COUNTDOWN = 3;
 const KEY_SOFA: Record<string, number> = { ArrowLeft: 0, KeyA: 0, ArrowUp: 1, KeyW: 1, ArrowRight: 2, KeyD: 2 };
 const FACE_ROW: Record<Face, number> = { down: 0, left: 1, right: 2, up: 3 };
 
-const DEPTH = { floor: 0, trail: 12, under: 5, sofa: 10, cat: 20, smoke: 30, hud: 40, banner: 950 };
+const DEPTH = { floor: 0, trail: 12, under: 5, sofa: 10, giuggiu: 15, cat: 20, smoke: 30, hud: 40, banner: 950 };
 
-/** Scene 2 minigame: a cat hops between three sofas under drifting smoke, hides under one, and the player lifts the right sofa. */
+/** Scene 2 minigame: a cat hops between three sofas while Giuggiu, at one edge of the screen, puffs smoke that drifts across the room; the cat hides under one and the player lifts the right sofa. */
 export default class CatSmokeMinigame extends Phaser.Scene {
     static KEY = `minigame-${ID}`;
     static ID = ID;
@@ -40,12 +47,20 @@ export default class CatSmokeMinigame extends Phaser.Scene {
     private sofas: Phaser.GameObjects.Container[] = [];
     private floorPatch: Phaser.GameObjects.Graphics[] = [];
     private clouds = new Set<Phaser.GameObjects.Image>();
+    private smoke!: Phaser.GameObjects.Container; // every cloud lives here, so one alpha tween thins them all out
+    private giuggiu!: Phaser.GameObjects.Sprite;
+    private ember!: Phaser.GameObjects.Rectangle;
+    private dir = 1; // 1: Giuggiu stands at the left edge and the smoke drifts right, -1: the other way round
+    private mouth = { x: 0, y: 0 };
+    private emitting = false;
+    private confirmEarly = false;
     private cursor!: Phaser.GameObjects.Graphics;
     private tag!: Phaser.GameObjects.Text;
     private status!: Phaser.GameObjects.Text;
     private countdownText!: Phaser.GameObjects.Text;
     private confirmHint!: Phaser.GameObjects.Text;
     private smokeTimer?: Phaser.Time.TimerEvent;
+    private puffTimer?: Phaser.Time.TimerEvent;
     private targetChance = 0;
     private current = 0; // sofa the cat is on
     private hideIndex = 0;
@@ -67,11 +82,16 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.targetChance = 0;
         this.onConfirm = null;
         this.clouds = new Set();
+        this.emitting = false;
+        this.confirmEarly = false;
+        this.dir = Math.random() < 0.5 ? 1 : -1;
         this.sofas = [];
         this.floorPatch = [];
 
         ensureCharAnims(this, 'gatto');
+        ensureCharAnims(this, 'giuggiu');
         this.buildRoom();
+        this.buildGiuggiu();
         this.hideIndex = Phaser.Math.Between(0, 2);
         this.current = Phaser.Math.Between(0, 2);
         this.cat = this.add.sprite(SOFA_X[this.current], FEET_ON, 'char-gatto', 4).setOrigin(0.5, 1).setScale(CAT_SCALE).setDepth(DEPTH.cat);
@@ -114,13 +134,14 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         g.fillStyle(0xa8d4e8).fillRect(480, 12, 100, 42).fillStyle(0xe8f4ff).fillRect(484, 16, 92, 34); // window
         g.fillStyle(0xa8d4e8).fillRect(528, 16, 4, 34).fillRect(484, 31, 92, 3);
 
-        // smoke texture: stacked translucent circles make a soft puff
-        if (!this.textures.exists('cat-smoke-cloud')) {
+        // smoke texture: stacked translucent circles make a dense, soft puff (the first version was 0.11 per ring: too thin)
+        if (!this.textures.exists('cat-smoke-cloud-2')) {
             const s = this.add.graphics();
-            for (let r = 48; r >= 6; r -= 3) s.fillStyle(0xd2d6e0, 0.11).fillCircle(48, 48, r);
-            s.generateTexture('cat-smoke-cloud', 96, 96);
+            for (let r = 48; r >= 6; r -= 3) s.fillStyle(0xc9cdd9, 0.2).fillCircle(48, 48, r);
+            s.generateTexture('cat-smoke-cloud-2', 96, 96);
             s.destroy();
         }
+        this.smoke = this.add.container(0, 0).setDepth(DEPTH.smoke);
 
         for (let i = 0; i < 3; i++) {
             const patch = this.add.graphics({ x: SOFA_X[i], y: SOFA_Y }).setDepth(DEPTH.floor + 1);
@@ -196,7 +217,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
     private async hop(to: number): Promise<void> {
         const from = this.cat.x;
         const dx = SOFA_X[to] - from;
-        const duration = Math.max(1000, (Math.abs(dx) / HOP_SPEED) * 1000);
+        const duration = Math.max(HOP_MIN_MS, (Math.abs(dx) / HOP_SPEED) * 1000);
         this.face(dx > 0 ? 'right' : 'left', true);
         this.cat.setDepth(DEPTH.cat);
         const p = { k: 0 };
@@ -224,7 +245,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
 
     private async walkFront(): Promise<void> {
         this.face('down', true);
-        await this.tween({ targets: this.cat, y: FEET_FRONT, duration: 560 });
+        await this.tween({ targets: this.cat, y: FEET_FRONT, duration: 280 });
         this.face('down');
     }
 
@@ -238,39 +259,80 @@ export default class CatSmokeMinigame extends Phaser.Scene {
 
     private async popOut(): Promise<void> {
         this.face('down', true);
-        await this.tween({ targets: this.cat, y: FEET_FRONT, duration: 320 });
+        await this.tween({ targets: this.cat, y: FEET_FRONT, duration: 160 });
         this.cat.setDepth(DEPTH.cat);
         this.face('down');
-        await this.wait(200);
+        await this.wait(120);
         this.face('up', true);
-        await this.tween({ targets: this.cat, y: FEET_ON, duration: 560 });
+        await this.tween({ targets: this.cat, y: FEET_ON, duration: 280 });
         this.face('down');
     }
 
-    // ---- smoke ----
+    // ---- Giuggiu and the smoke ----
 
-    private startSmoke(): void {
-        this.smokeTimer = this.time.addEvent({
-            delay: 420,
-            loop: true,
-            callback: () => {
-                if (this.clouds.size < 16) this.spawnCloud(Phaser.Math.Between(30, GAME_WIDTH - 30), Phaser.Math.Between(110, GAME_HEIGHT - 20));
-                if (Math.random() < 0.3) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
-                if (this.targetChance > 0 && Math.random() < this.targetChance && this.clouds.size < 22) {
-                    this.spawnCloud(this.cat.x + Phaser.Math.Between(-18, 18), this.cat.y - 30 + Phaser.Math.Between(-12, 12));
-                }
+    /** Giuggiu stands at one edge of the screen, a cigarette in his mouth; every puff he breathes in, leans out and blows a burst of smoke across the room. */
+    private buildGiuggiu(): void {
+        const x = this.dir > 0 ? GIUGGIU_EDGE : GAME_WIDTH - GIUGGIU_EDGE;
+        const face: Face = this.dir > 0 ? 'right' : 'left';
+        this.giuggiu = this.add.sprite(x, GIUGGIU_FEET_Y, 'char-giuggiu', FACE_ROW[face] * 3 + 1).setOrigin(0.5, 1).setScale(GIUGGIU_SCALE).setDepth(DEPTH.giuggiu);
+        // the mouth of the 32 px frame is 7 px from the centre toward where he looks and 21 px above the frame bottom
+        this.mouth = { x: x + this.dir * 7 * GIUGGIU_SCALE, y: GIUGGIU_FEET_Y - 21 * GIUGGIU_SCALE };
+        const cig = this.add.graphics().setDepth(DEPTH.giuggiu + 1);
+        const x0 = this.dir > 0 ? this.mouth.x : this.mouth.x - 10;
+        cig.fillStyle(0xf2efe6).fillRect(x0, this.mouth.y, 10, 3);
+        this.ember = this.add.rectangle(this.dir > 0 ? x0 + 11.5 : x0 - 1.5, this.mouth.y + 1.5, 3, 3, 0xff7a2a).setDepth(DEPTH.giuggiu + 1);
+        this.tweens.add({ targets: this.ember, alpha: 0.5, duration: 330, yoyo: true, repeat: -1 });
+    }
+
+    private puff(): void {
+        const x = this.giuggiu.x;
+        // breathe in: the chest swells and the ember glows
+        this.ember.setFillStyle(0xffd070);
+        this.tweens.add({
+            targets: this.giuggiu,
+            scaleY: GIUGGIU_SCALE * 1.07,
+            scaleX: GIUGGIU_SCALE * 0.96,
+            duration: 320,
+            ease: 'Sine.easeOut',
+            onComplete: () => {
+                // breathe out: a lean toward the room and a burst of clouds
+                this.ember.setFillStyle(0xff7a2a);
+                this.tweens.add({ targets: this.giuggiu, scaleX: GIUGGIU_SCALE, scaleY: GIUGGIU_SCALE, angle: this.dir * 5, x: x + this.dir * 3, duration: 160, hold: 380, yoyo: true });
+                if (!this.emitting) return;
+                for (let i = 0; i < 8; i++) this.time.delayedCall(i * 60, () => this.emitting && this.spawnCloud(this.mouth.x, this.mouth.y, true));
             }
         });
     }
 
-    private spawnCloud(x: number, y: number): void {
-        const cloud = this.add.image(x, y, 'cat-smoke-cloud').setDepth(DEPTH.smoke).setAlpha(0).setScale(0.6);
-        const life = Phaser.Math.Between(2300, 3300);
+    private startSmoke(): void {
+        this.emitting = true;
+        this.puff();
+        this.puffTimer = this.time.addEvent({ delay: PUFF_EVERY_MS, loop: true, callback: () => this.puff() });
+        this.smokeTimer = this.time.addEvent({
+            delay: 200,
+            loop: true,
+            callback: () => {
+                if (!this.emitting) return;
+                this.spawnCloud(this.mouth.x, this.mouth.y, false); // the trickle between two puffs
+                if (Math.random() < 0.12) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
+                if (this.targetChance > 0 && Math.random() < this.targetChance) this.spawnCloud(this.cat.x + Phaser.Math.Between(-18, 18), this.cat.y - 30 + Phaser.Math.Between(-12, 12), false, true);
+            }
+        });
+    }
+
+    /** One cloud from `(x, y)`: it grows, drifts toward the far edge and spreads over the whole height of the room; `burst` clouds are bigger and denser. */
+    private spawnCloud(x: number, y: number, burst: boolean, local = false): void {
+        if (this.clouds.size >= MAX_CLOUDS) return;
+        const cloud = this.add.image(x, y, 'cat-smoke-cloud-2').setAlpha(0).setScale(0.4);
+        this.smoke.add(cloud);
+        const life = Phaser.Math.Between(2800, 4200);
         this.clouds.add(cloud);
-        this.tweens.add({ targets: cloud, scale: Phaser.Math.FloatBetween(1.7, 2.4), x: x + Phaser.Math.Between(-24, 24), y: y + Phaser.Math.Between(-30, 4), duration: life });
+        const reach = local ? Phaser.Math.Between(-20, 20) : this.dir * Phaser.Math.Between(180, 640);
+        const toY = local ? y + Phaser.Math.Between(-30, 4) : Phaser.Math.Between(90, GAME_HEIGHT - 20);
+        this.tweens.add({ targets: cloud, scale: Phaser.Math.FloatBetween(burst ? 2.4 : 1.6, burst ? 3.6 : 2.6), x: x + reach, y: toY, duration: life, ease: 'Sine.easeOut' });
         this.tweens.add({
             targets: cloud,
-            alpha: 0.85,
+            alpha: burst || local ? 0.95 : 0.8,
             duration: life / 2,
             yoyo: true,
             onComplete: () => {
@@ -280,13 +342,28 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         });
     }
 
+    /** Giuggiu stops smoking and what hangs in the air fades to a haze, so the last hop and the hiding can be seen. */
+    private thinSmoke(): void {
+        this.emitting = false;
+        this.tweens.add({ targets: this.smoke, alpha: 0.3, duration: 600 });
+    }
+
     private clearSmoke(): void {
+        this.emitting = false;
         this.smokeTimer?.remove();
-        for (const c of this.clouds) {
-            this.tweens.killTweensOf(c);
-            this.tweens.add({ targets: c, alpha: 0, duration: 450, onComplete: () => c.destroy() });
-        }
-        this.clouds.clear();
+        this.puffTimer?.remove();
+        this.tweens.add({
+            targets: this.smoke,
+            alpha: 0,
+            duration: 450,
+            onComplete: () => {
+                for (const c of this.clouds) {
+                    this.tweens.killTweensOf(c);
+                    c.destroy();
+                }
+                this.clouds.clear();
+            }
+        });
     }
 
     // ---- phase 1: follow the cat ----
@@ -298,34 +375,40 @@ export default class CatSmokeMinigame extends Phaser.Scene {
 
     private async phaseFollow(): Promise<void> {
         this.startSmoke();
-        this.targetChance = 0.6;
-        await this.wait(1000);
+        this.targetChance = 0.3;
+        await this.wait(1200); // the first puffs fill the room before the cat moves
 
         const start = this.time.now;
-        while (this.time.now - start < 2500) {
+        while (this.time.now - start < FOLLOW_MS) {
             if (this.done) return;
             await this.hop(this.otherSofa(this.current));
-            await this.wait(Phaser.Math.Between(350, 650));
+            await this.wait(Phaser.Math.Between(200, 350));
         }
 
         // fake-out: it ducks half way under a sofa, comes back out and hops on
-        this.targetChance = 0.4;
+        this.targetChance = 0.2;
         await this.hop(this.otherSofa(this.current, 0));
         await this.walkFront();
-        await this.slideUnder(FEET_UNDER + 18, 420);
-        await this.wait(200);
+        await this.slideUnder(FEET_UNDER + 18, 210);
+        await this.wait(100);
         await this.popOut();
         if (this.done) return;
-        await this.hop(this.otherSofa(this.current, 0));
 
-        // the real hiding place; the smoke around the cat thins out so a careful player can see it
+        // the real hiding place; Giuggiu stops and the smoke thins out so a careful player can see it
         this.targetChance = 0;
+        this.thinSmoke();
+        await this.hop(this.otherSofa(this.current, 0));
         if (this.current !== this.hideIndex) await this.hop(this.hideIndex);
-        await this.wait(350);
+        await this.wait(200);
         await this.walkFront();
-        await this.wait(250);
-        await this.slideUnder(FEET_UNDER, 650);
-        await this.wait(1000);
+        await this.wait(150);
+        await this.slideUnder(FEET_UNDER, 400);
+        // the player may already pick the sofa the cat went under: keys count from here on, not only from the countdown
+        // (root cause of the "wrong sofa" bug: a pick made before the countdown was thrown away and the round was lost)
+        this.picking = true;
+        this.setStatus(LABELS.pick);
+        this.confirmHint.setVisible(true);
+        await this.wait(300);
         this.clearSmoke();
         await this.wait(600);
     }
@@ -347,7 +430,8 @@ export default class CatSmokeMinigame extends Phaser.Scene {
             if (this.selected !== KEY_SOFA[e.code]) audio.sfx('blip');
             this.setSelected(KEY_SOFA[e.code]);
         } else if ((e.code === 'KeyX' || e.code === 'Enter' || e.code === 'Space') && this.selected >= 0) {
-            this.onConfirm?.();
+            if (this.onConfirm) this.onConfirm();
+            else this.confirmEarly = true; // confirmed before the countdown starts: phasePick reveals at once
         }
     }
 
@@ -356,6 +440,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.setStatus(LABELS.pick);
         this.confirmHint.setVisible(true);
         await new Promise<void>((resolve) => {
+            if (this.confirmEarly) return resolve();
             let left = COUNTDOWN;
             this.countdownText.setText(String(left));
             const tick = this.time.addEvent({

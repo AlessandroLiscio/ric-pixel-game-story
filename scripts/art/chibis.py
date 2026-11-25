@@ -724,7 +724,7 @@ def stage_check(people, log):
             ncol = len(colours(po))
             assert ncol <= portraits.MAX_COLOURS, f"{p['id']} portrait has {ncol} colours"
             n_port += 1
-    assert n_sheets == 11 and n_port == 10, f"counts {n_sheets}/{n_port}"
+    assert n_sheets == 11 and n_port == 11, f"counts {n_sheets}/{n_port}"
     return n_sheets, n_port
 
 

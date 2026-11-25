@@ -3,7 +3,7 @@
     "id": "universita",
     "background": "bg-universita",
     "map": "universita",
-    "title": "Università di Bologna",
+    "title": "Cinema Bellinzona",
     "music": "universita",
     "spawn": { "facing": "right" },
     "door": null,
@@ -14,6 +14,7 @@
       { "personId": "sconosciuta", "facing": "left", "egg": "extra-1", "tint": "#9fb8ff", "at": "studente" }
     ],
     "minigame": "simon",
+    "bins": [{ "x": 656, "y": 186, "draw": false }],
     "ambient": []
   },
   {
@@ -30,6 +31,7 @@
       { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" }
     ],
     "minigame": "cat-smoke",
+    "bins": [{ "x": 624, "y": 380 }],
     "ambient": []
   },
   {
@@ -46,6 +48,8 @@
       { "personId": "sconosciuta", "facing": "left", "egg": "extra-2", "tint": "#ffd08a", "at": "dogwalker" }
     ],
     "minigame": "slackline",
+    "exit": "edge",
+    "bins": [{ "x": 368, "y": 410, "draw": false }],
     "ambient": []
   },
   {
@@ -61,6 +65,7 @@
     "friend2": { "personId": "giusy", "facing": "down", "at": "giusy" },
     "extras": [],
     "minigame": "d20",
+    "bins": [{ "x": 720, "y": 380 }],
     "minigame2": "mash",
     "ambient": []
   },
@@ -78,6 +83,7 @@
       { "personId": "sconosciuta", "facing": "down", "egg": "extra-3", "at": "barista" }
     ],
     "minigame": "rhythm",
+    "bins": [{ "x": 48, "y": 380 }],
     "ambient": []
   },
   {
@@ -92,6 +98,7 @@
     "friend": null,
     "extras": [],
     "minigame": null,
+    "bins": [{ "x": 528, "y": 316 }],
     "ambient": []
   }
 ]

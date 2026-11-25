@@ -5,17 +5,22 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { joinFx, resultFx } from '../fx/moments';
 import { MINIGAME_DONE, type MinigameDone, type MinigameInit } from '../minigames/types';
 import { Party } from '../party/Party';
-import { ensureCharAnims } from '../party/anims';
+import { idleLife } from '../party/idle';
+import { ensureCharAnims, walkKey, type Dir } from '../party/anims';
 import { fadeToScene } from '../transitions';
 import { DialogBox } from '../ui/DialogBox';
 import { lines, pixelStyle, t } from '../ui/text';
 import { SCENES, person } from './data';
+import { BIN_BLOCK, BIN_RANGE, addBin, openPortal } from './props';
 import { ACTIVE_MINIGAME_KEY, getRun, type RunState } from './RunState';
-import type { Facing, NpcDef, Rect, SceneDef } from './sceneTypes';
+import type { BinDef, Facing, NpcDef, Rect, SceneDef } from './sceneTypes';
 import { divanoEggs, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
-import { MAPS, TileWorld, resolveMapScene, feetOf } from './tileMap';
+import { MAPS, TILE, TileWorld, resolveMapScene, feetOf } from './tileMap';
 
 const SPEED = 80; // px per second
+const RUN_FACTOR = 1.8; // holding Shift
+const RUN_ANIM = 1.7; // walk animation speed while running
+const EDGE = 4; // px: a scene with `exit: "edge"` is left when Ric's feet get this close to a limit of the walkable map
 const TALK_RANGE = 34;
 const TALK_RANGE_TILES = 52; // a tile room is bigger and has counters between people
 const NPC_BLOCK = { x: 13, y: 7 }; // Ric cannot walk into a person: half width and half depth around the feet in a tile room
@@ -51,6 +56,12 @@ export class WorldScene extends Phaser.Scene {
     private busy = true; // true while a dialogue, a minigame or a fade owns the player
     private doorOpen = false;
     private leaving = false;
+    private shift!: Phaser.Input.Keyboard.Key;
+    /** Sprites of the bins the flow draws itself (the others are part of the room map); Ric cannot walk into them. */
+    private binSprites: Phaser.GameObjects.Image[] = [];
+    private binHint!: Phaser.GameObjects.Text;
+    private menuClosedAt = -1000; // performance.now() when the Esc menu closed: ignores the key press that closed it
+    private portalWalk = false; // Ric is walking into a portal: his walk animation is not reset to idle
 
     constructor() {
         super('world');
@@ -65,6 +76,8 @@ export class WorldScene extends Phaser.Scene {
         this.doorOpen = false;
         this.leaving = false;
         this.doorHint = undefined;
+        this.binSprites = [];
+        this.portalWalk = false;
     }
 
     create(): void {
@@ -104,10 +117,13 @@ export class WorldScene extends Phaser.Scene {
         }
         this.talkHint = this.add.text(0, 0, t('ui.talk'), { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 1).setDepth(900).setVisible(false);
         this.dialog = new DialogBox(this);
+        this.spawnBins();
+        this.showKeyHints();
 
         const kb = this.input.keyboard!;
         this.arrows = kb.createCursorKeys();
         this.wasd = kb.addKeys({ up: 'W', down: 'S', left: 'A', right: 'D' }) as Keys;
+        this.shift = kb.addKey('SHIFT');
         kb.on('keydown', this.onKey, this);
         this.events.once('shutdown', () => kb.off('keydown', this.onKey, this));
 
@@ -125,12 +141,13 @@ export class WorldScene extends Phaser.Scene {
 
     update(_time: number, delta: number): void {
         if (!this.busy) this.moveRic(delta / 1000);
-        else this.ric.anims.play(`ric-idle-${this.facing}`, true);
+        else if (!this.portalWalk) this.ric.anims.play(`ric-idle-${this.facing}`, true);
         this.party.update();
         this.ric.setDepth(this.ric.y);
         this.updateTalkHint();
+        this.updateBinHint();
 
-        if (this.doorOpen && !this.busy && this.def.door && this.inRect(this.def.door, DOOR_SLACK)) this.leave();
+        if (this.doorOpen && !this.busy && ((this.def.door && this.inRect(this.def.door, DOOR_SLACK)) || this.atEdge())) this.leave();
     }
 
     // ---- walking ----
@@ -146,17 +163,28 @@ export class WorldScene extends Phaser.Scene {
             if (latest([a.left, a.right, w.left, w.right]) > latest([a.up, a.down, w.up, w.down])) dy = 0;
             else dx = 0;
         }
+        const running = this.shift.isDown;
+        this.ric.anims.timeScale = running ? RUN_ANIM : 1;
         if (!dx && !dy) {
             this.ric.anims.play(`ric-idle-${this.facing}`, true);
             return;
         }
         this.facing = dx ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
         // each axis on its own, so Ric slides along the edge of a walk rectangle
-        const nx = this.ric.x + dx * SPEED * dt;
-        if (this.canStand(nx, this.ric.y)) this.ric.x = nx;
-        const ny = this.ric.y + dy * SPEED * dt;
-        if (this.canStand(this.ric.x, ny)) this.ric.y = ny;
+        const speed = running ? SPEED * RUN_FACTOR : SPEED;
+        if (dx) this.ric.x = this.reach(dx * speed * dt, (v) => this.canStand(v, this.ric.y), this.ric.x);
+        if (dy) this.ric.y = this.reach(dy * speed * dt, (v) => this.canStand(this.ric.x, v), this.ric.y);
         this.ric.anims.play(`ric-walk-${this.facing}`, true);
+    }
+
+    /** Moves `from` by `step`, or as far as it can in 1 px steps when the full step is blocked, so Ric always reaches
+     *  walls and map edges (an edge exit must not depend on the frame rate). */
+    private reach(step: number, ok: (v: number) => boolean, from: number): number {
+        if (ok(from + step)) return from + step;
+        const s = Math.sign(step);
+        let v = from;
+        while (Math.abs(v + s - from) <= Math.abs(step) && ok(v + s)) v += s;
+        return v;
     }
 
     private canStand(x: number, y: number): boolean {
@@ -168,7 +196,8 @@ export class WorldScene extends Phaser.Scene {
     private blockedByPerson(x: number, y: number): boolean {
         const inside = (px: number, py: number, s: Phaser.GameObjects.Sprite) => Math.abs(px - s.x) < NPC_BLOCK.x && Math.abs(py - s.y) < NPC_BLOCK.y;
         const people = [...this.npcs.map((n) => n.sprite), ...this.crowd];
-        return people.some((s) => inside(x, y, s) && !inside(this.ric.x, this.ric.y, s));
+        const inBin = (px: number, py: number, s: Phaser.GameObjects.Image) => Math.abs(px - s.x) < BIN_BLOCK.x && Math.abs(py - s.y) < BIN_BLOCK.y;
+        return people.some((s) => inside(x, y, s) && !inside(this.ric.x, this.ric.y, s)) || this.binSprites.some((s) => inBin(x, y, s) && !inBin(this.ric.x, this.ric.y, s));
     }
 
     private inRect(r: Rect, slack = 0): boolean {
@@ -193,6 +222,7 @@ export class WorldScene extends Phaser.Scene {
         ensureCharAnims(this, npcDef.personId);
         const sprite = this.add.sprite(npcDef.x, npcDef.y, `char-${npcDef.personId}`, 1).setOrigin(0.5, 1).setDepth(npcDef.y);
         sprite.play(`${npcDef.personId}-idle-${npcDef.facing}`);
+        idleLife(this).add(sprite, { look: true, shift: kind !== 'friend', canLook: () => !this.busy });
         const npc: Npc = { def: npcDef, sprite, kind };
         this.npcs.push(npc);
         return npc;
@@ -206,7 +236,7 @@ export class WorldScene extends Phaser.Scene {
             const at = feetOf(c);
             const sprite = this.add.sprite(at.x, at.y, `char-${id}`, 1).setOrigin(0.5, 1).setDepth(at.y);
             sprite.play(`${id}-idle-${c.facing}`);
-            this.tweens.add({ targets: sprite, y: at.y - 1, duration: c.bob / 2, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: Phaser.Math.Between(0, c.bob) });
+            idleLife(this).add(sprite, { period: c.bob, look: true, shift: true }); // a soft breath, now and then a glance or a shift of weight
             this.crowd.push(sprite);
         }
     }
@@ -238,9 +268,15 @@ export class WorldScene extends Phaser.Scene {
     // ---- talking ----
 
     private onKey(e: KeyboardEvent): void {
-        if (e.repeat || !CONFIRM_CODES.includes(e.code) || this.busy || this.time.now - this.dialog.lastClosed < 250) return;
+        if (e.repeat || this.busy || this.time.now - this.dialog.lastClosed < 250 || performance.now() - this.menuClosedAt < 250) return;
+        if (e.code === 'Escape' || e.code === 'KeyC') return this.openMenu(); // C too: the browser keeps Esc to leave fullscreen
+        if (e.code === 'KeyP') return void this.usePortal();
+        if (!CONFIRM_CODES.includes(e.code)) return;
         const npc = this.nearestTalkable();
-        if (!npc) return;
+        if (!npc) {
+            if (this.nearestBin()) void this.checkBin();
+            return;
+        }
         this.busy = true;
         this.face(npc);
         const story = npc.kind === 'friend' ? this.talkToFriend(npc) : this.say(lines(`easterEggs.${npc.def.egg}`));
@@ -319,6 +355,123 @@ export class WorldScene extends Phaser.Scene {
             this.scene.launch(key, { sceneId: this.def.id } satisfies MinigameInit);
             this.scene.sleep();
         });
+    }
+
+    // ---- menu, edge exit, bins and the portal gun ----
+
+    /** Esc: the menu scene runs over this one, which stays paused (and drawn) until the menu resumes it. */
+    private openMenu(): void {
+        this.busy = true;
+        audio.sfx('confirm');
+        this.events.once('resume', () => {
+            this.input.keyboard!.resetKeys();
+            this.menuClosedAt = performance.now();
+            this.busy = this.leaving;
+        });
+        this.scene.launch('menu');
+        this.scene.pause();
+    }
+
+    /** A room with `exit: "edge"` is left by walking to a limit of the map (Ric's feet box is 18 x 7 px, see TileWorld.canStand). */
+    private atEdge(): boolean {
+        if (this.def.exit !== 'edge' || !this.tw) return false;
+        const { x, y } = this.ric;
+        return x <= 9 + EDGE || x >= this.tw.widthPx - 9 - EDGE || y <= 7 + EDGE || y >= this.tw.heightPx - EDGE;
+    }
+
+    private spawnBins(): void {
+        for (const b of this.def.bins ?? []) if (b.draw !== false) this.binSprites.push(addBin(this, b.x, b.y));
+        this.binHint = this.add.text(0, 0, t('ui.look'), { ...pixelStyle(16), ...OUTLINE }).setOrigin(0.5, 1).setDepth(900).setVisible(false);
+    }
+
+    private showKeyHints(): void {
+        this.add.text(8, 6, `${t('ui.menu')}\n${t('ui.run')}`, { ...pixelStyle(16, '#cfe0ff'), ...OUTLINE }).setAlpha(0.85).setDepth(900).setScrollFactor(0);
+    }
+
+    private nearestBin(): BinDef | undefined {
+        return (this.def.bins ?? []).find((b) => Phaser.Math.Distance.Between(this.ric.x, this.ric.y, b.x, b.y) <= BIN_RANGE);
+    }
+
+    private updateBinHint(): void {
+        const bin = !this.busy && !this.nearestTalkable() ? this.nearestBin() : undefined;
+        this.binHint.setVisible(!!bin);
+        if (bin) this.binHint.setPosition(bin.x, bin.y - 28);
+    }
+
+    /** X next to a bin. The first one Ric checks in a run holds Rick's portal gun; the others hold a joke. */
+    private async checkBin(): Promise<void> {
+        this.busy = true;
+        if (!this.run.portalGun) {
+            this.run.portalGun = true;
+            await this.say(lines('easterEggs.portalFound'));
+        } else {
+            await this.say([Phaser.Utils.Array.GetRandom(lines('easterEggs.binEmpty'))]);
+        }
+        this.busy = this.leaving;
+    }
+
+    /** The wall in front of Ric, if one is within reach: where it meets the floor in his lane, and whether it faces him. */
+    private wallAhead(): { x: number; y: number; wide: boolean } | undefined {
+        const tw = this.tw!;
+        const { x, y } = this.ric;
+        for (let reach = 2; reach <= 24; reach += 2) {
+            const probe = { up: [x, y - 7 - reach], down: [x, y - 1 + reach], left: [x - 9 - reach, y - 4], right: [x + 9 + reach, y - 4] }[this.facing];
+            if (!tw.solidAt(probe[0], probe[1])) continue;
+            const edgeX = Math.floor(probe[0] / TILE) * TILE;
+            const edgeY = Math.floor(probe[1] / TILE) * TILE;
+            if (this.facing === 'up') return { x, y: edgeY + TILE, wide: true };
+            if (this.facing === 'down') return { x, y: edgeY, wide: true };
+            return { x: this.facing === 'left' ? edgeX + TILE : edgeX, y, wide: false };
+        }
+        return undefined;
+    }
+
+    /** P with the portal gun: opens a portal on the wall Ric faces and the whole party walks in; the scene ends as through the exit. */
+    private async usePortal(): Promise<void> {
+        if (!this.run.portalGun || !this.tw) return;
+        if (!this.doorOpen) {
+            this.busy = true;
+            await this.say(lines('easterEggs.portalNotYet'));
+            this.busy = this.leaving;
+            return;
+        }
+        const wall = this.wallAhead();
+        if (!wall) return void audio.sfx('cancel');
+        this.busy = true;
+        this.portalWalk = true;
+        const face = this.facing;
+        // the oval stands on the wall face above the contact line; on a wall seen from above it lies on the wall top
+        const portal = openPortal(this, wall.x, face === 'down' ? wall.y + 4 : face === 'up' ? wall.y - 16 : wall.y - 14, wall.wide);
+        const base = { x: wall.x + (face === 'left' ? 3 : face === 'right' ? -3 : 0), y: wall.y + (face === 'up' ? 3 : face === 'down' ? -2 : 0) };
+        const wait = (ms: number) => new Promise<void>((resolve) => this.time.delayedCall(ms, resolve));
+        const move = (s: Phaser.GameObjects.Sprite, delay: number, speed: number) =>
+            new Promise<void>((resolve) => {
+                const dx = base.x - s.x;
+                const dy = base.y - s.y;
+                const dir: Dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down';
+                const id = s.texture.key.slice('char-'.length);
+                this.tweens.add({
+                    targets: s,
+                    x: base.x,
+                    y: base.y,
+                    delay,
+                    duration: Math.max(200, (Math.hypot(dx, dy) / speed) * 1000),
+                    onStart: () => s.play(walkKey(id, dir)),
+                    onComplete: () => this.tweens.add({ targets: s, alpha: 0, scaleX: 0.3, scaleY: 0.3, duration: 150, onComplete: () => resolve() })
+                });
+            });
+
+        await wait(450);
+        await move(this.ric, 0, SPEED);
+        // the followers walk in one after the other, the one nearest to the portal first
+        this.party.setPaused(true);
+        const mates = this.children.list
+            .filter((o): o is Phaser.GameObjects.Sprite => o instanceof Phaser.GameObjects.Sprite && o !== this.ric && this.run.party.some((id) => o.texture.key === `char-${id}`) && !this.npcs.some((n) => n.sprite === o))
+            .sort((a, b) => Phaser.Math.Distance.BetweenPoints(a, base) - Phaser.Math.Distance.BetweenPoints(b, base));
+        await Promise.all(mates.map((m, i) => move(m, i * 160, SPEED * 1.4)));
+        portal.close();
+        await wait(300);
+        this.leave();
     }
 
     // ---- texts on screen ----

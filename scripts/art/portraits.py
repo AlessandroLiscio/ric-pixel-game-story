@@ -631,7 +631,53 @@ def glasses(cv, f, which):
 
 # ---------------------------------------------------------------- the portrait
 
+def draw_cat():
+    """Gatto di Paz: a calico (white, orange and brown tabby patches) with green eyes, same painting style."""
+    white, orange, brown = (246, 240, 230), (226, 140, 66), (110, 78, 56)
+    cv = Canvas()
+    body = ell(48, 98, 34, 27)
+    head = ell(48, 52, 25, 20.5) | ell(48, 60, 20, 14)
+    ears = poly([(26, 46), (27, 20), (44, 35)]) | poly([(70, 46), (69, 20), (52, 35)])
+    cv.cel(body, white, sd=(2, 1.6), hi=(-1, -1), lw=3, grad=(74, 96, 0.4))
+    cv.fill(body & ell(72, 92, 14, 12), orange)
+    cv.fill(body & ell(28, 96, 12, 10), brown)
+    cv.fill(head & sh(head, 0, 3) & body & ~head, shade(white, 1.0))
+    cv.cel(ears, white, sd=(1, 1), hi=None, lw=3)
+    cv.fill(ears & (X < 48), orange)
+    cv.fill(ears & (X > 48), brown)
+    cv.fill(poly([(29, 42), (29.5, 26), (40, 36)]) | poly([(67, 42), (66.5, 26), (56, 36)]), (238, 160, 168))
+    cv.cel(head, white, sd=(1.8, 1.4), hi=(-0.9, -0.9), lw=3, grad=(32, 74, 0.2))
+    # calico patches: orange over the left eye and ear, brown tabby over the right, a white blaze down the nose
+    left = head & ell(33, 40, 15, 13) & ~ell(48, 50, 5, 30)
+    right = head & ell(63, 40, 15, 12) & ~ell(48, 50, 5, 30)
+    cv.fill(left, orange)
+    cv.fill(rim(left, 1.6, 1.4), shade(orange, 0.7))
+    cv.fill(right, brown)
+    for k in range(4):  # tabby stripes
+        cv.fill(stroke(bez((56 + k * 3.5, 30), (57 + k * 3.5, 36), (55 + k * 4, 41)), 1.1, "both") & right, shade(brown, 1.2))
+    cv.fill(stroke(bez((26, 54), (30, 58), (29, 63)), 1.0, "both") & head, shade(orange, 0.6))
+    # eyes: green, vertical pupils, big highlights
+    for cx, side in ((39, -1), (57, 1)):
+        e = ell(cx, 51, 5.2, 4.6)
+        cv.vgrad(e, (92, 150, 70), (176, 214, 96), 47, 56)
+        cv.fill(ell(cx, 51.2, 1.1, 3.8), (20, 20, 18))
+        cv.fill(ell(cx - 1.6, 49.2, 1.1, 1.1), (255, 255, 255))
+        cv.fill(e & ~erode(e, 3), (40, 30, 26))
+        cv.fill(stroke(bez((cx - side * 5.5, 51), (cx, 45.2), (cx + side * 6.2, 49.5)), 1.4, "end" if side > 0 else "none"), (40, 30, 26))
+    # muzzle, nose, mouth, whiskers
+    cv.fill(ell(44.5, 62, 4.6, 3.4) | ell(51.5, 62, 4.6, 3.4), (252, 250, 246))
+    cv.fill(poly([(45.6, 57.4), (50.4, 57.4), (48, 60.2)]), (226, 120, 136))
+    cv.fill(stroke(bez((48, 60), (48, 61.5), (45.5, 63)), 0.6) | stroke(bez((48, 60), (48, 61.5), (50.5, 63)), 0.6), (90, 60, 60))
+    for s in (-1, 1):
+        for k in range(3):
+            cv.fill(stroke(bez((48 + s * 7, 61 + k * 1.4), (48 + s * 14, 60 + k * 2.2), (48 + s * 21, 59 + k * 3.4)), 0.45),
+                    (250, 250, 250))
+    return finish(cv.image())
+
+
 def draw(pid):
+    if pid == "gatto":
+        return draw_cat()
     f = FACES[pid]
     rng = random.Random(f"portrait-{pid}")
     skin = SKIN[f["skin"]]

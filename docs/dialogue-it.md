@@ -1,16 +1,18 @@
 # Dialogue (Italian) for the Ric game
 
-All player-visible text lives in `src/data/dialogue.it.json`, written in Italian and following the dialogue contract (`ui`, `scenes`, `minigames`, `easterEggs`, `credits`, `titleScreen`). Check it with `node scripts/check-dialogue.mjs`: it prints `PASS dialogue: <N> lines, all within limits` or the first 20 problems.
+All player-visible text lives in `src/data/dialogue.it.json`, written in Italian and following the dialogue contract (`ui`, `menu`, `controls`, `diary`, `scenes`, `minigames`, `easterEggs`, `credits`, `titleScreen`). Check it with `node scripts/check-dialogue.mjs`: it prints `PASS dialogue: <N> lines, all within limits` or the first 20 problems.
 
 ## Structure
 
 A Line is `{ "speaker", "text", "pause"? }`. One Line is one box page: at most 3 rows separated by `\n`, at most 44 characters per row. Speakers are the personIds (`ric`, `lara`, `liscio`, `ros`, `lollino`, `fede`, `giuggiu`, `giusy`, `pinolo`, `gatto`, `sconosciuta`) or `narratore`. The only placeholder is `{ric}`; the validator counts the raw text, so the real length after substitution is shorter.
 
+Story rules after the owner's playtest, all enforced by the validator. The story is an ordinary Friday in Bologna, never Ric's birthday: no birthday word inside `scenes`, `easterEggs` or `minigames`; only the title screen (`titleScreen.subtitle`), the credits title and the last credits line, "Buon compleanno, Ric!" (shown big by the finale), stay as the real gift message, because they sit outside the story. Every character name written in a text starts with a capital letter (Ric, Lollino, Pinolo, Giuggiu, Liscio, Ros, Giusy, Lara, Fede, Gatto di Paz); the house cat is always "Gatto di Paz" (speaker id `gatto`), never "il gatto". The slackline is "slack", never "fettuccia". Characters never explain a minigame: the rules live only in `minigames.<id>.title` and `.instructions`, shown by the instruction card, and the lines of `minigameIntro*` are friends talking. Prof. Pinolo's lessons take place at the Cinema Bellinzona (red velvet seats in rows, a big screen, wall lights). The `join` of every scene with a next destination names that destination and ends with the line `ric` "Meh, sciamanin." (the last scene, `divano`, has no next destination and is exempt); the flow plays `join` last, so that line closes the scene's story before the join banner.
+
 `scenes` holds the six sceneIds in order, each with `arrival`, `meet`, `minigameIntro`, `win`, `lose` and `join`. The flow plays arrival, meet, minigameIntro, the minigame, then win or lose, then join (the friend joins the party in both cases). Every scene path is about 8 to 15 pages.
 
 Deviations from the contract, both needed by the story and listed here for the flow worker. First, `scenes.circe` also has `minigameIntro2`, `win2` and `lose2` for the second minigame of the scene: `minigameIntro`, `win` and `lose` belong to the d20 (Ros) and the `*2` keys to mash (Giusy); `join` closes the scene and covers Ros and Giusy together. Second, `scenes.divano` has no minigame, so `minigameIntro`, `win` and `lose` are empty arrays; `meet` is the sofa banter during the fish documentary, the easter eggs play after `meet` in the order the flow chooses, and `join` is the last pair of pages before the credits.
 
-`minigames.<id>` has `title` (max 32 characters), `instructions` (max 2 rows of 44), `winText` and `loseText` (max 2 rows of 44, a short result card). `easterEggs` holds the ten eggs; `credits` and `titleScreen` follow the contract. `ui` has the keys the contract names plus a few extras (`confirm`, `fastForward`, `talk`, `exit`, `loading`, `joined`, `theEnd`) that the UI worker may use or ignore.
+`minigames.<id>` has `title` (max 32 characters), `instructions` (max 2 rows of 44), `winText` and `loseText` (max 2 rows of 44, a short result card). `easterEggs` holds the ten eggs plus the portal gun lines (`portalFound`, `binEmpty` where each entry is one variant picked at random, and `portalNotYet`, the one fixed line Ric says on P before the scene is done); `menu`, `controls` and `diary` (one entry per scene id, up to 4 rows of 44) hold the text of the Esc menu; `credits` and `titleScreen` follow the contract. `ui` has the keys the contract names plus a few extras (`confirm`, `fastForward`, `talk`, `look`, `run`, `menu`, `exit` (the hint "Esci dalla stanza"), `loading`, `joined`, `theEnd`) that the UI worker may use or ignore.
 
 ## Easter egg triggers (assumed)
 
@@ -25,7 +27,7 @@ The six divano eggs play in the final scene only when their minigame was won: `p
 - Working title: `Ric 30: Un Venerdì a Bologna`. Subtitle and press text as briefed.
 - Genders: Ric and Prof. Pinolo are male, Giusy is female (the brief says "her seat"). For everyone else the lines avoid gendered forms.
 - "Trellone" is used as the author's own word, always as a light joke, never as an instruction or praise; the friends' personalities are light inventions: Lollino studious (notes and colour pens), Giuggiu the chill host, Liscio the sporty acrobat, Ros the sarcastic rebel, Giusy always late, Lara the musical one.
-- The cat only says `Miao.` with a parenthetical translation in some lines.
+- The cat is named Gatto di Paz (speaker id `gatto`, name in `people.json`). It only says `Miao.` with a parenthetical translation in some lines.
 - The two cortile guitarists and the drummer are never named.
 - A flat path through the game is about 100 dialogue pages; with six minigames (about 1 minute each) the run is about 20 minutes.
 
@@ -34,12 +36,12 @@ The six divano eggs play in the final scene only when their minigame was won: `p
 | Part | Lines |
 | --- | --- |
 | scenes.universita | 19 |
-| scenes.giuggiu | 20 |
-| scenes.giardini | 17 |
-| scenes.circe | 22 |
+| scenes.giuggiu | 21 |
+| scenes.giardini | 18 |
+| scenes.circe | 23 |
 | scenes.cortile | 16 |
 | scenes.divano | 12 |
 | easterEggs (10) | 39 |
-| Total in the validator (all Lines) | 145 |
+| Total in the validator (all Lines) | 148 |
 
 The per-scene figures are all Lines in the scene, so a single run shows about 8 to 15 of them per scene (win and lose are alternatives).

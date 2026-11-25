@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { MenuScene } from '../scenes/MenuScene';
 import { TitleScene } from '../scenes/TitleScene';
 import { BootScene } from './BootScene';
 import { EndingStub } from './EndingStub';
@@ -14,5 +15,5 @@ const isSceneClass = (v: unknown): v is Phaser.Types.Scenes.SceneType => typeof 
 export function gameScenes(): Phaser.Types.Scenes.SceneType[] {
     const exported = Object.values(endingModules).flatMap((mod) => Object.values(mod).flatMap((v) => (Array.isArray(v) ? v : [v])));
     const ending = [...new Set(exported)].filter(isSceneClass); // default and named export may be the same class
-    return [BootScene, TitleScene, WorldScene, ...(ending.length ? ending : [EndingStub])];
+    return [BootScene, TitleScene, WorldScene, MenuScene, ...(ending.length ? ending : [EndingStub])];
 }
