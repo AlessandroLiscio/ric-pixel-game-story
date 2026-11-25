@@ -65,7 +65,7 @@
     "friend2": { "personId": "giusy", "facing": "down", "at": "giusy" },
     "extras": [],
     "minigame": "d20",
-    "bins": [{ "x": 720, "y": 380 }],
+    "bins": [{ "x": 560, "y": 380 }],
     "minigame2": "mash",
     "ambient": []
   },
@@ -98,7 +98,7 @@
     "friend": null,
     "extras": [],
     "minigame": null,
-    "bins": [{ "x": 528, "y": 316 }],
+    "bins": [{ "x": 560, "y": 348 }],
     "ambient": []
   }
 ]
