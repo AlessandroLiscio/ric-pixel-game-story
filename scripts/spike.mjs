@@ -74,7 +74,7 @@ try {
     notes.push(`renderer: ${api.webgl ? 'WebGL' : 'Canvas'}; Phaser ${api.version}`);
 
     // 2. Zoom of the 1280x720 canvas at four window sizes (1.5x, 1x, 1x, 0.78x: below 1 the exact fit) and fullscreen with F
-    for (const [w, h, z] of [[1920, 1080, 1.5], [1366, 768, 1], [1280, 720, 1], [1000, 600, 600 / 720]]) {
+    for (const [w, h, z] of [[1920, 1080, 1.5], [1366, 768, 1], [1280, 720, 1], [1000, 600, 1000 / 1280]]) {
         await page.setViewportSize({ width: w, height: h });
         await page.waitForFunction((zz) => Math.abs(document.querySelector('canvas').getBoundingClientRect().width - 1280 * zz) < 1, z, { timeout: 5000 }).catch(() => undefined);
         const box = await page.evaluate(() => {
