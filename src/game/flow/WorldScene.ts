@@ -172,11 +172,19 @@ export class WorldScene extends Phaser.Scene {
         this.facing = dx ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
         // each axis on its own, so Ric slides along the edge of a walk rectangle
         const speed = running ? SPEED * RUN_FACTOR : SPEED;
-        const nx = this.ric.x + dx * speed * dt;
-        if (this.canStand(nx, this.ric.y)) this.ric.x = nx;
-        const ny = this.ric.y + dy * speed * dt;
-        if (this.canStand(this.ric.x, ny)) this.ric.y = ny;
+        if (dx) this.ric.x = this.reach(dx * speed * dt, (v) => this.canStand(v, this.ric.y), this.ric.x);
+        if (dy) this.ric.y = this.reach(dy * speed * dt, (v) => this.canStand(this.ric.x, v), this.ric.y);
         this.ric.anims.play(`ric-walk-${this.facing}`, true);
+    }
+
+    /** Moves `from` by `step`, or as far as it can in 1 px steps when the full step is blocked, so Ric always reaches
+     *  walls and map edges (an edge exit must not depend on the frame rate). */
+    private reach(step: number, ok: (v: number) => boolean, from: number): number {
+        if (ok(from + step)) return from + step;
+        const s = Math.sign(step);
+        let v = from;
+        while (Math.abs(v + s - from) <= Math.abs(step) && ok(v + s)) v += s;
+        return v;
     }
 
     private canStand(x: number, y: number): boolean {
