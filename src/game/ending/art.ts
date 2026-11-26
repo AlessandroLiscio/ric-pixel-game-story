@@ -157,6 +157,14 @@ export function particleTextures(scene: Phaser.Scene): void {
         g.generateTexture('ending-star', 5, 5);
         g.destroy();
     }
+    if (!scene.textures.exists('ending-heart')) {
+        // a 7 x 6 pixel heart (the upstairs gag)
+        const g = scene.make.graphics({ x: 0, y: 0 }, false);
+        g.fillStyle(0xffffff, 1);
+        for (const [x, y, w] of [[1, 0, 2], [4, 0, 2], [0, 1, 7], [0, 2, 7], [1, 3, 5], [2, 4, 3], [3, 5, 1]]) g.fillRect(x, y, w, 1);
+        g.generateTexture('ending-heart', 7, 6);
+        g.destroy();
+    }
     if (!scene.textures.exists('ending-z')) {
         // a pixel "z" bubble
         const g = scene.make.graphics({ x: 0, y: 0 }, false);
