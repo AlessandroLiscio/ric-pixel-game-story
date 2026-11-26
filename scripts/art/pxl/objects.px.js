@@ -240,3 +240,28 @@ sprite("giardini_lamp", { w: 30, h: 62, selout: "1" }, (c) => {
   c.px(8, 3, "w")
   c.hline(7, 4, 3, "w")
 })
+
+// ------------------------------------------------------------------------------------------------------------ Pickups
+
+// A white plate of spaghetti carbonara seen from the top front: a plate 19 px wide, a mound of pale yellow pasta with a few strands drawn on it,
+// guanciale bits and pepper. Not a stamp: the built PNG is 32x32, copied from out/sprites to public/assets/objects/carbonara.png (texture key
+// `obj-carbonara`, loaded by the scene that shows it). New keys: G H I pasta, J R guanciale, X pepper.
+pal({ G: "#d4a94a", H: "#e8c566", I: "#f6e19a", J: "#b8604a", R: "#e9b895", X: "#2a2420" })
+ramps("GHI")
+sprite("carbonara", { w: 30, h: 30, selout: "0" }, (c) => {
+  const ox = 6, oy = 10 // the plate's top left in the sprite
+  const px = (x, y, k) => c.px(ox + x, oy + y, k)
+  lit(c, ox, oy, 19, 11, "EFSw", 1, 0, 3, ell(9, 5, 9.5, 5.5)) // the rim, lit from the top left
+  c.hline(ox + 4, oy + 10, 11, "E") // the lower rim in shade
+  lit(c, ox + 2, oy + 2, 15, 8, "EFSw", 1, 1, 2, ell(7, 3.5, 7.5, 4)) // the well of the plate
+  lit(c, ox + 2, oy + 1, 15, 8, "GHI", 1, 0, 2, ell(7, 3.5, 7.2, 4)) // the mound of pasta
+  for (const [x, y, n] of [[4, 2, 5], [3, 4, 7], [5, 6, 6], [9, 3, 5], [8, 5, 6]]) c.hline(ox + x, oy + y, n, "G") // the strands, dark gaps
+  for (const [x, y, n] of [[5, 1, 4], [4, 3, 5], [10, 2, 3], [7, 4, 4], [9, 6, 4]]) c.hline(ox + x, oy + y, n, "I") // and their lit tops
+  for (const [x, y] of [[6, 2], [11, 4], [4, 5], [9, 6], [13, 5]]) { // guanciale bits, a fatty pale top on a pink brown body
+    c.rect(ox + x, oy + y, 2, 2, "J")
+    px(x, y, "R")
+  }
+  for (const [x, y] of [[5, 3], [8, 2], [10, 3], [7, 5], [12, 3], [11, 6], [5, 7], [14, 4]]) px(x, y, "X") // pepper
+  px(7, 3, "w") // a crumb of pecorino
+  px(10, 5, "w")
+})

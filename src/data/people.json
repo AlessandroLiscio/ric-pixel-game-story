@@ -260,5 +260,68 @@
     "sprite": "char-mamma",
     "portrait": "portrait-mamma",
     "portraitSource": "parametric"
+  },
+  {
+    "id": "frangetta",
+    "name": "La tipa con la frangetta",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "long", "hairStyle": "fringe-straight", "hairColor": "brown", "outfitTop": "tank:white", "outfitBottom": "skirt:khaki/sandal", "accessory": [], "height": 0.95 },
+    "sprite": "char-frangetta",
+    "portrait": "portrait-frangetta",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "slackgirl1",
+    "name": "Ragazza al parco",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "medium", "hairStyle": "long-wavy", "hairColor": "blonde", "outfitTop": "tank:pink", "outfitBottom": "shorts:navy/white", "accessory": [], "height": 0.93 },
+    "sprite": "char-slackgirl1",
+    "portrait": "portrait-slackgirl1",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "slackgirl2",
+    "name": "Ragazza al parco",
+    "role": "npc",
+    "traits": { "skin": "olive", "hair": "tied", "hairStyle": "ponytail", "hairColor": "black", "outfitTop": "tee:green", "outfitBottom": "shorts:charcoal/white", "accessory": [], "height": 0.95 },
+    "sprite": "char-slackgirl2",
+    "portrait": "portrait-slackgirl2",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "slackgirl3",
+    "name": "Ragazza al parco",
+    "role": "npc",
+    "traits": { "skin": "tan", "hair": "short", "hairStyle": "curly", "hairColor": "chestnut", "outfitTop": "tank:orange", "outfitBottom": "trousers:navy/white", "accessory": [], "height": 1.0 },
+    "sprite": "char-slackgirl3",
+    "portrait": "portrait-slackgirl3",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "albanese1",
+    "name": "Ragazzo albanese",
+    "role": "npc",
+    "traits": { "skin": "tan", "hair": "short", "hairStyle": "fade", "hairColor": "black", "outfitTop": "track:navy:zip", "outfitBottom": "trousers:navy/white", "accessory": ["stubble"], "height": 1.05 },
+    "sprite": "char-albanese1",
+    "portrait": "portrait-albanese1",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "albanese2",
+    "name": "Ragazzo albanese",
+    "role": "npc",
+    "traits": { "skin": "light", "hair": "short", "hairStyle": "quiff", "hairColor": "brown", "outfitTop": "shirt-long:white", "outfitBottom": "trousers:charcoal/charcoal", "accessory": [], "height": 1.0 },
+    "sprite": "char-albanese2",
+    "portrait": "portrait-albanese2",
+    "portraitSource": "parametric"
+  },
+  {
+    "id": "losco",
+    "name": "Losco figuro",
+    "role": "npc",
+    "traits": { "skin": "tan", "hair": "short", "hairStyle": "hood", "hairColor": "black", "outfitTop": "hoodie:charcoal:pocket", "outfitBottom": "trousers:navy/charcoal", "accessory": ["stubble"], "height": 1.0 },
+    "sprite": "char-losco",
+    "portrait": "portrait-losco",
+    "portraitSource": "parametric"
   }
 ]

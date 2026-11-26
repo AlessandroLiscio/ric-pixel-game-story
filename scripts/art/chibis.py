@@ -32,15 +32,15 @@ PAL = {
     "skin_light": "#f4cba8", "skin_light_s": "#d99f7e",
     "skin_tan": "#dba577", "skin_tan_s": "#b9805a",
     "skin_olive": "#c28a5c", "skin_olive_s": "#9d6a45",
-    "h_black": "#2b2330", "h_brown": "#5a3a28", "h_chestnut": "#8c5a38", "h_auburn": "#b04a48", "h_grey": "#9ea0a8",
-    "maroon": "#8c2a3a", "white": "#f4f1ea", "grey": "#a6aab3", "navy": "#2f3d6b", "yellow": "#e8b83a",
+    "h_black": "#2b2330", "h_brown": "#5a3a28", "h_chestnut": "#8c5a38", "h_auburn": "#b04a48", "h_grey": "#9ea0a8", "h_blonde": "#dcc070",
+    "cork": "#a47848", "maroon": "#8c2a3a", "white": "#f4f1ea", "grey": "#a6aab3", "navy": "#2f3d6b", "yellow": "#e8b83a",
     "green": "#4f9a5d", "mint": "#8fd1b0", "blue_l": "#8db4dc", "khaki": "#b79d6b", "cream": "#e7dcc0",
     "charcoal": "#3b3f4c", "pink": "#e07a90", "orange": "#e48a3a", "red": "#c8362f",
 }
 PAL.update(sprite_shade.derive(PAL))  # `<name>.s`, `.l`, `.d`: shade, light and outline tone of every material
 RAMPS = sprite_shade.Ramps(PAL)
 LINE = "LINE"
-OUTLINE_FOR_HAIR = {"black": "o_navy", "brown": "o_brown", "chestnut": "o_brown", "auburn": "o_plum", "grey": "o_navy", "orange": "o_brown"}
+OUTLINE_FOR_HAIR = {"black": "o_navy", "brown": "o_brown", "chestnut": "o_brown", "auburn": "o_plum", "grey": "o_navy", "orange": "o_brown", "blonde": "o_brown"}
 SKIN_NAMES = {"light": ("skin_light", "skin_light_s"), "tan": ("skin_tan", "skin_tan_s"), "olive": ("skin_olive", "skin_olive_s")}
 
 
@@ -133,7 +133,18 @@ def pat_color(pat, rx, ry, base):
     elif pat == "buttons":
         if rx in (4, 5) and ry in (2, 4, 6):
             return "grey"
+    elif pat == "zip":  # the zip of a tracksuit top, down the middle
+        if rx == 4 and ry >= 1:
+            return "white"
+    elif pat == "pocket":  # the kangaroo pocket of a hoodie, with two drawstrings
+        if ry == 4 and 2 <= rx <= 7:
+            return "o_navy"
+        if rx in (3, 6) and ry in (1, 2):
+            return "grey"
     return None
+
+
+SLEEVE = {"tee": 3, "shirt": 3, "shirt-long": 6, "track": 6, "hoodie": 6, "tank": 0, "dress": 0}  # sleeve rows of each garment
 
 
 def body_params(traits):
@@ -141,6 +152,23 @@ def body_params(traits):
     d = 1 if h >= 1.08 else (-1 if h <= 0.93 else 0)
     L = 7 + d
     return d, L, 29 - L  # delta, visible leg rows, torso bottom row ty1
+
+
+def leg_row(cv, x0, x1, y, bottom, ty1, kind, shoe, pantcol, skin):
+    """One row of a leg: the shoe on the last two rows, the trouser or short leg, else skin. A `sandal` shoe is a cork sole on the last row,
+    bare toes above it and a cork strap across the instep, so skin shows on the foot."""
+    if shoe == "sandal" and y >= bottom - 2:
+        cv.rect(x0, y, x1, y, "cork" if y != bottom - 1 else skin)
+        return
+    if y >= bottom - 1:
+        c = shoe
+    elif kind == "trousers":
+        c = pantcol
+    elif kind == "shorts" and y <= ty1 + 2:
+        c = pantcol
+    else:
+        c = skin
+    cv.rect(x0, y, x1, y, c)
 
 
 def legs_front(cv, ty1, bot, skin, skin_s, step, side_view=False):
@@ -152,15 +180,7 @@ def legs_front(cv, ty1, bot, skin, skin_s, step, side_view=False):
         lift = (step == -1 and leg == 0) or (step == 1 and leg == 1)
         bottom = 29 - (1 if lift else 0)
         for y in range(ty1 - 1, bottom + 1):
-            if y >= bottom - 1:
-                c = shoe
-            elif kind == "trousers":
-                c = pantcol
-            elif kind == "shorts" and y <= ty1 + 2:
-                c = pantcol
-            else:
-                c = skin
-            cv.rect(x0, y, x1, y, c)
+            leg_row(cv, x0, x1, y, bottom, ty1, kind, shoe, pantcol, skin)
     # separation line between legs
     yb = 29 - (1 if step != 0 else 0)
     for y in range(ty1 + 3, yb - 1):
@@ -179,15 +199,7 @@ def legs_side(cv, ty1, bot, skin, step):
     for x0, x1, lift in legs:
         bottom = 29 - lift
         for y in range(ty1 - 1, bottom + 1):
-            if y >= bottom - 1:
-                c = shoe
-            elif kind == "trousers":
-                c = pantcol
-            elif kind == "shorts" and y <= ty1 + 2:
-                c = pantcol
-            else:
-                c = skin
-            cv.rect(x0, y, x1, y, c)
+            leg_row(cv, x0, x1, y, bottom, ty1, kind, shoe, pantcol, skin)
 
 
 def torso_front(cv, T0, top, skin, skin_s, back=False, broad=False):
@@ -233,7 +245,7 @@ def arms_front(cv, T0, top, skin, ya_l, ya_r, broad=False):
     kind = top["kind"] if top else "tee"
     col = top["col"] if top else "white"
     pat = top["pat"] if top else None
-    sleeve = {"tee": 3, "shirt": 3, "shirt-long": 6, "tank": 0, "dress": 0}.get(kind, 3)
+    sleeve = SLEEVE.get(kind, 3)
     # broad build: arms one px further out and the shoulder corner filled, so the shoulders read square
     for x0, ya in (((8, ya_l), (22, ya_r)) if broad else ((9, ya_l), (21, ya_r))):
         for r in range(0 if broad else 1, TORSO):
@@ -242,6 +254,8 @@ def arms_front(cv, T0, top, skin, ya_l, ya_r, broad=False):
             if c == col and pat == "stripes" and r % 2 == 0:
                 c = "white"
             cv.rect(x0, y, x0 + 1, y, c)
+            if c == col and kind == "track":  # the white stripe down the outer side of the sleeve
+                cv.set(x0 if x0 < 16 else x0 + 1, y, "white")
         if sleeve >= 6:
             cv.rect(x0, T0 + TORSO - 1 + ya, x0 + 1, T0 + TORSO - 1 + ya, skin)
             cv.rect(x0, T0 + TORSO - 2 + ya, x0 + 1, T0 + TORSO - 2 + ya, skin)
@@ -270,7 +284,7 @@ def arm_side(cv, T0, top, skin, step):
     kind = top["kind"] if top else "tee"
     col = top["col"] if top else "white"
     pat = top["pat"] if top else None
-    sleeve = {"tee": 3, "shirt": 3, "shirt-long": 6, "tank": 0, "dress": 0}.get(kind, 3)
+    sleeve = SLEEVE.get(kind, 3)
     swing = -1 if step == -1 else (1 if step == 1 else 0)
     for r in range(1, TORSO):
         dx = (swing * 2 * max(0, r - 2)) // 5 if swing else 0
@@ -298,7 +312,14 @@ def hair_down(cv, t, st, col, T0, ln):
         for (x, r) in ((11, 2), (15, 1), (19, 3), (13, 4), (18, 5), (10, 5), (21, 5), (16, 3), (12, 6)):
             R(x, r, x, r, LINE)
         R(10, 4, 13, 5)
-    elif st in ("long-wavy", "long-straight", "bob-bangs"):
+    elif st == "fade":  # sides and nape cut to the skin, a short top and a one row hairline
+        S(0, 3); R(10, 4, 21, 4)
+    elif st == "quiff":  # forehead open, sides short, the top gelled up and forward
+        S(0, 3); R(9, 4, 12, 4); R(21, 4, 22, 4); R(9, 5, 10, 6); R(21, 5, 22, 6)
+        R(12, -1, 19, -1); R(14, -2, 19, -2)
+    elif st == "hood":  # a hood up: a brim over the forehead, the face in its shadow (hood_face)
+        S(0, 3, 1); R(8, 4, 10, 12); R(21, 4, 23, 12); R(10, 4, 21, 5)
+    elif st in ("long-wavy", "long-straight", "bob-bangs", "fringe-straight"):
         S(0, 3)
         if st == "bob-bangs":
             R(10, 4, 21, 5)
@@ -309,6 +330,8 @@ def hair_down(cv, t, st, col, T0, ln):
                 R(9, 4, 12, 5); R(19, 4, 22, 5)
                 R(15, 0, 16, 3, LINE)
                 R(15, 3, 16, 3, LINE)
+            elif st == "fringe-straight":  # a blunt fringe straight across the brow
+                R(9, 4, 22, 5)
             else:
                 R(9, 4, 15, 4); R(20, 4, 22, 4)
             R(8, 4, 11, 12); R(20, 4, 23, 12)
@@ -341,7 +364,13 @@ def hair_up(cv, t, st, col, T0, ln, beard=False, skin_s="skin_tan_s"):
         S(0, 10, 1); R(12, -1, 13, -1); R(17, -1, 19, -1)
         for (x, r) in ((11, 2), (15, 1), (19, 3), (13, 5), (18, 6), (10, 7), (21, 7), (16, 8)):
             R(x, r, x, r, LINE)
-    elif st in ("long-wavy", "long-straight", "bob-bangs"):
+    elif st == "fade":
+        S(0, 7)
+    elif st == "quiff":
+        S(0, 10); R(12, 6, 13, 6, LINE); R(12, -1, 19, -1); R(14, -2, 19, -2)
+    elif st == "hood":  # the whole head under the hood, a seam down the back and the hood's lower edge on the nape
+        S(0, 10, 1); R(8, 4, 23, 10); R(10, 11, 21, 11); R(15, 1, 16, 9, LINE)
+    elif st in ("long-wavy", "long-straight", "bob-bangs", "fringe-straight"):
         S(0, 12 if st != "bob-bangs" else 11)
         R(8, 4, 11, 12); R(20, 4, 23, 12)
         if st != "bob-bangs":
@@ -387,11 +416,17 @@ def hair_side(cv, t, st, col, T0, ln, face_skin_s):
         S(0, 5, 1); R(8, 4, 12, 5); R(14, 6, 23, 10); R(12, -1, 13, -1); R(17, -1, 19, -1)
         for (x, r) in ((11, 2), (15, 1), (19, 3), (13, 4), (18, 5), (21, 7), (17, 8), (16, 3)):
             R(x, r, x, r, LINE)
-    elif st in ("long-wavy", "long-straight", "bob-bangs"):
+    elif st == "fade":
+        S(0, 3); R(15, 4, 22, 6)
+    elif st == "quiff":
+        S(0, 3); R(9, 4, 12, 4); R(15, 4, 22, 9); R(13, 4, 14, 6); R(9, -1, 17, -1); R(10, -2, 15, -2)
+    elif st == "hood":  # the hood over the top and the back, a brim over the face
+        S(0, 3, 1); R(9, 4, 12, 5); R(12, 4, 23, 12)
+    elif st in ("long-wavy", "long-straight", "bob-bangs", "fringe-straight"):
         S(0, 3); R(9, 4, 13, 4); R(14, 4, 23, 11)
-        if st == "bob-bangs":
+        if st in ("bob-bangs", "fringe-straight"):
             R(9, 4, 12, 5)
-        else:
+        if st != "bob-bangs":
             end = T0 + (3 if ln == "medium" else 6)
             for y in range(t + 12, end + 1):
                 wob = 1 if (st == "long-wavy" and (y // 2) % 2) else 0
@@ -453,7 +488,7 @@ def draw_head_side(cv, t, tr, skin, skin_s, hair_col, st):
     cv.set(11, t + 7, "white")
     cv.set(10, t + 10, "pink")
     cv.rect(10, t + 11, 11, t + 11, skin_s)
-    if st in ("short", "side-part", "tied-back"):
+    if st in ("short", "side-part", "tied-back", "fade", "quiff"):
         cv.set(16, t + 8, skin_s); cv.set(16, t + 9, skin_s)  # ear
     if "glasses" in acc:
         cv.rect(10, t + 6, 13, t + 6, "charcoal"); cv.rect(10, t + 10, 13, t + 10, "charcoal")
@@ -499,7 +534,7 @@ def accessories_torso(cv, T0, tr, view):
         cv.rect(15, T0 + 2, 16, T0 + 5, "red")
         cv.rect(15, T0 + 6, 16, T0 + 6, "maroon")
         cv.rect(14, T0, 17, T0, "white")
-    if top and top["kind"] == "shirt-long" and view == "down":
+    if top and top["kind"] in ("shirt-long", "track") and view == "down":
         cv.rect(14, T0, 14, T0, "white"); cv.rect(17, T0, 17, T0, "white")
 
 
@@ -509,11 +544,11 @@ def render_frame(tr, facing, col, mirror=False):
     step = (-1, 0, 1)[col]
     d, L, ty1 = body_params(tr)
     skin, skin_s = SKIN_NAMES[tr["skin"]]
-    hair_col = "h_" + tr["hairColor"]
     st = tr["hairStyle"]
     ln = tr["hair"]
     top = parse_top(tr["outfitTop"])
     bot = parse_bottom(tr["outfitBottom"])
+    hair_col = top["col"] if st == "hood" else "h_" + tr["hairColor"]  # a hood is cloth of the top's colour
     bob = 1 if step != 0 else 0
     T0 = ty1 - (TORSO - 1) + bob
     t = T0 - 13
@@ -528,6 +563,8 @@ def render_frame(tr, facing, col, mirror=False):
         hair_down(cv, t, st, hair_col, T0, ln)
         # beard/glasses drawn before hair would be covered by fringe; redraw face accessories on top of hair
         face_overlay_down(cv, t, tr, skin_s, hair_col)
+        if st == "hood":
+            hood_face(cv, t, "down", skin_s)
         if "sunglasses-on-head" in acc:
             sunglasses_on_head(cv, t, "down")
         accessories_torso(cv, T0, tr, "down")
@@ -544,10 +581,24 @@ def render_frame(tr, facing, col, mirror=False):
         torso_side(cv, T0, top, skin, skin_s, step, broad=broad)
         draw_head_side(cv, t, tr, skin, skin_s, hair_col, st)
         hair_side(cv, t, st, hair_col, T0, ln, skin_s)
+        if st == "hood":
+            hood_face(cv, t, "left", skin_s)
         arm_side(cv, T0, top, skin, step)
         if "sunglasses-on-head" in acc:
             sunglasses_on_head(cv, t, "left")
     return cv.finish(OUTLINE_FOR_HAIR[tr["hairColor"]], mirror)
+
+
+def hood_face(cv, t, view, skin_s):
+    """The face under a hood: the eye band lost in shadow with two pale glints, the jaw in the shade of the skin."""
+    if view == "down":
+        cv.rect(11, t + 5, 20, t + 9, "o_navy")
+        cv.set(12, t + 8, "white"); cv.set(19, t + 8, "white")
+        cv.rect(11, t + 10, 20, t + 10, skin_s)
+    else:
+        cv.rect(9, t + 5, 11, t + 9, "o_navy")
+        cv.set(10, t + 8, "white")
+        cv.rect(9, t + 10, 11, t + 10, skin_s)
 
 
 def face_overlay_down(cv, t, tr, skin_s, hair_col):
@@ -712,7 +763,7 @@ def stage_check(people, log):
             ncol = len(colours(po))
             assert ncol <= portraits.MAX_COLOURS, f"{p['id']} portrait has {ncol} colours"
             n_port += 1
-    assert n_sheets == 18 and n_port == 18, f"counts {n_sheets}/{n_port}"
+    assert n_sheets == 25 and n_port == 25, f"counts {n_sheets}/{n_port}"
     return n_sheets, n_port
 
 
