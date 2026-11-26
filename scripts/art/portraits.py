@@ -81,8 +81,8 @@ FACES = {
                      brow=1.5, eye=(10, 6.2), mouth="smile", lip=(150, 20, 38), squint=True, acc=["nosering"],
                      part=53, browcol=(132, 76, 44), top=("vneck", (34, 32, 36), None)),
     "papa": dict(skin="tan", hair="salt", eyes="darkbrown", style="quiff", fw=20, chin=74, cw=4.0, brow=2.0,
-                 eye=(9.5, 4.8), mouth="smile", squint=True, beard="full", acc=["lines"], male=True,
-                 top=("blazer", (70, 76, 92), (36, 44, 80))),
+                 eye=(9.5, 4.8), mouth="smile", squint=True, beard="short", bcol=HAIR["salt"], acc=["lines"], male=True,
+                 top=("blazer", (70, 76, 92), (36, 44, 80))),   # a short beard the colour of his hair (the owner's call, round 4)
     "mamma": dict(skin="light", hair="silverbrown", eyes="brown", style="longwavy", fw=19.5, chin=72, cw=3.5, brow=1.5,
                   eye=(10, 5.8), mouth="grin", squint=True, acc=["rectglasses", "headband", "lines", "browlines"],
                   browcol=(96, 72, 62), top=("blazer", (104, 62, 40), (236, 228, 212))),
