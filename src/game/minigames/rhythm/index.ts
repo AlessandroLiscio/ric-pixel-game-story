@@ -15,10 +15,11 @@ const ID = 'rhythm';
 const PERFECT = 0.06; // seconds either side of the note
 const GOOD = 0.12;
 const EARLY = 0.26; // a press this close to a note, but outside GOOD, counts that note as missed (no double penalty)
-// Tuned with a scripted player on the old 91-note chart and checked by hand on the 77-note chart of the 36 s song (see docs/music.md): a
-// perfect run reaches 100 only near the end of the song, a player who hits about 7 notes in 10 still finishes with 50 or more, and a player
-// who presses nothing loses after about 24 seconds.
-const GAIN = { perfect: 0.7, good: 0.5, miss: -1.25 };
+// Tuned with a scripted player on the old 91-note chart and checked by hand on the 77-note chart of the 36 s song (see docs/music.md). Round 4:
+// the song lost its second A (14 bars, 28 s, about 61 notes) and a miss costs 2.5 instead of 1.25 (a wrong key too). Now a perfect run still ends
+// near 93, a player who hits about 8 notes in 10 holds 50 (8 * 0.6 - 2 * 2.5 is about 0 per 10 notes), one who hits 7 in 10 loses about 3 points
+// per 10 notes and finishes near 30, and one who presses nothing loses at the 20th note, about 14 seconds into the song.
+const GAIN = { perfect: 0.7, good: 0.5, miss: -2.5 };
 const START_APPROVAL = 50;
 const FALL_SECONDS = 1.6; // time a note needs to fall from the top of the screen to the hit line
 const COUNT_STEP = 0.8; // seconds per number of the 3-2-1 countdown

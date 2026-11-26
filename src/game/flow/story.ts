@@ -16,9 +16,8 @@ const DIVANO_EGGS: [egg: string, minigame: string][] = [
     ['gatto', 'cat-smoke'],
     ['ric-sedia', 'slackline'],
     ['ros-trellone', 'd20'],
-    ['giusy-divano', 'mash'],
-    ['ric-sopra', 'rhythm']
-];
+    ['giusy-divano', 'mash']
+]; // the rhythm win has no gag of its own: the upstairs gag of the credits plays every time
 
 export const minigamesOf = (def: SceneDef): string[] => SEQUENCES[def.id] ?? (def.minigame ? [def.minigame] : []);
 
@@ -34,3 +33,29 @@ export const friendsBefore = (index: number): string[] => SCENES.slice(0, index)
 
 /** True once the scene's friend has joined: the minigames are done and the door is open. */
 export const isSceneDone = (def: SceneDef, run: RunState): boolean => !!def.friend && run.party.includes(def.friend.personId);
+
+/** Every earlier minigame counted as won (the scene jump of the Esc menu and the debug keys). */
+export const resultsBefore = (index: number): Record<string, boolean> => Object.fromEntries(SCENES.slice(0, index).flatMap(minigamesOf).map((id) => [id, true]));
+
+/** Easter egg (an `easterEggs` key played when Ric talks to an extra) -> the `achievements` id of its popup. */
+export const EGG_ACHIEVEMENT: Record<string, string> = {
+    'extra-1': 'studente',
+    'extra-rosanna': 'rosanna',
+    'extra-genitori': 'genitori',
+    'extra-3': 'barista',
+    'extra-armando': 'armando',
+    'extra-carolina': 'carolina',
+    slackgirl1: 'slackgirls',
+    slackgirl2: 'slackgirls',
+    slackgirl3: 'slackgirls',
+    fede: 'fede'
+};
+
+/** What each bin item gives: the lines (`easterEggs` key) and the `achievements` id. */
+export const BIN_ITEMS: Record<string, { lines: string; achievement: string }> = {
+    appunti: { lines: 'appuntiFound', achievement: 'appunti' },
+    portalGun: { lines: 'portalFound', achievement: 'portalGun' },
+    peroni: { lines: 'peroniFound', achievement: 'peroni' },
+    fumo: { lines: 'fumoFound', achievement: 'fumo' },
+    soldi: { lines: 'soldiFound', achievement: 'soldi' }
+};

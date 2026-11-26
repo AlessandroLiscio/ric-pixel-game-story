@@ -52,6 +52,12 @@ export const SPOTS = {
 /** Where the foil "30" balloons float: over the TV wall, by the fairy lights. */
 export const BALLOONS = { x: 296, y: 42 };
 
+/** The top of the staircase on the TV wall (the dark landing at the left end of the steps): the hearts and puffs of the upstairs gag leave from here. */
+export const UPSTAIRS = { x: 230, y: 62 };
+
+/** The speech banner of the credits: along the bottom of the room, left of the credits column; it grows upward with the number of rows. */
+export const SPEECH = { x: 6, w: 394, bottom: GAME_HEIGHT - 6, portrait: 48 };
+
 // The credits column on the right of the screen.
 export const BAND_X = 424;
 export const BAND_CX = 534;
@@ -60,8 +66,10 @@ export const BAND_TEXT_W = 190;
 /** Sort depths of everything the ending adds over the room (the map's tiles stay under 400, its night overlay is at 750, its glows at 760 and its dust at 770). */
 export const DEPTH = {
     tvGlow: 757,
+    hearts: 758,
     tvPicture: 765,
     dim: 780,
+    speech: 790,
     band: 800,
     credits: 801,
     finaleFx: 805,

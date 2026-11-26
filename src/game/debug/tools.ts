@@ -120,6 +120,6 @@ export function installDebugTools(game: Phaser.Game): void {
         if (n <= SCENES.length) game.events.emit('debug:jump', { sceneIndex: n - 1 });
         else if (n === 7) game.events.emit('debug:minigame', { won: true });
         else if (n === 8) game.events.emit('debug:minigame', { won: false });
-        else overlayOn = !overlayOn;
+        else if (n === 9) overlayOn = !overlayOn;
     });
 }

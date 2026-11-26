@@ -1,8 +1,10 @@
-// npm run test:e2e-nolog: the end-to-end test. Prints `PASS e2e: 6 scenes, 6 minigames, no console errors` or one FAIL block; the full
+// npm run test:e2e-nolog: the end-to-end test. Prints `PASS e2e: <scenes> scenes, 6 minigames, no console errors` (the scene count is read from
+// src/data/scenes.json) or one FAIL block; the full
 // step log is logs/e2e/steps.log (build logs beside it). Two single-file offline builds, both opened through file://:
-//   logs/e2e/dist       VITE_TEST_BUILD=1 (test hooks): title, all 6 scenes, all 6 minigames, the ending, the replay from the title.
+//   logs/e2e/dist       VITE_TEST_BUILD=1 (test hooks): title, every scene, all 6 minigames, the ending, the replay from the title.
 //   logs/e2e/dist-prod  production: the title renders, the game starts, and no test hook ships.
-// Real input: scene 1 (universita) and the last scene (divano) are played with key presses only (arrows, X); simon, mash and d20 are
+// Real input: scene 1 (universita) is played with key presses only (arrows, X), and so is the last scene when it has no minigame (the
+// finale plays by itself); simon (the pinhole camera quiz: arrows to the right answer, X), mash and d20 (X for its 5 s window) are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
 // Also covered: Shift runs, the Esc menu (opens, pauses the world, controls and diary, quit to the title resets the run), a litter bin
@@ -34,7 +36,6 @@ const minigamesOf = (s) => [s.minigame, s.minigame2].filter(Boolean);
 const friendsOf = (s) => [s.friend?.personId, s.friend2?.personId].filter(Boolean);
 const LOSE = 'cat-smoke'; // lost on purpose, to cover the lose path
 const REAL = ['simon', 'mash', 'd20']; // played with key presses; the rest is forced through window.__ricTest
-const ARROW = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
 const keySrc = readFileSync(join(ROOT, 'src/game/testKey.ts'), 'utf8');
 const SKIP_KEY = /TEST_SKIP_KEY\s*=\s*'([^']+)'/.exec(keySrc)?.[1];
 
@@ -42,7 +43,9 @@ let browser;
 let prod;
 try {
     // the scene and minigame lists are the contract of the final count: report a drift instead of faking the numbers
-    check(SCENES.length === 6, `scenes.json holds ${SCENES.length} scenes, not 6`);
+    const N = SCENES.length; // every scene count below comes from the data, so a scene added or removed needs no edit here
+    const LAST = N - 1;
+    check(N >= 2, `scenes.json holds ${N} scenes`);
     const listed = [...new Set(SCENES.flatMap(minigamesOf))];
     check(listed.length === 6 && MINIGAME_IDS.every((id) => listed.includes(id)), `scenes.json lists ${listed.length} minigames (${listed}), not the 6 ${MINIGAME_IDS}`);
     check(!!SKIP_KEY, 'cannot read TEST_SKIP_KEY from src/game/testKey.ts');
@@ -95,25 +98,32 @@ try {
             await test(id === LOSE ? 'lose' : 'win');
             how[id] = 'forced';
         } else if (id === 'simon') {
-            // X closes the card; then retype the sequence the scene is listening for (its pending field), arrow by arrow
+            // the pinhole camera quiz: X closes the card; then, for each question, arrow down to the row of the right answer (the scene's
+            // `correct` and `sel` fields) and confirm with X, so the quiz is won
+            await sleep(300);
+            await press('x');
             while (await running()) {
-                check(Date.now() < end, 'simon did not finish in 60 s');
-                const p = await page.evaluate((sc) => {
-                    const pending = window.__ricGame.scene.getScene(sc)?.pending;
-                    return pending ? { dir: pending.seq[pending.index] } : null;
+                check(Date.now() < end, 'the quiz did not finish in 60 s');
+                const q = await page.evaluate((sc) => {
+                    const s = window.__ricGame.scene.getScene(sc);
+                    return s?.accepting ? { sel: s.sel, correct: s.correct } : null;
                 }, scene);
-                await press(p ? ARROW[p.dir] : 'x');
-                await sleep(p ? 90 : 120);
+                if (q) await press(q.sel === q.correct ? 'x' : 'ArrowDown');
+                await sleep(q ? 120 : 200);
             }
             how[id] = 'real';
         } else {
-            // mash: X as fast as possible (about 12 a second, the win needs 5.4); d20: X rolls, any result is valid
-            const gap = id === 'mash' ? 70 : 250;
+            // mash: X as fast as possible (about 12 a second, the win needs about 7.1); d20: X for its 5 s window (about 8 a second, or the
+            // 40 that end it early); any result is valid, but the landed value must be the one the presses give
+            const gap = id === 'mash' ? 70 : 120;
+            let seen = null;
             while (await running()) {
                 check(Date.now() < end, `${id} did not finish in 60 s`);
                 await press('x');
                 await sleep(gap);
+                if (id === 'd20') seen = (await page.evaluate((sc) => { const s = window.__ricGame.scene.getScene(sc); return s ? { presses: s.presses, roll: s.roll, fumo: s.fumo } : null; }, scene)) ?? seen;
             }
+            if (id === 'd20') check(seen && seen.presses > 0 && seen.fumo === true && seen.roll === Math.min(20, Math.ceil(Math.min(seen.presses, 40) / 2) + 2), `d20: ${JSON.stringify(seen)} is not min(20, ceil(presses / 2) + 2) with the hash`);
             how[id] = 'real';
         }
         await until((x) => x.scene === 'world', `back to the world after ${id}`);
@@ -169,7 +179,7 @@ try {
     await sleep(300);
     check(await page.evaluate(() => window.__ricGame.scene.isPaused('world')), 'the world is not paused behind the menu');
     check((await menuProp('mode')) === 'main', 'the menu does not open on its main window');
-    for (const [keys, mode] of [[['ArrowDown', 'x'], 'controls'], [['Escape', 'ArrowUp', 'x'], 'diary'], [['Escape'], 'main']]) {
+    for (const [keys, mode] of [[['ArrowDown', 'x'], 'jump'], [['Escape', 'ArrowDown', 'x'], 'controls'], [['Escape', 'ArrowUp', 'ArrowUp', 'x'], 'diary'], [['Escape'], 'main']]) {
         for (const k of keys) {
             await press(k);
             await sleep(150);
@@ -185,7 +195,7 @@ try {
     await press('Escape');
     await until((x) => x.scene === 'menu', 'the Esc menu, second time');
     await sleep(300);
-    for (const k of ['ArrowDown', 'ArrowDown', 'x']) {
+    for (const k of ['ArrowDown', 'ArrowDown', 'ArrowDown', 'x']) {
         await press(k);
         await sleep(150);
     }
@@ -199,9 +209,9 @@ try {
     await until(world(0), 'a new run after quitting');
     note(`menu: opens, pauses the world, controls and diary windows, quit to the title resets the run; Shift runs (${Math.round(walked)} px walking, ${Math.round(ran)} px running in 400 ms)`);
 
-    // ---- the six scenes ----
+    // ---- the scenes ----
     const party = [];
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < N; i++) {
         await until(world(i), `world ${i}`);
         await page.waitForFunction((sid) => window.__ricGame.scene.getScene('world').def?.id === sid, SCENES[i].id, { timeout: 10000 });
         // a tile room takes door and friend positions from its map: read the resolved entry from the live scene
@@ -211,12 +221,15 @@ try {
         });
         const def = { ...SCENES[i], ...live };
         const before = (await entered()).length;
+        // Ric carries the hash into Casa Circe, so the d20 check below covers its +2 bonus
+        if (SCENES[i].id === 'circe') await page.evaluate(() => { window.__ricGame.registry.get('run').flags.fumo = true; });
         const want = friendsOf(SCENES[i]);
         party.push(...want);
-        const real = i === 0 || i === 5;
+        const finale = i === LAST && minigamesOf(SCENES[i]).length === 0;
+        const real = i === 0 || finale;
 
-        if (i === 5) {
-            // divano: the finale plays by itself; close every page with X only, no test skip
+        if (finale) {
+            // a last scene with no minigame (divano): the finale plays by itself; close every page with X only, no test skip
             for (let n = 0; n < 900; n++) {
                 s = await state();
                 if (s.scene === 'ending') break;
@@ -252,16 +265,14 @@ try {
                 await press('x');
                 await sleep(800);
                 check((await ricAt()).x < 100, 'X next to the pouf did not sit Ric on it');
-                let back = false;
-                for (let k = 0; k < 40 && !back; k++) {
-                    await sleep(250);
-                    const p = await ricAt();
-                    back = Math.abs(p.x - 104) < 2 && Math.abs(p.y - 336) < 2;
-                }
-                check(back, 'Ric did not get up from the pouf');
+                await sleep(2500);
+                check((await ricAt()).x < 100, 'Ric got up from the pouf before he moved');
+                await page.keyboard.down('ArrowRight'); // the nap lasts until Ric moves
+                await sleep(400);
+                await page.keyboard.up('ArrowRight');
                 await sleep(300);
-                await closeDialogue(); // the pouf line after the doze
-                note('objects: the pouf doze runs and Ric gets up where he sat down');
+                check((await ricAt()).x >= 100, 'a move key did not get Ric up from the pouf');
+                note('objects: the pouf nap lasts until Ric moves');
             }
             if (SCENES[i].id === 'circe') {
                 const glowsOn = () => page.evaluate(() => window.__ricGame.scene.getScene('world').tw.glows.filter((g) => g.img.visible).length);
@@ -285,7 +296,7 @@ try {
                 note('objects: the Circe TV lines and the lamp toggle work');
             }
             if (i === 1) {
-                // the first bin of the run holds the portal gun; P before the scene is done gets the "not yet" line
+                // Giuggiu's bin holds the portal gun; Z before the scene is done gets the "not yet" line
                 const bin = SCENES[i].bins[0];
                 check(!(await state()).portalGun, 'the portal gun is found before any bin was checked');
                 await teleport(bin.x - 24, bin.y);
@@ -294,19 +305,19 @@ try {
                 await sleep(300);
                 check(await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.isOpen), 'X next to a bin opens no dialogue');
                 await closeDialogue();
-                check((await state()).portalGun, 'the first bin did not give the portal gun');
-                await press('p');
+                check((await state()).portalGun, "Giuggiu's bin did not give the portal gun");
+                await press('z');
                 await sleep(400);
                 await press('x'); // completes the typing of the page
                 await sleep(200);
                 const said = await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.body.text);
-                check(said.replace(/\n/g, ' ') === "Meh, non abbiamo mica finito qui. C'è ancora da fare.", `P before the minigame said "${said}"`);
+                check(said.replace(/\n/g, ' ').startsWith('Meh, non abbiamo mica finito qui'), `Z before the minigame said "${said}"`);
                 await closeDialogue();
-                await press('x'); // a second bin check: a joke line, the gun stays
+                await press('x'); // a second look in the bin: the "already taken" line, the gun stays
                 await sleep(300);
                 check(await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.isOpen), 'a second look in the bin opens no dialogue');
                 await closeDialogue();
-                note('bin: the first one gave the portal gun, a second one a joke, P before the minigame said the not-yet line');
+                note('bin: it gave the portal gun, a second look the already-taken line, Z before the minigame said the not-yet line');
             }
             // circe: talk to Giusy (friend2) first, then Ros; each plays only her own minigame, whatever the order
             const talks = def.friend2 ? [def.friend2, def.friend] : [def.friend];
@@ -325,15 +336,26 @@ try {
                     await sleep(120);
                 }
             }
+            // the Cortile: if the lads took Ros and Giusy to the bar, the exit stays shut until Ric fetches them with X
+            for (let n = 0; n < 60 && (await page.evaluate(() => window.__ricGame.scene.getScene('world').barState)) === 'away'; n++) {
+                const girl = await page.evaluate(() => { const g = window.__ricGame.scene.getScene('world').npcs.find((x) => x.kind === 'bar' && !x.walking); return g ? { x: g.sprite.x, y: g.sprite.y } : null; });
+                if (girl) await teleport(girl.x - 22, girl.y);
+                await sleep(200);
+                await press('x');
+                await sleep(300);
+                await test('skip');
+                await sleep(300);
+            }
+            if (SCENES[i].id === 'cortile') note('cortile: Ros and Giusy fetched from the bar before the exit');
             for (let n = 0; n < 20; n++) {
                 // the join banners come first; the exit only opens after them
                 await sleep(500);
                 if (i === 1) {
-                    // the portal gun: face the back wall and press P; the party walks in and the next scene starts
+                    // the portal gun: face the back wall and press Z; the party walks in and the next scene starts
                     await teleport(200, 156);
                     await page.evaluate(() => (window.__ricGame.scene.getScene('world').facing = 'up'));
                     await sleep(1200);
-                    await press('p');
+                    await press('z');
                     for (let k = 0; k < 40 && (await state()).sceneIndex <= i; k++) await sleep(200); // the portal walk takes a few seconds
                 } else if (SCENES[i].exit === 'edge') {
                     // no door: walk to the left edge of the map
@@ -347,13 +369,13 @@ try {
                 }
                 if ((await state()).sceneIndex > i || (await state()).scene === 'ending') break;
             }
-            if (i === 1) note('portal: P on the back wall took the party to the next scene');
+            if (i === 1) note('portal: Z on the back wall took the party to the next scene');
             if (SCENES[i].exit === 'edge') note(`${SCENES[i].id}: left by walking to the edge of the map`);
         }
 
-        s = await until((x) => (i === 5 ? x.scene === 'ending' : world(i + 1)(x)), `leaving scene ${i} (${SCENES[i].id})`, 15000);
+        s = await until((x) => (i === LAST ? x.scene === 'ending' : world(i + 1)(x)), `leaving scene ${i} (${SCENES[i].id})`, 15000);
         const went = (await entered()).slice(before);
-        check(s.party.join() === party.join(), `scene ${i} ${SCENES[i].id}: party ${s.party}, wanted ${party}`);
+        check([...s.party].sort().join() === [...party].sort().join(), `scene ${i} ${SCENES[i].id}: party ${s.party}, wanted ${party}`); // Ros and Giusy rejoin from the Cortile bar at the end of the train
         // circe is talked to Giusy first, so her mash comes before Ros's d20
         const wanted = SCENES[i].friend2 ? [...minigamesOf(SCENES[i])].reverse() : minigamesOf(SCENES[i]);
         check(went.join() === wanted.join(), `scene ${i} ${SCENES[i].id}: minigames entered [${went}], wanted [${wanted}]`);
@@ -364,7 +386,7 @@ try {
     s = await until((x) => x.scene === 'ending', 'ending scene');
     const all = await entered();
     check(new Set(all).size === 6 && MINIGAME_IDS.every((id) => all.includes(id)), `distinct minigames entered: ${[...new Set(all)]} (${new Set(all).size}), wanted 6`);
-    check(s.party.join() === party.join(), `final party ${s.party}`);
+    check([...s.party].sort().join() === [...party].sort().join(), `final party ${s.party}`);
     for (const id of MINIGAME_IDS) check(typeof s.results[id] === 'boolean', `result ${id} = ${s.results[id]}`);
     for (const id of ['simon', 'slackline', 'mash', 'rhythm']) check(s.results[id] === true, `result ${id} = ${s.results[id]}`);
     check(s.results[LOSE] === false, `result ${LOSE} = ${s.results[LOSE]}`);
@@ -459,4 +481,4 @@ try {
 }
 writeFileSync(logFile, `${steps.join('\n')}\n`);
 await browser?.close();
-console.log('PASS e2e: 6 scenes, 6 minigames, no console errors');
+console.log(`PASS e2e: ${SCENES.length} scenes, ${MINIGAME_IDS.length} minigames, no console errors`);

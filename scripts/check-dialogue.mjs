@@ -7,15 +7,25 @@ import { dirname, join } from 'node:path';
 const file = process.argv[2] ?? join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'dialogue.it.json');
 const MAX_LINES = 3;
 const MAX_CHARS = 44;
-const PERSONS = ['ric', 'lara', 'liscio', 'ros', 'lollino', 'fede', 'giuggiu', 'giusy', 'pinolo', 'gatto', 'sconosciuta', 'alessandro', 'rosanna', 'roberto', 'armando', 'carolina', 'papa', 'mamma', 'narratore'];
-const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile', 'divano'];
+// A dialogue page wraps to the width of the box (ui/DialogBox.ts WRAP_W, keep these in step) and must fit MAX_LINES wrapped lines; a "\n" in a text counts as a space.
+// The width of a text is measured with the advances of the game's own font (public/assets/fonts/PixelOperator.ttf) at 16 px, with the wrap rule of Phaser's basic word wrap.
+const BOX_W = 640;
+const WRAP_PORTRAIT = BOX_W - (6 + 96 + 8) - 14;
+const WRAP_FULL = BOX_W - 16 - 16;
+const WRAP_SAFETY = 6; // px kept free on every line, for the shadow and for a font that rounds differently
+const TOAST_NAME_W = 164; // px: the name line of the achievement popup (ui/Achievement.ts)
+const PERSONS = ['ric', 'lara', 'liscio', 'ros', 'lollino', 'fede', 'giuggiu', 'giusy', 'pinolo', 'gatto', 'sconosciuta', 'alessandro', 'rosanna', 'roberto', 'armando', 'carolina', 'papa', 'mamma', 'frangetta', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'albanese1', 'albanese2', 'losco', 'narratore'];
+const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile'];
+// the old night scene stays in the file: its lines move to the credits (they are not played in the world any more)
+const CREDITS_SCENE = 'divano';
 const SCENE_KEYS = ['arrival', 'meet', 'minigameIntro', 'win', 'lose', 'join'];
 const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
 const SCENE_EXTRA_KEYS = { circe: ['minigameIntro2', 'win2', 'lose2'] };
 const MINIGAMES = ['simon', 'cat-smoke', 'slackline', 'd20', 'mash', 'rhythm'];
-const EGGS = ['pinolo-pinhole', 'gatto', 'ric-sedia', 'ros-trellone', 'giusy-divano', 'ric-sopra', 'fede', 'extra-1', 'extra-2', 'extra-3', 'extra-rosanna', 'extra-genitori', 'portalFound', 'binEmpty', 'portalNotYet'];
-const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look'];
-const MENU_KEYS = ['title', 'diary', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
+const EGGS = ['pinolo-pinhole', 'gatto', 'ric-sedia', 'ros-trellone', 'giusy-divano', 'fede', 'extra-1', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
+const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi', 'studente', 'rosanna', 'genitori', 'barista', 'armando', 'carolina', 'slackgirls', 'numero', 'rutto', 'losco', 'albanesi', 'fede', 'puf'];
+const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look', 'achievement', 'drinkPeroni', 'askNumber'];
+const MENU_KEYS = ['title', 'diary', 'jump', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'jumpTitle', 'jumpHint', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 
 const CLOSING_LINE = 'Meh, sciamanin.';
 
@@ -38,6 +48,71 @@ function checkText(where, text, maxLines, maxChars) {
   }
 }
 
+/** Width in px of a text in the game font at `size` px: the advance of every glyph from the font's own tables (cmap format 4, hmtx). */
+function loadFont(path) {
+  const b = readFileSync(path);
+  const u16 = (o) => b.readUInt16BE(o);
+  const u32 = (o) => b.readUInt32BE(o);
+  const tables = {};
+  for (let i = 0; i < u16(4); i++) tables[b.toString('latin1', 12 + i * 16, 16 + i * 16)] = u32(20 + i * 16);
+  const unitsPerEm = u16(tables.head + 18);
+  const numH = u16(tables.hhea + 34);
+  const cm = tables.cmap;
+  let sub = -1;
+  for (let i = 0; i < u16(cm + 2); i++) {
+    const platform = u16(cm + 4 + i * 8);
+    const enc = u16(cm + 6 + i * 8);
+    if ((platform === 3 && enc === 1) || platform === 0) sub = cm + u32(cm + 8 + i * 8);
+  }
+  if (sub < 0 || u16(sub) !== 4) throw new Error('the font has no format 4 cmap');
+  const segs = u16(sub + 6) / 2;
+  const end = sub + 14;
+  const start = end + 2 * segs + 2;
+  const delta = start + 2 * segs;
+  const range = delta + 2 * segs;
+  const glyph = (code) => {
+    for (let i = 0; i < segs; i++) {
+      if (code > u16(end + 2 * i)) continue;
+      if (u16(start + 2 * i) > code) return 0;
+      const ro = u16(range + 2 * i);
+      if (ro === 0) return (code + u16(delta + 2 * i)) & 0xffff;
+      const g = u16(range + 2 * i + ro + 2 * (code - u16(start + 2 * i)));
+      return g ? (g + u16(delta + 2 * i)) & 0xffff : 0;
+    }
+    return 0;
+  };
+  return (text, size = 16) => [...text].reduce((w, ch) => w + (u16(tables.hmtx + 4 * Math.min(glyph(ch.codePointAt(0)), numH - 1)) * size) / unitsPerEm, 0);
+}
+const textWidth = loadFont(join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'assets', 'fonts', 'PixelOperator.ttf'));
+
+/** The wrapped lines of a page at `width` px, the way Phaser's basic word wrap breaks them (the trailing space counts). */
+function wrapLines(text, width) {
+  const space = textWidth(' ');
+  const out = [];
+  let row = '';
+  let left = width;
+  text.split(' ').forEach((word, j) => {
+    const w = textWidth(word);
+    if (w + space > left) {
+      if (j > 0) (out.push(row), (row = ''));
+      left = width - w;
+    } else left -= w + space;
+    row += (row && j > 0 ? ' ' : '') + word;
+  });
+  out.push(row);
+  return out;
+}
+
+/** A page of the dialogue box: at most MAX_LINES wrapped lines at the width of its layout (portrait for a speaker with a portrait, full width for the narrator). */
+function checkPage(where, text, speaker) {
+  if (typeof text !== 'string' || text.trim() === '') return err(where, 'text missing or empty');
+  const flat = text.replace(/\s*\n\s*/g, ' ').replace(/\{ric\}/g, 'Ric');
+  // every speaker but the narrator is measured in the narrower layout with a portrait (a person without a portrait would only get more room)
+  const rows = wrapLines(flat, (speaker === 'narratore' ? WRAP_FULL : WRAP_PORTRAIT) - WRAP_SAFETY);
+  if (rows.length > MAX_LINES) err(where, `${rows.length} wrapped lines, max ${MAX_LINES}: "${text.replace(/\n/g, ' ').slice(0, 60)}..."`);
+  for (const m of text.matchAll(/\{([^}]*)\}/g)) if (m[1] !== 'ric') err(where, `unknown placeholder {${m[1]}}`);
+}
+
 function checkLines(where, arr, allowEmpty = false) {
   if (!Array.isArray(arr)) return err(where, 'not an array');
   if (arr.length === 0 && !allowEmpty) err(where, 'empty array');
@@ -46,7 +121,7 @@ function checkLines(where, arr, allowEmpty = false) {
     if (line === null || typeof line !== 'object') return err(w, 'not an object');
     for (const k of Object.keys(line)) if (!['speaker', 'text', 'pause'].includes(k)) err(w, `unknown key ${k}`);
     if (!PERSONS.includes(line.speaker)) err(w, `bad speaker "${line.speaker}"`);
-    checkText(w, line.text, MAX_LINES, MAX_CHARS);
+    checkPage(w, line.text, line.speaker);
     if ('pause' in line && !(Number.isInteger(line.pause) && line.pause >= 0)) err(w, 'pause must be a non-negative integer (ms)');
     lineCount += 1;
   });
@@ -66,7 +141,7 @@ try {
   process.exit(1);
 }
 
-sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'objects', 'credits', 'titleScreen']);
+sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'achievements', 'objects', 'credits', 'ending', 'titleScreen']);
 
 // objects: X next to an obj_<id> point of a room map (src/game/flow/objects.ts) plays objects.<sceneId>.<id>
 for (const [sid, objs] of Object.entries(data.objects ?? {})) {
@@ -98,9 +173,9 @@ for (const k of ['title', 'subtitle', 'press']) {
 }
 
 // scenes
-sameKeys('scenes', data.scenes ?? {}, SCENES);
-if (JSON.stringify(Object.keys(data.scenes ?? {})) !== JSON.stringify(SCENES)) err('scenes', `order must be ${SCENES.join(', ')}`);
-for (const id of SCENES) {
+sameKeys('scenes', data.scenes ?? {}, [...SCENES, CREDITS_SCENE]);
+if (JSON.stringify(Object.keys(data.scenes ?? {})) !== JSON.stringify([...SCENES, CREDITS_SCENE])) err('scenes', `order must be ${[...SCENES, CREDITS_SCENE].join(', ')}`);
+for (const id of [...SCENES, CREDITS_SCENE]) {
   const scene = data.scenes?.[id];
   if (!scene || typeof scene !== 'object' || Array.isArray(scene)) {
     err(`scenes.${id}`, 'must be an object');
@@ -140,7 +215,6 @@ if (fede.length !== 2 || fede[0].speaker !== 'ric' || fede[0].text !== "Allora, 
 
 // every scene with a next destination ends on Ric's closing line
 for (const id of SCENES) {
-  if (id === 'divano') continue; // the last scene has no next destination
   const join = data.scenes?.[id]?.join ?? [];
   const last = join[join.length - 1];
   if (!last || last.speaker !== 'ric' || last.text !== CLOSING_LINE) err(`scenes.${id}.join`, `last line must be ric "${CLOSING_LINE}"`);
@@ -165,10 +239,26 @@ for (const [path, raw] of strings) {
   if (/fettuccia/i.test(text)) err(path, 'say "slack", never "fettuccia"');
   if (!path.startsWith('credits') && !path.startsWith('titleScreen') && BIRTHDAY.test(text)) err(path, 'no birthday reference inside the story');
 }
-// the portal gun eggs: each binEmpty entry is one variant, picked at random; portalNotYet is one fixed line
-if ((data.easterEggs?.binEmpty ?? []).length < 3) err('easterEggs.binEmpty', 'needs at least 3 variants');
+// bins: each binTaken entry is one "già preso" variant, picked at random; portalNotYet is one fixed line
+if ((data.easterEggs?.binTaken ?? []).length < 3) err('easterEggs.binTaken', 'needs at least 3 variants');
+// achievements: one table of egg names for the popup, each short enough for its line
+sameKeys('achievements', data.achievements ?? {}, ACHIEVEMENTS);
+for (const [k, name] of Object.entries(data.achievements ?? {})) {
+  if (typeof name !== 'string' || name.trim() === '') err(`achievements.${k}`, 'name missing');
+  else if (textWidth(name) > TOAST_NAME_W) err(`achievements.${k}`, `"${name}" is ${Math.round(textWidth(name))} px wide, max ${TOAST_NAME_W} for the popup`);
+}
 const notYet = data.easterEggs?.portalNotYet ?? [];
 if (notYet.length !== 1 || notYet[0].text.replace(/\n/g, ' ') !== "Meh, non abbiamo mica finito qui. C'è ancora da fare.") err('easterEggs.portalNotYet', 'must be exactly one line: "Meh, non abbiamo mica finito qui. C\'è ancora da fare." (a row break instead of the space)');
+
+// ending: the upstairs gag spoken during the credits (src/game/ending/script.ts); its banner is narrower than the dialogue box, so a line stays under 110 characters
+sameKeys('ending', data.ending ?? {}, ['fromUpstairs', 'upstairs', 'upstairsFrangetta']);
+checkText('ending.fromUpstairs', data.ending?.fromUpstairs, 1, MAX_CHARS);
+for (const k of ['upstairs', 'upstairsFrangetta']) {
+  checkLines(`ending.${k}`, data.ending?.[k]);
+  (data.ending?.[k] ?? []).forEach((l, i) => {
+    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`ending.${k}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
+  });
+}
 
 // credits
 checkText('credits.title', data.credits?.title, 1, MAX_CHARS);

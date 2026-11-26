@@ -25,7 +25,7 @@ export class BootScene extends Phaser.Scene {
         this.load.on('progress', (p: number) => (bar.width = BAR_W * p));
         this.load.on('loaderror', (file: Phaser.Loader.File) => console.error(`load failed: ${file.key}`));
 
-        // every scene, tile room or not: the simon and slackline minigames draw their scene's background (100 KB in all)
+        // every scene: the minigames draw their scene's room as a background, a native-scale 640x360 render of its tile map (scripts/art/room_backgrounds.py, about 650 KB in all)
         for (const s of SCENES) this.load.image(s.background, assetUrl(`backgrounds/${s.background.replace(/^bg-/, '')}.png`));
         this.load.spritesheet(TILESET_KEY, assetUrl('tiles/tileset.png'), { frameWidth: TILE, frameHeight: TILE });
         for (const sheet of crowdSheets()) this.load.spritesheet(`char-${sheet}`, assetUrl(`tiles/${sheet}.png`), { frameWidth: 32, frameHeight: 32 });

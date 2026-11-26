@@ -7,7 +7,7 @@ import { isSceneDone } from '../flow/story';
 import { DIALOGUE, pixelStyle, t } from '../ui/text';
 import { panelTexture } from '../ui/panel';
 
-type Mode = 'main' | 'diary' | 'controls' | 'confirm';
+type Mode = 'main' | 'diary' | 'jump' | 'controls' | 'confirm';
 
 const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
 const BACK_CODES = ['Escape', 'KeyZ', 'KeyC'];
@@ -26,9 +26,15 @@ export class MenuScene extends Phaser.Scene {
     private ui?: Phaser.GameObjects.Container;
     private leaving = false;
     private openedAt = 0;
+    /** The scene that launched the menu and is paused under it: closing the menu resumes it (the world, or the ending's credits). */
+    private from = 'world';
 
     constructor() {
         super('menu');
+    }
+
+    init(data?: { from?: string }): void {
+        this.from = data?.from ?? 'world';
     }
 
     create(): void {
@@ -46,6 +52,7 @@ export class MenuScene extends Phaser.Scene {
     private get items(): { label: string; run: () => void }[] {
         return [
             { label: t('menu.diary'), run: () => this.go('diary') },
+            { label: t('menu.jump'), run: () => this.go('jump') },
             { label: t('menu.controls'), run: () => this.go('controls') },
             { label: t('menu.quit'), run: () => this.go('confirm') },
             { label: t('menu.back'), run: () => this.close() }
@@ -81,6 +88,8 @@ export class MenuScene extends Phaser.Scene {
                 this.render();
             }
         } else if (this.mode === 'diary' && CONFIRM_CODES.includes(e.code)) this.back();
+        else if (this.mode === 'jump' && (up || down)) this.move(up ? -1 : 1, SCENES.length);
+        else if (this.mode === 'jump' && CONFIRM_CODES.includes(e.code)) this.jump(this.sel);
         else if (this.mode === 'controls' && CONFIRM_CODES.includes(e.code)) this.back();
         else if (this.mode === 'confirm' && (left || right || up || down)) this.move(left || up ? -1 : 1, 2);
         else if (this.mode === 'confirm' && CONFIRM_CODES.includes(e.code)) {
@@ -98,7 +107,7 @@ export class MenuScene extends Phaser.Scene {
     private go(mode: Mode): void {
         this.mode = mode;
         this.page = this.entries.length - 1; // the diary opens on the newest page
-        this.sel = mode === 'confirm' ? 1 : 0; // "No" is the default
+        this.sel = mode === 'confirm' ? 1 : mode === 'jump' ? getRun(this.game).sceneIndex : 0; // "No" is the default; the jump list opens on the current scene
         this.render();
     }
 
@@ -107,13 +116,21 @@ export class MenuScene extends Phaser.Scene {
         if (this.mode === 'main') return this.close();
         const from = this.mode;
         this.mode = 'main';
-        this.sel = from === 'diary' ? 0 : from === 'controls' ? 1 : 2;
+        this.sel = ({ diary: 0, jump: 1, controls: 2, confirm: 3 } as Record<Mode, number>)[from];
         this.render();
+    }
+
+    /** Starts scene `index` with every earlier minigame counted as won and the earlier friends in the party (the flow's `menu:jump` listener, flow/globals.ts). */
+    private jump(index: number): void {
+        this.leaving = true;
+        audio.sfx('confirm');
+        // outside this frame: the jump stops this very scene and the world under it
+        setTimeout(() => this.game.events.emit('menu:jump', { sceneIndex: index }), 0);
     }
 
     private close(): void {
         this.leaving = true;
-        this.scene.resume('world');
+        this.scene.resume(this.from);
         this.scene.stop();
     }
 
@@ -130,7 +147,7 @@ export class MenuScene extends Phaser.Scene {
             onComplete: () => {
                 resetRun(this.game);
                 this.game.registry.set(ACTIVE_MINIGAME_KEY, undefined);
-                this.scene.stop('world');
+                this.scene.stop(this.from);
                 this.scene.start('title');
             }
         });
@@ -143,6 +160,7 @@ export class MenuScene extends Phaser.Scene {
         this.ui = this.add.container(0, 0).setDepth(10);
         if (this.mode === 'main') this.drawMain();
         else if (this.mode === 'diary') this.drawDiary();
+        else if (this.mode === 'jump') this.drawJump();
         else if (this.mode === 'controls') this.drawControls();
         else this.drawConfirm();
     }
@@ -190,6 +208,17 @@ export class MenuScene extends Phaser.Scene {
         this.text(boxX + 20, y + 48, t(e.done ? 'menu.done' : 'menu.todo'), e.done ? '#9bff7a' : '#cfe0ff');
         this.text(x + 16, y + 84, DIALOGUE.diary[e.id] ?? '');
         this.text(x + 16, y + 232 - 28, t(entries.length > 1 ? 'menu.pageHint' : 'menu.backHint'), '#9ec8ff');
+    }
+
+    private drawJump(): void {
+        const { x, y } = this.window(440, 86 + SCENES.length * 28);
+        this.text(x + 16, y + 10, t('menu.jumpTitle'), GOLD);
+        SCENES.forEach((s, i) => {
+            const row = y + 40 + i * 28;
+            this.text(x + 36, row, `${i + 1}. ${s.title}`, i === this.sel ? GOLD : '#ffffff');
+            if (i === this.sel) this.cursor(x + 18, row + 4);
+        });
+        this.text(x + 16, y + 86 + SCENES.length * 28 - 28, t('menu.jumpHint'), '#9ec8ff');
     }
 
     private drawControls(): void {
