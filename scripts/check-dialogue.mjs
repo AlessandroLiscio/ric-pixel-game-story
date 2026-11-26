@@ -141,7 +141,7 @@ try {
   process.exit(1);
 }
 
-sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'achievements', 'objects', 'credits', 'titleScreen']);
+sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'achievements', 'objects', 'credits', 'ending', 'titleScreen']);
 
 // objects: X next to an obj_<id> point of a room map (src/game/flow/objects.ts) plays objects.<sceneId>.<id>
 for (const [sid, objs] of Object.entries(data.objects ?? {})) {
@@ -249,6 +249,16 @@ for (const [k, name] of Object.entries(data.achievements ?? {})) {
 }
 const notYet = data.easterEggs?.portalNotYet ?? [];
 if (notYet.length !== 1 || notYet[0].text.replace(/\n/g, ' ') !== "Meh, non abbiamo mica finito qui. C'è ancora da fare.") err('easterEggs.portalNotYet', 'must be exactly one line: "Meh, non abbiamo mica finito qui. C\'è ancora da fare." (a row break instead of the space)');
+
+// ending: the upstairs gag spoken during the credits (src/game/ending/script.ts); its banner is narrower than the dialogue box, so a line stays under 110 characters
+sameKeys('ending', data.ending ?? {}, ['fromUpstairs', 'upstairs', 'upstairsFrangetta']);
+checkText('ending.fromUpstairs', data.ending?.fromUpstairs, 1, MAX_CHARS);
+for (const k of ['upstairs', 'upstairsFrangetta']) {
+  checkLines(`ending.${k}`, data.ending?.[k]);
+  (data.ending?.[k] ?? []).forEach((l, i) => {
+    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`ending.${k}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
+  });
+}
 
 // credits
 checkText('credits.title', data.credits?.title, 1, MAX_CHARS);
