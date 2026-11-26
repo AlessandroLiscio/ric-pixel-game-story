@@ -26,9 +26,10 @@ HAIR = {
     "auburn": (170, 72, 58), "greybrown": (132, 122, 112), "copper": (200, 108, 56), "lightbrown": (140, 100, 66),
     "ash": (156, 146, 136), "salt": (104, 98, 98), "mahogany": (92, 40, 42), "wavybrown": (84, 52, 38),
     "inkbrown": (52, 40, 40), "pinbrown": (122, 104, 90), "silverbrown": (148, 132, 120), "ginger": (208, 118, 62),
+    "blonde": (226, 188, 118), "hoodie": (52, 56, 70),  # hoodie is the cloth of a hood, drawn like hair
 }
 EYES = {"brown": (92, 56, 36), "darkbrown": (60, 38, 30), "hazel": (120, 96, 52), "green": (84, 118, 70),
-        "hazelgreen": (112, 116, 66)}
+        "hazelgreen": (112, 116, 66), "blue": (84, 122, 164)}
 
 # Per-person features. fw = half face width, chin = chin y, cw = chin half width, brow = stroke width,
 # eye = (width, height), mouth = grin | smile | soft | neutral, squint = smiling lower lids.
@@ -85,6 +86,28 @@ FACES = {
     "mamma": dict(skin="light", hair="silverbrown", eyes="brown", style="longwavy", fw=19.5, chin=72, cw=3.5, brow=1.5,
                   eye=(10, 5.8), mouth="grin", squint=True, acc=["rectglasses", "headband", "lines", "browlines"],
                   browcol=(96, 72, 62), top=("blazer", (104, 62, 40), (236, 228, 212))),
+    # round 4 npcs, all invented (no photo)
+    "frangetta": dict(skin="light", hair="darkbrown", eyes="darkbrown", style="fringe", fw=19.2, chin=71, cw=3.0, brow=1.5,
+                      eye=(10, 6.2), mouth="smile", blush=True, lashes=True, acc=[],
+                      top=("straps", (246, 242, 232), None)),
+    "slackgirl1": dict(skin="light", hair="blonde", eyes="blue", style="longwavy", fw=19.5, chin=72, cw=3.2, brow=1.4,
+                       eye=(10.5, 6.4), mouth="grin", squint=True, blush=True, acc=[], ombre=(240, 214, 150),
+                       top=("straps", (226, 124, 146), None)),
+    "slackgirl2": dict(skin="olive", hair="black", eyes="darkbrown", style="ponytail", fw=19, chin=71, cw=3.0, brow=1.5,
+                       eye=(10.5, 6.6), mouth="smile", lip=(176, 84, 88), lashes=True, acc=[],
+                       top=("tee", (79, 154, 93), None)),
+    "slackgirl3": dict(skin="medium", hair="chestnut", eyes="hazel", style="curls", fw=19.8, chin=72, cw=3.4, brow=1.9,
+                       eye=(10, 6.0), mouth="grin", squint=True, acc=["hoop"], lashes=True,
+                       top=("straps", (230, 140, 58), None)),
+    "albanese1": dict(skin="medium", hair="black", eyes="darkbrown", style="fade", fw=19.6, chin=75, cw=4.0, brow=2.6,
+                      eye=(9.6, 5.2), mouth="grin", squint=True, beard="stubble", bcol=(34, 28, 36), acc=[], male=True,
+                      top=("track", (47, 61, 107), None)),
+    "albanese2": dict(skin="medium", hair="darkbrown", eyes="hazel", style="quiff", fw=19.6, chin=75, cw=3.8, brow=2.4,
+                      eye=(9.8, 5.2), mouth="soft", squint=True, acc=[], male=True,
+                      top=("collar", (244, 242, 236), None)),
+    "losco": dict(skin="tan", hair="hoodie", eyes="darkbrown", style="hood", fw=19, chin=75, cw=4.0, brow=2.6,
+                  eye=(9.5, 4.8), mouth="neutral", beard="stubble", acc=[], male=True,
+                  top=("hoodie", (59, 63, 76), None)),
 }
 
 
@@ -253,6 +276,8 @@ def torso(cv, f, rng, skin):
             clothes = shoulders & ~poly([(30, 75), (48, 96), (66, 75)]) & (np.abs(X - 48) < 32)
     elif kind == "tee":
         clothes = shoulders & ~ell(48, 79, nw + 2.5, 4.6)
+    elif kind in ("track", "hoodie"):  # a zip-up top with a high neck, or a hoodie whose hood is drawn as hair
+        clothes = shoulders & ~ell(48, 79, nw + 1.8, 4.0)
     elif kind == "shirt":
         clothes = shoulders & ~poly([(41, 77), (48, 95), (55, 77)])
     elif kind == "collar":
@@ -279,6 +304,16 @@ def torso(cv, f, rng, skin):
         cv.fill(rib, shade(col, 0.5))
         for s in (-1, 1):  # sleeve seams
             cv.fill(stroke(bez((48 + s * 30, 84), (48 + s * 33, 89), (48 + s * 34, 96)), 0.6), shade(col, 0.8))
+    if kind == "track":  # a raised collar band, the zip and a white stripe down each shoulder
+        cv.fill(ell(48, 79, nw + 3.2, 5.4) & ~ell(48, 79, nw + 1.8, 4.0) & shoulders, shade(col, 0.6))
+        cv.fill(stroke([(48, 79.5), (48, 97)], 0.8), (232, 232, 236))
+        for s in (-1, 1):
+            cv.fill(stroke(bez((48 + s * 24, 82), (48 + s * 30, 88), (48 + s * 33, 98)), 1.5) & clothes, (236, 236, 240))
+    if kind == "hoodie":  # two drawstrings with tips, the pocket seam low on the chest
+        for s in (-1, 1):
+            cv.fill(stroke(bez((48 + s * 3.6, 80.5), (48 + s * 3.0, 86), (48 + s * 3.6, 92)), 0.8), (186, 190, 200))
+            cv.fill(ell(48 + s * 3.6, 92.6, 0.7, 1.0), (214, 216, 224))
+        cv.fill(stroke(bez((24, 96), (48, 91.5), (72, 96)), 0.7), shade(col, 1.0))
     if kind in ("shirt", "collar"):
         lapel = (light(col, 0.35) if kind == "shirt" else (238, 242, 248))
         for s in (-1, 1):
@@ -433,7 +468,7 @@ def beard(cv, f, face, skin, rng):
     hc = HAIR[f["hair"]]
     rx = f["fw"]
     my = 66.0 if f["chin"] >= 73 else 65.0
-    grey = (70, 62, 70)
+    grey = f.get("bcol") or (70, 62, 70)
     if kind == "stubble":
         top = 61 - 9 * np.clip(np.abs(X - 48) / rx, 0, 1) ** 1.4
         m = face & (Y > top) & ~ell(48, my + 1.4, 6.4, 3.4)
@@ -567,6 +602,7 @@ def hair(f, rng):
         for cx in (35, 41, 47, 53, 59):
             curls.append((cx + rng.uniform(-0.8, 0.8), 32.5 + rng.uniform(-0.8, 0.8), rng.uniform(2.8, 3.5)))
         curls += [(27.5, 48, 3.6), (68.5, 48, 3.6), (27, 41, 4.0), (69, 41, 4.0)]
+        curls += [(44, 28.5, 3.8), (52, 28.5, 3.8), (48, 26, 4.0), (38, 29.5, 3.4), (58, 29.5, 3.4)]  # close the crown over the forehead
         for cx, cy, r in curls:
             front |= ell(cx, cy, r, r * 0.92)
         extras.append(("curls", curls))
@@ -638,11 +674,11 @@ def hair(f, rng):
         for k in range(5):
             tx = 30 + k * 9
             paths.append(bez((px, 18), ((px + tx) / 2, 20), (tx, 31 + abs(tx - 48) * 0.1)))
-    elif st == "longstraight":
+    elif st in ("longstraight", "fringe"):  # fringe: the same long straight hair with a blunt fringe straight across the brow
         back = poly([(48 - fw - 5, 44), (48 - fw - 6.5, 97), (48 + fw + 6.5, 97), (48 + fw + 5, 44)]) | ell(48, 42, fw + 5, 27)
         px = f.get("part", 48)
         c = cap(fw, 17, 3.0)
-        front = c & hairline(26.5 + 1.7 * np.abs(X - px) ** 0.7)
+        front = c & hairline(41.2 + 0.006 * (X - 48) ** 2 if st == "fringe" else 26.5 + 1.7 * np.abs(X - px) ** 0.7)
         front |= curtain(-1, fw, 30, 96, 4.5, 0.0, inner=2.2, spread=0.12)
         front |= curtain(1, fw, 30, 96, 4.5, 0.0, inner=2.2, spread=0.12)
         front |= c & (np.abs(X - 48) > fw - 3) & (Y < 50)
@@ -651,8 +687,27 @@ def hair(f, rng):
                 x0 = 48 + s * (fw + 0.8 + k * 1.8)
                 paths.append([(x0 - s * 0.8, 36), (x0, 62), (x0 + s * 0.6, 96)])
             for k in range(3):
-                paths.append(bez((px, 19), (px + s * (8 + k * 2), 21), (48 + s * (18 + k * 0.5), 31 + k)))
-        extras.append(("part", stroke([(px, 17.5), (px, 23)], 0.6)))
+                if st == "fringe":
+                    x0 = 48 + s * (5 + k * 5.5)
+                    paths.append([(x0, 19 + k), (x0 + s * 0.5, 41)])
+                else:
+                    paths.append(bez((px, 19), (px + s * (8 + k * 2), 21), (48 + s * (18 + k * 0.5), 31 + k)))
+        if st != "fringe":
+            extras.append(("part", stroke([(px, 17.5), (px, 23)], 0.6)))
+    elif st == "fade":  # short on top, the temples and sides cut to a soft shadow of stubble
+        c = cap(fw, 20, 1.0)
+        front = c & hairline(30 + 6 * np.clip(np.abs(X - 48) / fw, 0, 1) ** 2.2)
+        front |= c & (np.abs(X - 48) > fw - 1.0) & (Y < 40)
+        extras.append(("fade", ell(48, 46, fw + 1.0, 20) & (np.abs(X - 48) > fw - 6.0) & (Y > 29) & (Y < 54)))
+        for x0 in (36, 42, 48, 54, 60):
+            paths.append(bez((x0, 31 + abs(x0 - 48) * 0.15), (x0 + (x0 - 48) * 0.05, 25), (x0 + 1, 20)))
+    elif st == "hood":  # a hood up: a deep cowl round the face, a fold of cloth round the neck
+        front = (ell(48, 42, fw + 8.5, 34) & (Y < 78) & ~ell(48, 58.5, fw - 3.8, 21.5)) | \
+            (ell(48, 80, fw + 7, 8.5) & ~ell(48, 76, fw - 7, 7.5))
+        for s in (-1, 1):
+            paths.append(bez((48 + s * 3, 8), (48 + s * 17, 11), (48 + s * 23.5, 40)))
+            paths.append(bez((48 + s * 8, 9), (48 + s * 20, 16), (48 + s * 24.5, 54)))
+            paths.append(bez((48 + s * 25, 56), (48 + s * 24, 68), (48 + s * 22, 78)))
     elif st == "bob":
         back = ell(48, 47, fw + 6.5, 26) & (Y < 71)
         c = cap(fw, 16, 4.0)
@@ -838,18 +893,23 @@ def draw(pid):
                     light(hc, 1.1))
         cv.fill(front & ~erode(front, 3), ink(hc))
     else:
-        long_hair = f["style"] in ("longwavy", "longblack", "longstraight", "bob")
+        long_hair = f["style"] in ("longwavy", "longblack", "longstraight", "fringe", "bob")
         cv.cel(front, hc, sd=(1.8, 1.6), sd2=(0, 3.2) if long_hair else None, hi=(-1.0, -1.0), lw=3,
                grad=(14, 70, 0.5) if long_hair else (16, 46, 0.35))
         strands(cv, front, hc, paths)
         top = np.nonzero(front[:, 44 * SS:52 * SS].any(axis=1))[0]
-        shine(cv, front, hc, (top[0] / SS if len(top) else 18) + 6.5)
+        if f["style"] != "hood":
+            shine(cv, front, hc, (top[0] / SS if len(top) else 18) + 6.5)
         if f.get("ombre"):
             ombre(cv, front, f["ombre"], 56)
         cv.fill(front & ~erode(front, 3), ink(hc))
+        if f["style"] == "hood":
+            hood_shadow(cv, face, front)
     for name, m in extras:
         if name == "part":
             cv.fill(m, shade(skin, 0.3))
+        elif name == "fade":
+            cv.fill(m & face & ~front, shade(hc, 0.8), 0.28)
         elif name == "tie":
             cv.cel(m, (220, 110, 140), sd=(0.6, 0.6), hi=None, lw=2)
     for which in ("glasses", "aviator", "sunglasses", "shades-on-head"):
@@ -857,6 +917,15 @@ def draw(pid):
             glasses(cv, f, which)
     wearables(cv, f)
     return finish(cv.image())
+
+
+def hood_shadow(cv, face, front):
+    """The hood throws the face into shadow: dark over the eyes and brow, fading towards the jaw, two pale glints for the eyes."""
+    t = np.clip(1.0 - (Y - 56) / 20, 0.45, 0.9)
+    m = face & ~front
+    cv.rgb[m] = cv.rgb[m] * (1 - t[m][:, None]) + np.array((22, 22, 34)) * t[m][:, None]
+    for cx in (38, 58):
+        cv.fill(ell(cx, 52.4, 2.1, 1.0), (232, 234, 244), 0.8)
 
 
 def wearables(cv, f):
