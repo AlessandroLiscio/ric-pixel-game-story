@@ -438,10 +438,6 @@
       { "speaker": "narratore", "text": "Ric tira, Giusy resiste. Il divano si sposta di dieci centimetri." },
       { "speaker": "giusy", "text": "Il divano è mio. Prendi la sedia." }
     ],
-    "ric-sopra": [
-      { "speaker": "narratore", "text": "Dal piano di sopra arriva un tonfo. Poi uno scricchiolio. Poi un altro tonfo." },
-      { "speaker": "ric", "text": "Madonna quei due... certo che si sente sempre tutto..." }
-    ],
     "fede": [
       { "speaker": "ric", "text": "Allora, Fede dov'è?" },
       { "speaker": "lara", "text": "Ha paccato." }

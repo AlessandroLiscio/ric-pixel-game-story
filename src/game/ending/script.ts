@@ -29,11 +29,11 @@ const lineMs = (text: string): number => Math.min(7000, Math.max(2400, 900 + 34 
 
 /**
  * The night scene of the divano room, played as speech during the credits: its three groups of lines, the easter-egg gag of each won minigame, then the
- * upstairs gag. The old `ric-sopra` egg is replaced by the upstairs gag; the Ric-on-the-chair egg is left out when Ric is upstairs.
+ * upstairs gag. The Ric-on-the-chair egg is left out when Ric is upstairs.
  */
 export function buildBeats(run: Pick<RunState, 'results' | 'flags'>): { beats: Beat[]; rollMs: number } {
     const away = awayOf(run.flags);
-    const eggs = divanoEggs(run.results).filter((id) => id !== 'ric-sopra' && !(id === 'ric-sedia' && away.includes('ric')));
+    const eggs = divanoEggs(run.results).filter((id) => !(id === 'ric-sedia' && away.includes('ric')));
     const gag = lines(away.includes('ric') ? 'ending.upstairsFrangetta' : 'ending.upstairs');
     const groups = [
         ...(['arrival', 'meet', 'join'] as const).map((k) => ({ list: lines(`scenes.divano.${k}`), upstairs: false })),

@@ -16,9 +16,8 @@ const DIVANO_EGGS: [egg: string, minigame: string][] = [
     ['gatto', 'cat-smoke'],
     ['ric-sedia', 'slackline'],
     ['ros-trellone', 'd20'],
-    ['giusy-divano', 'mash'],
-    ['ric-sopra', 'rhythm']
-];
+    ['giusy-divano', 'mash']
+]; // the rhythm win has no gag of its own: the upstairs gag of the credits plays every time
 
 export const minigamesOf = (def: SceneDef): string[] => SEQUENCES[def.id] ?? (def.minigame ? [def.minigame] : []);
 
