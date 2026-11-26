@@ -588,10 +588,10 @@
     "fromUpstairs": "(da sopra)",
     "upstairs": [
       { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Poi una risatina." },
-      { "speaker": "ric", "text": "Madonna quei due... certo che si sente sempre tutto..." }
+      { "speaker": "ric", "text": "Madonna quei due... certo che si sente sempre tutto... Chiudete almeno la porta, cazzo!" }
     ],
     "upstairsFrangetta": [
-      { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Ric non si vede da un pezzo." },
+      { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Ric non si vede da un pezzo, il porco." },
       { "speaker": "ros", "text": "Madonna quanto lo odio. Dovevo esserci io di sopra con quella tipa." }
     ]
   }
