@@ -62,6 +62,7 @@ export class EndingScene extends Phaser.Scene {
     private activeBeat: Beat | null = null;
     private gagStart = Infinity;
     private left = false; // the ones who go upstairs have left the room
+    private upstairsBusy = false; // they have reached the top of the stairs: the bed creaks
     private creakAcc = 0;
     private away: string[] = [];
     private talkers = new Map<string, { img: Phaser.GameObjects.Sprite; base: number }>();
@@ -115,6 +116,7 @@ export class EndingScene extends Phaser.Scene {
         this.ricStand = null;
         this.catSprite = null;
         this.left = false;
+        this.upstairsBusy = false;
         this.canRestart = false;
         this.leaving = false;
         this.showEnd = null;
@@ -281,6 +283,7 @@ export class EndingScene extends Phaser.Scene {
         }
         this.time.delayedCall(1800, () => {
             if (this.phase !== 'credits') return; // a skip straight into the finale: no hearts over "Buon compleanno"
+            this.upstairsBusy = true; // real time, like the walk: a faster roll after the menu cannot start the creaks early
             this.hearts.start();
             this.puffs.start();
         });
@@ -336,7 +339,7 @@ export class EndingScene extends Phaser.Scene {
 
     /** A bed creaking upstairs: two low blips, only once someone has gone up there. */
     private creak(delta: number): void {
-        if (this.roll < this.gagStart + 1800) return;
+        if (!this.upstairsBusy) return;
         this.creakAcc += delta;
         if (this.creakAcc < 720) return;
         this.creakAcc = 0;
