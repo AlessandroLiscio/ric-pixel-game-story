@@ -190,7 +190,7 @@ export class WorldScene extends Phaser.Scene {
         // Cortile: a few steps in, the Albanian lads go for Ros and Giusy
         if (this.barZone && this.barState === 'idle' && !this.busy && this.inRect(this.barZone) && ['ros', 'giusy'].every((id) => this.run.party.includes(id))) void this.albanesiApproach();
 
-        if (this.doorOpen && !this.busy && ((this.def.door && this.inRect(this.def.door, DOOR_SLACK)) || this.atEdge())) this.leave();
+        if (this.doorOpen && this.barState !== 'away' && !this.busy && ((this.def.door && this.inRect(this.def.door, DOOR_SLACK)) || this.atEdge())) this.leave();
     }
 
     // ---- walking ----
@@ -558,7 +558,7 @@ export class WorldScene extends Phaser.Scene {
     /** Z with the portal gun: opens a portal on the wall Ric faces and the whole party walks in; the scene ends as through the exit. */
     private async usePortal(): Promise<void> {
         if (!this.run.portalGun || !this.tw) return;
-        if (!this.doorOpen) {
+        if (!this.doorOpen || this.barState === 'away') {
             this.busy = true;
             // the friend joined but Ros and Giusy are still at the Cortile bar
             await this.say(lines(isSceneDone(this.def, this.run) && this.barState === 'away' ? 'easterEggs.portalGirls' : 'easterEggs.portalNotYet'));
