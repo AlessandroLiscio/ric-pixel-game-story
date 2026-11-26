@@ -6,6 +6,7 @@ import { InstructionCard } from '../../ui/InstructionCard';
 import { panelTexture } from '../../ui/panel';
 import { pixelStyle, t } from '../../ui/text';
 import { MINIGAME_DONE, type MinigameDone } from '../types';
+import { runFlag } from '../flags';
 import { slacklineDust } from '../fx';
 import { LABELS } from './labels';
 
@@ -15,16 +16,20 @@ const PIPS = 3;
 const TIME_LIMIT = 45000; // ms of play; running out of time counts as a fall
 /** Milliseconds for one sweep from one end of the bar to the other, per step already made (it gets faster). The first version was [2400, 2200, 2000, 1800, 1600]: the owner's playtest asked for triple the speed. */
 const SWEEP_MS = [800, 733, 667, 600, 533];
-const ZONE = 0.075; // each end zone covers this fraction of the bar (it was 0.15: the owner's playtest asked for half the width)
+const ZONE = 0.1125; // each end zone covers this fraction of the bar (0.15, then 0.075 after playtest round 1, now 1.5 times that)
+/** With the run flag `peroniBevuta` the sweep speed changes every DRUNK_MS, alternating faster then slower than normal. */
+const DRUNK_MS = 3000;
+const DRUNK_FAST = 1.4;
+const DRUNK_SLOW = 0.7;
 
 const LINE_Y = 205;
-const X0 = 110;
-const X1 = 530;
+const X0 = 100; // the trunks of the room render (scripts/art/room_backgrounds.py window) stand at x 96 and 544
+const X1 = 540;
 const BAR_X = 120;
 const BAR_W = 400;
 const BAR_Y = 250;
 const BAR_H = 20;
-const TOWEL = { x: 270, y: 306, w: 120, h: 34 };
+const TOWEL = { x: 186, y: 270, w: 140, h: 34 }; // where the towel of the room render lies (the fall lands on it)
 const OUTLINE = { stroke: '#0a1040', strokeThickness: 3 };
 const HIT_KEYS = ['KeyX', 'Space'];
 
@@ -39,7 +44,10 @@ export default class SlacklineMinigame extends Phaser.Scene {
     pips = PIPS;
     playing = false;
     finished = false;
+    /** The factor on the sweep speed right now: 1, or 1.4 and 0.7 in turn when Ric drank the Peroni. */
+    speedMul = 1;
 
+    private drunk = false;
     private dir = 1;
     private consumed = false; // the zone the marker is in already gave its hit
     private playMs = 0;
@@ -63,9 +71,12 @@ export default class SlacklineMinigame extends Phaser.Scene {
         this.dir = 1;
         this.consumed = false;
         this.playMs = 0;
+        this.speedMul = 1;
+        this.drunk = false;
     }
 
     async create(): Promise<void> {
+        this.drunk = runFlag(this.game, 'peroniBevuta');
         this.game.events.on('debug:minigame', this.onDebug, this);
         this.events.once('shutdown', () => {
             this.game.events.off('debug:minigame', this.onDebug, this);
@@ -86,7 +97,9 @@ export default class SlacklineMinigame extends Phaser.Scene {
         this.timeBar.width = Math.max(0, (GAME_WIDTH - 32) * (1 - this.playMs / TIME_LIMIT));
         if (this.playMs >= TIME_LIMIT) return this.fall();
 
-        this.markerPos += (this.dir * delta) / SWEEP_MS[Math.min(this.stepsDone, STEPS - 1)];
+        this.speedMul = this.drunk ? (Math.floor(this.playMs / DRUNK_MS) % 2 === 0 ? DRUNK_FAST : DRUNK_SLOW) : 1;
+        if (this.drunk) this.marker.fillColor = this.speedMul > 1 ? 0xff9a8a : 0x9ad0ff; // red while it speeds up, blue while it slows down
+        this.markerPos += (this.dir * delta * this.speedMul) / SWEEP_MS[Math.min(this.stepsDone, STEPS - 1)];
         if (this.markerPos >= 1) [this.markerPos, this.dir] = [1, -1];
         else if (this.markerPos <= 0) [this.markerPos, this.dir] = [0, 1];
         if (this.zoneSide() < 0) this.consumed = false;
@@ -212,22 +225,8 @@ export default class SlacklineMinigame extends Phaser.Scene {
 
     private drawScene(): void {
         this.add.image(0, 0, 'bg-giardini').setOrigin(0);
-        this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x050a28, 0.5).setOrigin(0);
-
-        const g = this.add.graphics();
-        for (const tx of [70, 570]) {
-            g.fillStyle(0x5a3a22).fillRect(tx - 9, 80, 18, 230);
-            g.fillStyle(0x7a5232).fillRect(tx - 9, 80, 5, 230);
-            g.fillStyle(0x2f6b34).fillCircle(tx, 78, 46).fillCircle(tx - 30, 98, 32).fillCircle(tx + 30, 98, 32);
-            g.fillStyle(0x3f8a45).fillCircle(tx - 8, 68, 30);
-        }
-        // the slackline, tied to both trunks
-        g.lineStyle(3, 0xe9e9ee).lineBetween(70, LINE_Y, 570, LINE_Y);
-        // the orange towel on the grass
-        g.fillStyle(0xf08a24).fillRect(TOWEL.x, TOWEL.y, TOWEL.w, TOWEL.h);
-        g.fillStyle(0xffb04c);
-        for (let i = 0; i < TOWEL.w; i += 20) g.fillRect(TOWEL.x + i, TOWEL.y, 10, TOWEL.h);
-        g.lineStyle(2, 0xb85a10).strokeRect(TOWEL.x, TOWEL.y, TOWEL.w, TOWEL.h);
+        this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x050a28, 0.3).setOrigin(0);
+        // the trees, the slackline and the orange towel are the room's own (the background render)
 
         ensureCharAnims(this, 'ric');
         this.ric = this.add.sprite(0, 0, 'char-ric', 7).setOrigin(0.5, 1).setScale(2);

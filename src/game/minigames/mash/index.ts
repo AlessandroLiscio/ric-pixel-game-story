@@ -11,10 +11,12 @@ import { LABELS } from './labels';
 
 const ID = 'mash';
 const TIME_MS = 8000;
-// Tuned so that about 6 presses a second wins: net fill per second = 6 * GAIN - DRAIN = 15.6, so 100 takes about 6.4 s of the 8.
-// 5 presses a second (10.8 net) needs 9.3 s and loses; 7 a second wins in about 4.7 s.
-const GAIN = 4.6; // progress points per press (full is 100)
-const DRAIN = 12; // progress points lost per second while above 0
+// Round 4: harder (it was GAIN 4.6, DRAIN 12, a win from about 5.4 presses a second). Net fill per second = presses * GAIN - DRAIN, and 100
+// has to fill within the 8 s, so the win starts at about 7.1 presses a second (7 a second: net 12, 96 after 8 s, a loss by a hair; 6 a
+// second: net 8, a clear loss; 8 a second: net 16, a win in 6.3 s; 9 a second: 5 s). An average player (about 6 to 7 a second over 8 s)
+// wins about half the time. docs/minigames-slack-d20-mash.md has the table.
+const GAIN = 4; // progress points per press (full is 100)
+const DRAIN = 16; // progress points lost per second while above 0
 const FLOOR_Y = 290;
 const GIUSY_X0 = 515;
 const PULL_PX = 260; // how far Giusy is dragged from the doorframe when the bar is full

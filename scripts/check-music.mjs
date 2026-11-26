@@ -1,7 +1,7 @@
 // Run: node scripts/check-music.mjs
 // Proves, in the installed Chrome (Playwright channel 'chrome'), that the nine music tracks are valid and make sound:
 //   1. every track id exists (title universita giuggiu giardini circe cortile divano credits rhythm) and its shape is valid:
-//      bpm, steps (16 to 32 bars of 16 steps), 3 or 4 channels, every channel as long as `steps`, every note parses
+//      bpm, steps (16 to 32 bars of 16 steps, 14 to 32 for rhythm), 3 or 4 channels, every channel as long as `steps`, every note parses
 //   2. every pitched note stays in the track's key (at most 10 percent out of key)
 //   3. each track renders one loop through the real Sequencer code (renderTrack) into an OfflineAudioContext: not silent, peak below 0.95
 //   4. the chart of the rhythm minigame (built from the lead channel) has the right length, lanes and spacing
@@ -21,6 +21,7 @@ const posix = (p) => p.split('\\').join('/');
 const audioDir = posix(join(ROOT, 'src', 'game', 'audio'));
 const rhythmDir = posix(join(ROOT, 'src', 'game', 'minigames', 'rhythm'));
 
+const MIN_BARS = { rhythm: 14 }; // the rhythm song was cut to 14 bars in round 4 (the other tracks keep 16 to 32)
 const KEYS = {
     title: ['C', 'major'],
     universita: ['G', 'major'],
@@ -120,7 +121,8 @@ try {
         }
         check(t.id === id, `${id}: id is "${t.id}"`);
         check(Number.isFinite(t.bpm) && t.bpm >= 60 && t.bpm <= 200, `${id}: bpm ${t.bpm}`);
-        check(Number.isInteger(t.steps) && t.steps % 16 === 0 && t.steps >= 256 && t.steps <= 512, `${id}: steps ${t.steps} is not 16 to 32 bars`);
+        const minBars = MIN_BARS[id] ?? 16;
+        check(Number.isInteger(t.steps) && t.steps % 16 === 0 && t.steps >= minBars * 16 && t.steps <= 512, `${id}: steps ${t.steps} is not ${minBars} to 32 bars`);
         check(Array.isArray(t.channels) && t.channels.length >= 3 && t.channels.length <= 4, `${id}: ${t.channels?.length} channels, need 3 or 4`);
         let pitched = 0;
         let out = 0;
@@ -160,7 +162,7 @@ try {
             for (let i = 1; i < ts.length; i++) minGap = Math.min(minGap, ts[i] - ts[i - 1]);
         }
         lines.push(`rhythm chart ${n.length} notes, song ${f(seconds)}s, first ${f(n[0]?.t)}s, last ${f(n.at(-1)?.t)}s, per lane ${lanes.join('/')}, min same-lane gap ${f(minGap)}s, offbeat skipped ${info.skippedOffbeat}, dropped ${info.dropped}`);
-        check(seconds >= 30 && seconds <= 60, `rhythm song is ${f(seconds)}s, need 30 to 60`);
+        check(seconds >= 25 && seconds <= 60, `rhythm song is ${f(seconds)}s, need 25 to 60`);
         const solo = n.filter((x) => x.solo);
         check(solo.length >= 16 && solo.every((x) => x.t > n.filter((y) => !y.solo).at(-1).t), `rhythm bass solo has ${solo.length} notes or is not at the end`);
         check(n.length >= 40 && n.length <= 140, `rhythm chart has ${n.length} notes`);
