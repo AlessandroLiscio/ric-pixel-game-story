@@ -45,7 +45,6 @@ def build():
     m.point("door", W - 2, 5, 1, 2)
     m.point("lollino", 3, FIRST_ROW)
     m.point("pinolo", 6, 4)
-    m.point("studente", W - 2, 9)
     # things the game can interact with, in tiles: the footprint of the object (x, y, w, h)
     m.point("obj_screen", 7, 1, 8, 3)       # the big screen on the front wall
     m.point("obj_seats", 12, FIRST_ROW, 7, 1)   # the front row of the right block of seats

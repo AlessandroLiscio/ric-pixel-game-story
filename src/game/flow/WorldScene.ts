@@ -191,7 +191,7 @@ export class WorldScene extends Phaser.Scene {
         if (!this.busy) this.moveRic(delta / 1000);
         else if (!this.portalWalk) this.ric.anims.play(`ric-idle-${this.facing}`, true);
         this.party.update();
-        this.ric.setDepth((this.ric.getData('sitDepth') as number | undefined) ?? this.ric.y); // napping on the pouf, Ric sits behind it
+        this.ric.setDepth((this.ric.getData('sitDepth') as number | undefined) ?? this.ric.y); // napping, Ric lies over the pouf (`sitDepth`)
         this.updateTalkHint();
         this.updateBinHint();
         // Cortile: a few steps in, the Albanian lads go for Ros and Giusy
@@ -507,7 +507,7 @@ export class WorldScene extends Phaser.Scene {
         return objectNear(this.objects, this.ric.x, this.ric.y);
     }
 
-    /** X next to an object of the room: its lines, or its action (the lamp switches, Ric naps on the pouf until he moves). */
+    /** X next to an object of the room: its lines, or its action (the lamp switches, Ric naps on the pouf with a nose bubble until he moves). */
     private async useObject(o: RoomObject): Promise<void> {
         this.busy = true;
         if (o.id === 'lamp' && this.tw) {

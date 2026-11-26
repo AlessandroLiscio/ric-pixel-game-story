@@ -68,7 +68,7 @@ Ambient ideas: stage lights flashing and changing colour ({x: 290, y: 130, w: 35
 
 ## divano (scene 6, ending, no minigame)
 
-Source: `casa-circe-tavolo-divano`, cropped to the sofa side of the flat: patterned red sofa, coat rack with jackets, glass balcony door with the scooter, world map on the wall. The right side of the photo (a woman at the table) is cropped out and the face of the person on the sofa is patched, so a blurred person is still baked into the sofa at about (480, 175); the easter egg `giusy-divano` can be placed there or Alessandro can paint it out. The photo `divano-aperto` (the open sofa bed with a man in a hood) was not used: its face is large and the room is hard to read.
+Source: `casa-circe-tavolo-divano`, cropped to the sofa side of the flat: patterned red sofa, coat rack with jackets, glass balcony door with the scooter, world map on the wall. The right side of the photo (a woman at the table) is cropped out and the face of the person on the sofa is patched, so a blurred person is still baked into the sofa at about (480, 175); Alessandro can paint it out. The photo `divano-aperto` (the open sofa bed with a man in a hood) was not used: its face is large and the room is hard to read.
 
 Walkable: this view has almost no floor, the table fills the bottom. Use the shadow gap in front of the sofa, {x: 215, y: 280, w: 300, h: 40}, and the dark carpet left of the sofa, {x: 20, y: 255, w: 190, h: 60}, or make the scene a fixed one where the player only walks to the sofa.
 

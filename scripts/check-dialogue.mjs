@@ -260,7 +260,7 @@ const bannerFits = (where, list) =>
 for (const k of ['arrival', 'meet', 'join']) bannerFits(`scenes.${CREDITS_SCENE}.${k}`, data.scenes?.[CREDITS_SCENE]?.[k]);
 // the TV exchange: the documentary's punchline, then the laugh (the last line of `meet`, the one the whole room laughs at)
 const punchline = data.scenes?.[CREDITS_SCENE]?.meet?.at(-2);
-if (punchline?.speaker !== 'narratore' || !punchline.text.endsWith('...le acciughe!')) err(`scenes.${CREDITS_SCENE}.meet`, 'the line before the laugh must be the narrator\'s and end exactly "...le acciughe!"');
+if (punchline?.speaker !== 'narratore' || !/\.\.\. ?le acciughe!$/.test(punchline.text)) err(`scenes.${CREDITS_SCENE}.meet`, 'the line before the laugh must be the narrator\'s and end "... le acciughe!" (the space is optional)');
 
 // ending: the upstairs gag
 sameKeys('ending', data.ending ?? {}, ['fromUpstairs', 'upstairs', 'upstairsFrangetta']);
