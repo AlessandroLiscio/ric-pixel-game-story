@@ -21,7 +21,7 @@ const LEAD_IN_MS = 2500;
 const TAIL_MS = 2500;
 const GAP_MS = 250;
 
-/** Who is upstairs, not on the sofa: Liscio and Lara, or Ric (with the fringe girl) when he got her number. */
+/** Who goes upstairs when the gag starts (they are in the room for the whole night until then): Liscio and Lara, or Ric (the fringe girl waits up there) when he got her number. */
 export const awayOf = (flags: RunState['flags'] | undefined): string[] => (flags?.numeroFrangetta ? ['ric'] : ['liscio', 'lara']);
 
 /** Reading time of a line: a base plus a fixed time per letter (the row breaks of the file do not count). */
@@ -29,11 +29,11 @@ const lineMs = (text: string): number => Math.min(7000, Math.max(2400, 900 + 34 
 
 /**
  * The night scene of the divano room, played as speech during the credits: its three groups of lines, the easter-egg gag of each won minigame, then the
- * upstairs gag. The Ric-on-the-chair egg is left out when Ric is upstairs.
+ * upstairs gag, which starts when the ones who go upstairs leave the room, so everyone who speaks before it is there to be seen.
  */
 export function buildBeats(run: Pick<RunState, 'results' | 'flags'>): { beats: Beat[]; rollMs: number } {
     const away = awayOf(run.flags);
-    const eggs = divanoEggs(run.results).filter((id) => !(id === 'ric-sedia' && away.includes('ric')));
+    const eggs = divanoEggs(run.results);
     const gag = lines(away.includes('ric') ? 'ending.upstairsFrangetta' : 'ending.upstairs');
     const groups = [
         ...(['arrival', 'meet', 'join'] as const).map((k) => ({ list: lines(`scenes.divano.${k}`), upstairs: false })),
@@ -46,7 +46,7 @@ export function buildBeats(run: Pick<RunState, 'results' | 'flags'>): { beats: B
     for (const { list, upstairs } of groups) {
         for (const l of list) {
             const who = l.speaker === 'narratore' ? undefined : person(l.speaker);
-            const name = who ? (away.includes(l.speaker) ? `${who.name} ${tag}` : who.name) : '';
+            const name = who ? (upstairs && away.includes(l.speaker) ? `${who.name} ${tag}` : who.name) : ''; // only a gag line can come from upstairs
             const end = at + lineMs(l.text);
             beats.push({ speaker: l.speaker, name, text: l.text.replace(/\{ric\}/g, 'Ric').replace(/\s*\n\s*/g, ' '), start: at, end, upstairs });
             at = end + GAP_MS;

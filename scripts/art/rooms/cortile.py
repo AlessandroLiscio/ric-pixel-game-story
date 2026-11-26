@@ -86,19 +86,18 @@ def build():
     m.stamp("crate", 2, 15)
     m.stamp("crate_bottles", 4, 16)
 
-    # the band, at floor level on the low step: amps at the pier end, drums in the middle under the logo, a guitar and a bass on stands
+    # the band, at floor level on the low step: an amp at each end of the stage, drums in the middle under the logo, a guitar and a bass on stands
     for x in (11, 16):
         m.stamp("floor_cable", x, 6)
     m.stamp("drum_kit", 14, 5)
-    m.stamp("amp", 9, 5)
     m.stamp("amp", 10, 5)
+    m.stamp("amp", 17, 5)    # the second speaker at the far end of the stage, away from the first (it hung over the stairs before)
     m.stamp("guitar_stand", 12, 6)
     m.stamp("bass_stand", 17, 6)
     m.stamp("monitor_wedge", 12, 7)
     m.stamp("monitor_wedge", 16, 7)
     m.stamp("mic_stand", 13, 7)
     m.stamp("mic_stand", 15, 7)
-    m.block(17, 5, 17, 5)  # the corner against the stairs is not a place to walk
 
     # the staircase against the right wall, beside the stage, and three big round tables with their chairs below it
     m.stamp("cortile_stairs", 18, 5)

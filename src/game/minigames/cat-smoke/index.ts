@@ -52,7 +52,7 @@ const FINAL_SLIDE_MS = 380; // the last slide under the right sofa stays slow en
 const FOLLOW_MS = 3600; // how long the cat roams before the fake-out
 const GIUGGIU_SCALE = 3;
 const GIUGGIU_FEET_Y = 344;
-const GIUGGIU_EDGE = 40; // his x from the screen edge
+const GIUGGIU_EDGE = 24; // his x from the screen edge: at the very right, below the right sofa, his opaque pixels just inside the screen
 const MAX_CLOUDS = 140;
 const PUFF_EVERY_MS = 1000;
 const PUFF_CLOUDS = 14;
@@ -63,7 +63,7 @@ const FACE_ROW: Record<Face, number> = { down: 0, left: 1, right: 2, up: 3 };
 
 const DEPTH = { floor: 0, trail: 12, under: 5, sofa: 10, giuggiu: 15, cat: 20, smoke: 30, hud: 40, banner: 950 };
 
-/** Scene 2 minigame: a cat runs about Casa Giuggiu's sofa triangle (passing only under the sofas and the low table) while Giuggiu, at one edge of the screen, puffs smoke that drifts across the room; the cat ends under one sofa and the player lifts the right one. */
+/** Scene 2 minigame: a cat runs about Casa Giuggiu's sofa triangle (passing only under the sofas and the low table) while Giuggiu, at the right edge of the screen, puffs smoke that drifts across the room; the cat ends under one sofa and the player lifts the right one. */
 export default class CatSmokeMinigame extends Phaser.Scene {
     static KEY = `minigame-${ID}`;
     static ID = ID;
@@ -75,7 +75,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
     private smoke!: Phaser.GameObjects.Container; // every cloud lives here, so one alpha tween thins them all out
     private giuggiu!: Phaser.GameObjects.Sprite;
     private ember!: Phaser.GameObjects.Rectangle;
-    private dir = 1; // 1: Giuggiu stands at the left edge and the smoke drifts right, -1: the other way round
+    private dir = -1; // -1: Giuggiu stands at the right edge and the smoke drifts left (1 would be the other way round)
     private mouth = { x: 0, y: 0 };
     private emitting = false;
     private confirmEarly = false;
@@ -110,7 +110,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.clouds = new Set();
         this.emitting = false;
         this.confirmEarly = false;
-        this.dir = Math.random() < 0.5 ? 1 : -1;
+        this.dir = -1; // always at the right edge (the owner's call): from there the smoke reaches all three sofas
         this.sofas = [];
         this.floorPatch = [];
 
@@ -339,7 +339,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
 
     // ---- Giuggiu and the smoke ----
 
-    /** Giuggiu stands at one edge of the screen, a cigarette in his mouth; every puff he breathes in, leans out and blows a burst of smoke across the room. */
+    /** Giuggiu stands at the right edge of the screen, a cigarette in his mouth; every puff he breathes in, leans out and blows a burst of smoke across the room. */
     private buildGiuggiu(): void {
         const x = this.dir > 0 ? GIUGGIU_EDGE : GAME_WIDTH - GIUGGIU_EDGE;
         const face: Face = this.dir > 0 ? 'right' : 'left';
@@ -396,8 +396,10 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         this.smoke.add(cloud);
         const life = Phaser.Math.Between(2800, 4200);
         this.clouds.add(cloud);
-        const reach = local ? Phaser.Math.Between(-20, 20) : this.dir * Phaser.Math.Between(180, 640);
-        const toY = local ? y + Phaser.Math.Between(-30, 4) : Phaser.Math.Between(90, GAME_HEIGHT - 20);
+        // a quarter of the clouds rise near Giuggiu over the sofa on his side, the rest cross the room, so all three sofas are covered
+        const near = !local && Math.random() < 0.25;
+        const reach = local ? Phaser.Math.Between(-20, 20) : this.dir * (near ? Phaser.Math.Between(0, 120) : Phaser.Math.Between(60, 640));
+        const toY = local ? y + Phaser.Math.Between(-30, 4) : near ? Phaser.Math.Between(110, 240) : Phaser.Math.Between(90, GAME_HEIGHT - 20);
         this.tweens.add({ targets: cloud, scale: Phaser.Math.FloatBetween(burst ? 2.4 : 1.6, burst ? 3.6 : 2.6), x: x + reach, y: toY, duration: life, ease: 'Sine.easeOut' });
         this.tweens.add({
             targets: cloud,
