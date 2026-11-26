@@ -82,8 +82,6 @@ def build():
     m.point("door", DOOR_X, 12, 2, 1)
     m.point("ros", 20, 6)
     m.point("giusy", 8, 5)
-    m.point("papa", 5, 10)   # Ric's parents (extras), just in from dinner, standing at the foot of the table
-    m.point("mamma", 6, 10)
 
     # the things Ric can interact with, in tiles: x, y, width, height of each footprint
     m.point("obj_tv", 10, 4, 3, 2)

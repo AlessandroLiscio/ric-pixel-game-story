@@ -7,21 +7,30 @@ import { dirname, join, resolve } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => JSON.parse(readFileSync(resolve(root, rel), 'utf8'));
 const scenes = read(process.argv[2] ?? 'src/data/scenes.json');
-const people = new Set(read('src/data/people.json').map((p) => p.id));
+// people the art worker is still drawing (src/data/people.json and public/assets/characters get them in round 4 wave 1): until they land the game
+// stands a stand-in sprite in for them. Remove an id here once people.json has it.
+const PENDING_ART = ['frangetta', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'albanese1', 'albanese2', 'losco'];
+const people = new Set([...read('src/data/people.json').map((p) => p.id), ...PENDING_ART]);
 const eggs = new Set(Object.keys(read('src/data/dialogue.it.json').easterEggs));
 
 const W = 640;
 const H = 360;
-const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile', 'divano'];
-const FRIENDS = { universita: 'lollino', giuggiu: 'giuggiu', giardini: 'liscio', circe: 'ros', cortile: 'lara', divano: null };
-const MINIGAMES = { universita: 'simon', giuggiu: 'cat-smoke', giardini: 'slackline', circe: 'd20', cortile: 'rhythm', divano: null };
+// five playable scenes: the old night scene (divano) is only the credits backdrop now (src/data/maps/divano.json, not listed here)
+const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile'];
+const FRIENDS = { universita: 'lollino', giuggiu: 'giuggiu', giardini: 'liscio', circe: 'ros', cortile: 'lara' };
+const MINIGAMES = { universita: 'simon', giuggiu: 'cat-smoke', giardini: 'slackline', circe: 'd20', cortile: 'rhythm' };
+// what each room's bin holds (BinDef.item), found once per run
+const BIN_ITEMS = { universita: 'appunti', giuggiu: 'portalGun', giardini: 'peroni', circe: 'fumo', cortile: 'soldi' };
+// map points a scene's story needs, on free tiles Ric can reach: the Cortile bar scene, the plates on Giuggiu's table
+const STORY_POINTS = { cortile: ['bar_ros', 'bar_giusy', 'albanese1', 'albanese2'], giuggiu: ['obj_plates', 'obj_tv'] };
+const STORY_ZONES = { cortile: ['trig_bar'] }; // rectangles in tiles (x, y, w, h) that must hold a free tile
 const FACINGS = ['down', 'left', 'right', 'up'];
 const PRESETS = {
   particles: ['dust', 'pollen', 'steam', 'sparkle'],
   tween: ['flicker', 'sway', 'pulse'],
   sprite: ['heads-bob']
 };
-const EXTRA_EGGS = ['extra-1', 'extra-2', 'extra-3', 'extra-rosanna', 'extra-genitori'];
+const EXTRA_EGGS = ['extra-1', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'losco'];
 const SHARED_EGGS = { 'extra-genitori': 2 }; // eggs said by more than one extra: how many
 
 const errors = [];
@@ -107,6 +116,7 @@ function mapScene(at, sc, id) {
   (sc.bins ?? []).forEach((b, j) => {
     const where = `${at} bins[${j}]`;
     if (!isNum(b?.x) || !isNum(b?.y)) return err(where, 'x and y must be numbers (pixels)');
+    if (b.item !== BIN_ITEMS[id]) err(where, `item must be "${BIN_ITEMS[id]}" (each room's bin holds its own item)`);
     const bx = Math.floor(b.x / 32);
     const by = Math.floor((b.y - 1) / 32);
     const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [bx + dx, by + dy]);
@@ -127,16 +137,30 @@ function mapScene(at, sc, id) {
     if (!FACINGS.includes(p.facing)) err(where, `bad facing "${p.facing}"`);
     const q = pt(p.at);
     if (!q) return err(where, `"at" names the point "${p.at}", which the map does not have`);
-    if (!free(q.x, q.y)) err(where, `point "${p.at}" (${q.x},${q.y}) is on a blocked tile`);
+    if (p.seat === true) {
+      // a person on a chair: the chair tile is blocked, a free tile next to it must be reachable
+      if (free(q.x, q.y)) err(where, `seat: point "${p.at}" (${q.x},${q.y}) should be the blocked tile of a chair`);
+      if (![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => seen.has(`${q.x + dx},${q.y + dy}`))) err(where, `seat "${p.at}": no free tile next to it can be reached from the spawn`);
+    } else if (!free(q.x, q.y)) err(where, `point "${p.at}" (${q.x},${q.y}) is on a blocked tile`);
     else if (mustReach && !seen.has(`${q.x},${q.y}`)) err(where, `point "${p.at}" cannot be reached from the spawn`);
   };
-  if (FRIENDS[id] === null) {
-    if (sc.friend !== null) err(at, 'friend must be null in divano');
-  } else {
-    person(`${at} friend`, sc.friend, true);
-    if (sc.friend?.personId !== FRIENDS[id]) err(at, `friend must be "${FRIENDS[id]}"`);
+  person(`${at} friend`, sc.friend, true);
+  if (sc.friend?.personId !== FRIENDS[id]) err(at, `friend must be "${FRIENDS[id]}"`);
+  for (const name of STORY_POINTS[id] ?? []) {
+    const q = pt(name);
+    if (!q) err(w, `story point "${name}" is missing`);
+    else if (name.startsWith('obj_')) continue; // an object footprint, not a standing place
+    else if (!free(q.x, q.y) || !seen.has(`${q.x},${q.y}`)) err(w, `story point "${name}" (${q.x},${q.y}) must be a free tile Ric can reach`);
   }
-  (sc.extras ?? []).forEach((e, j) => {
+  for (const name of STORY_ZONES[id] ?? []) {
+    const z = pt(name);
+    if (!z || !Number.isInteger(z.w) || !Number.isInteger(z.h)) err(w, `zone "${name}" needs x, y, w, h in tiles`);
+    else {
+      let hit = false;
+      for (let y = z.y; y < z.y + z.h; y++) for (let x = z.x; x < z.x + z.w; x++) if (seen.has(`${x},${y}`)) hit = true;
+      if (!hit) err(w, `zone "${name}" holds no tile Ric can reach`);
+    }
+  }  (sc.extras ?? []).forEach((e, j) => {
     const where = `${at} extras[${j}]`;
     person(where, e, e.egg !== undefined);
     if (e.egg !== undefined) {

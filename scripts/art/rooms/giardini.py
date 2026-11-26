@@ -88,6 +88,9 @@ def build():
     m.point("door", 24, 14, 2, 2)
     m.point("liscio", 6, 9)
     m.point("dogwalker", 21, 11)
+    m.point("slackgirl2", 9, 7)     # two more girls who want to get on the slack, on the grass above the line
+    m.point("slackgirl3", 12, 7)
+    m.point("frangetta", 19, 9)      # the girl with the blunt fringe and the Birkenstocks, on the grass left of the path
     m.point("rosanna", 16, 10)  # Rosanna, the Erasmus-trip organiser (an extra), on the grass above the path
 
     # a few people on the grass
