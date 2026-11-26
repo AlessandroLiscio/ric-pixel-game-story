@@ -36,6 +36,7 @@ PAL = {
     "cork": "#a47848", "maroon": "#8c2a3a", "white": "#f4f1ea", "grey": "#a6aab3", "navy": "#2f3d6b", "yellow": "#e8b83a",
     "green": "#4f9a5d", "mint": "#8fd1b0", "blue_l": "#8db4dc", "khaki": "#b79d6b", "cream": "#e7dcc0",
     "charcoal": "#3b3f4c", "pink": "#e07a90", "orange": "#e48a3a", "red": "#c8362f",
+    "hatpink": "#e878c4", "violet": "#aa7ee2",
 }
 PAL.update(sprite_shade.derive(PAL))  # `<name>.s`, `.l`, `.d`: shade, light and outline tone of every material
 RAMPS = sprite_shade.Ramps(PAL)
@@ -522,6 +523,15 @@ def sunglasses_on_head(cv, t, view):
         cv.set(10, t + 2, "grey")
 
 
+def bucket_hat(cv, t):
+    """The tie-dye bucket hat of Rosanna's portrait: a pink crown with a violet and an orange band over a wide brim."""
+    cv.spans([(t - 1, 12, 19), (t, 10, 21), (t + 1, 10, 21), (t + 2, 9, 22), (t + 3, 9, 22)], "hatpink")
+    cv.rect(10, t + 1, 21, t + 1, "violet")
+    cv.rect(9, t + 3, 22, t + 3, "orange")
+    cv.rect(7, t + 4, 24, t + 5, "hatpink")
+    cv.rect(8, t + 5, 23, t + 5, "violet")
+
+
 def accessories_torso(cv, T0, tr, view):
     acc = set(tr["accessory"])
     top = parse_top(tr["outfitTop"])
@@ -586,6 +596,8 @@ def render_frame(tr, facing, col, mirror=False):
         arm_side(cv, T0, top, skin, step)
         if "sunglasses-on-head" in acc:
             sunglasses_on_head(cv, t, "left")
+    if "buckethat" in acc:
+        bucket_hat(cv, t)
     return cv.finish(OUTLINE_FOR_HAIR[tr["hairColor"]], mirror)
 
 

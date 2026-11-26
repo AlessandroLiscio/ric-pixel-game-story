@@ -1,6 +1,6 @@
 // Validates src/data/dialogue.it.json against the contract (see docs/dialogue-it.md).
 // Standard library only. Quiet: prints one PASS line, or up to 20 errors and exits 1.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -22,12 +22,17 @@ const SCENE_KEYS = ['arrival', 'meet', 'minigameIntro', 'win', 'lose', 'join'];
 const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
 const SCENE_EXTRA_KEYS = { circe: ['minigameIntro2', 'win2', 'lose2'] };
 const MINIGAMES = ['simon', 'cat-smoke', 'slackline', 'd20', 'mash', 'rhythm'];
-const EGGS = ['pinolo-pinhole', 'gatto', 'ric-sedia', 'ros-trellone', 'giusy-divano', 'fede', 'extra-1', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
-const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi', 'studente', 'rosanna', 'genitori', 'barista', 'armando', 'carolina', 'slackgirls', 'numero', 'rutto', 'losco', 'albanesi', 'fede', 'puf'];
+const EGGS = ['fede', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'loscoApproach', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
+const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi', 'rosanna', 'genitori', 'barista', 'armando', 'carolina', 'slackgirls', 'numero', 'rutto', 'losco', 'albanesi', 'fede', 'puf'];
 const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look', 'achievement', 'drinkPeroni', 'askNumber'];
 const MENU_KEYS = ['title', 'diary', 'jump', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'jumpTitle', 'jumpHint', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 
-const CLOSING_LINE = 'Meh, sciamanin.';
+const EVENTS = ['losco']; // happenings a line of `meet` can set off (WorldScene.talkToFriend)
+// obj_* points of the maps that need no lines: the ids code acts on (src/game/flow/objects.ts ACTIONS) and footprints code only reads (ambient/life.ts)
+const OBJECT_ACTIONS = ['lamp', 'puf'];
+const OBJECT_FOOTPRINTS = { cortile: ['bar'], giuggiu: ['plates'] };
+
+const CLOSING_LINE ='Meh, sciamanin.';
 
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -119,7 +124,9 @@ function checkLines(where, arr, allowEmpty = false) {
   arr.forEach((line, i) => {
     const w = `${where}[${i}]`;
     if (line === null || typeof line !== 'object') return err(w, 'not an object');
-    for (const k of Object.keys(line)) if (!['speaker', 'text', 'pause'].includes(k)) err(w, `unknown key ${k}`);
+    for (const k of Object.keys(line)) if (!['speaker', 'text', 'pause', 'event', 'laugh'].includes(k)) err(w, `unknown key ${k}`);
+    if ('event' in line && !EVENTS.includes(line.event)) err(w, `unknown event "${line.event}"`);
+    if ('laugh' in line && line.laugh !== true) err(w, 'laugh must be true when present');
     if (!PERSONS.includes(line.speaker)) err(w, `bad speaker "${line.speaker}"`);
     checkPage(w, line.text, line.speaker);
     if ('pause' in line && !(Number.isInteger(line.pause) && line.pause >= 0)) err(w, 'pause must be a non-negative integer (ms)');
@@ -147,6 +154,14 @@ sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames'
 for (const [sid, objs] of Object.entries(data.objects ?? {})) {
   if (!SCENES.includes(sid)) err(`objects.${sid}`, "not a scene id");
   for (const [oid, arr] of Object.entries(objs)) checkLines(`objects.${sid}.${oid}`, arr);
+}
+// every obj_<id> point of every map has its lines (but the exceptions above), and no lines lack a point
+const mapDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'maps');
+for (const f of readdirSync(mapDir).filter((n) => n.endsWith('.json'))) {
+  const room = f.slice(0, -'.json'.length);
+  const skip = [...OBJECT_ACTIONS, ...(OBJECT_FOOTPRINTS[room] ?? [])];
+  const ids = Object.keys(JSON.parse(readFileSync(join(mapDir, f), 'utf8')).points).filter((n) => n.startsWith('obj_')).map((n) => n.slice(4));
+  sameKeys(`objects.${room}`, data.objects?.[room] ?? {}, ids.filter((id) => !skip.includes(id)));
 }
 
 // menu, controls (the Esc menu) and diary (one entry per scene, up to 4 rows)
@@ -203,10 +218,6 @@ for (const id of MINIGAMES) {
 // easter eggs
 sameKeys('easterEggs', data.easterEggs ?? {}, EGGS);
 for (const id of EGGS) checkLines(`easterEggs.${id}`, data.easterEggs?.[id]);
-const trellone = data.easterEggs?.['ros-trellone'] ?? [];
-if (!trellone.some((l) => l.speaker === 'ric' && l.text === "Per l'amor di dio basta!")) {
-  err('easterEggs.ros-trellone', "needs a ric line with the exact text \"Per l'amor di dio basta!\"");
-}
 
 const fede = data.easterEggs?.fede ?? [];
 if (fede.length !== 2 || fede[0].speaker !== 'ric' || fede[0].text !== "Allora, Fede dov'è?" || fede[1].speaker !== 'lara' || fede[1].text !== 'Ha paccato.') {
@@ -221,18 +232,23 @@ for (const id of SCENES) {
 }
 
 // the whole file: names capitalised, the cat is Gatto di Paz, "slack" not "fettuccia", no birthday inside the story
-const strings = [];
-const walk = (v, path) => {
-  if (typeof v === 'string') strings.push([path, v]);
-  else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${path}[${i}]`));
-  else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) if (k !== 'speaker') walk(x, path ? `${path}.${k}` : k);
+const strings = []; // [path, text, speaker of the line it belongs to]
+const walk = (v, path, speaker) => {
+  if (typeof v === 'string') strings.push([path, v, speaker]);
+  else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${path}[${i}]`, speaker));
+  else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) if (k !== 'speaker') walk(x, path ? `${path}.${k}` : k, v.speaker ?? speaker);
 };
 walk(data, '');
+// Lollino is Tuscan without the gorgia spelling: no word starting with a mute "h" but the verb forms, no "h" for a hard c inside a word
+const GORGIA = /(?<![\p{L}])h(?!(?:o|a|ai|anno)(?![\p{L}]))\p{L}|[aeiouàèéìòù]h[aouàòù]/iu;
 const word = (w) => new RegExp(`(?<![\\p{L}\\p{N}_])${w}(?![\\p{L}\\p{N}_])`, 'u');
 const LOWER_NAMES = ['ric', 'lollino', 'pinolo', 'giuggiu', 'liscio', 'ros', 'giusy', 'lara', 'fede', 'gatto'].map((n) => [n, word(n)]);
 const BAD_CAT = /Gatto(?! di Paz)/u;
-const BIRTHDAY = /compleann|festegg|auguri|trent'?ann|trentenn|\b30\b/i;
-for (const [path, raw] of strings) {
+const BIRTHDAY = /compleann|festegg|auguri|trentenn|\b30\b/i; // "trent'anni" alone is Pinolo's thirty years of pinhole cameras
+for (const [path, raw, speaker] of strings) {
+  if (/trellon/i.test(raw) && speaker !== 'giuggiu') err(path, 'only Giuggiu says "trellone": use canna, cannetta or cannone');
+  if (/\bnonn[aie]\b/i.test(raw)) err(path, 'no grandmother in the story');
+  if (speaker === 'lollino' && GORGIA.test(raw)) err(path, 'no gorgia spelling ("h" for a hard c) in Lollino\'s lines');
   const text = raw.replace(/\{ric\}/g, 'Ric').replace(/\n/g, ' '); // a name may be split over two rows
   for (const [n, re] of LOWER_NAMES) if (re.test(text)) err(path, `lowercase "${n}": names start with a capital, the cat is "Gatto di Paz"`);
   if (BAD_CAT.test(text)) err(path, 'the cat is "Gatto di Paz", never "Gatto" alone');
@@ -250,14 +266,27 @@ for (const [k, name] of Object.entries(data.achievements ?? {})) {
 const notYet = data.easterEggs?.portalNotYet ?? [];
 if (notYet.length !== 1 || notYet[0].text.replace(/\n/g, ' ') !== "Meh, non abbiamo mica finito qui. C'è ancora da fare.") err('easterEggs.portalNotYet', 'must be exactly one line: "Meh, non abbiamo mica finito qui. C\'è ancora da fare." (a row break instead of the space)');
 
-// ending: the upstairs gag spoken during the credits (src/game/ending/script.ts); its banner is narrower than the dialogue box, so a line stays under 110 characters
+// the lines spoken during the credits (src/game/ending/script.ts): the banner is narrower than the dialogue box, so a line stays under 110 characters
+const bannerFits = (where, list) =>
+  (list ?? []).forEach((l, i) => {
+    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`${where}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
+  });
+for (const k of ['arrival', 'meet', 'join']) bannerFits(`scenes.${CREDITS_SCENE}.${k}`, data.scenes?.[CREDITS_SCENE]?.[k]);
+// the TV exchange: the documentary's punchline, then the laugh (the one line marked `laugh`, the one the whole room laughs at)
+const spoken = Object.values(data.scenes?.[CREDITS_SCENE] ?? {}).flat();
+const laughs = spoken.filter((l) => l?.laugh);
+if (laughs.length !== 1) err(`scenes.${CREDITS_SCENE}`, `needs exactly one line with "laugh": true, has ${laughs.length}`);
+else {
+  const punchline = spoken[spoken.indexOf(laughs[0]) - 1];
+  if (punchline?.speaker !== 'narratore' || !/\.\.\. ?le acciughe!$/.test(punchline.text)) err(`scenes.${CREDITS_SCENE}`, 'the line before the laugh must be the narrator\'s and end "... le acciughe!" (the space is optional)');
+}
+
+// ending: the upstairs gag
 sameKeys('ending', data.ending ?? {}, ['fromUpstairs', 'upstairs', 'upstairsFrangetta']);
 checkText('ending.fromUpstairs', data.ending?.fromUpstairs, 1, MAX_CHARS);
 for (const k of ['upstairs', 'upstairsFrangetta']) {
   checkLines(`ending.${k}`, data.ending?.[k]);
-  (data.ending?.[k] ?? []).forEach((l, i) => {
-    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`ending.${k}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
-  });
+  bannerFits(`ending.${k}`, data.ending?.[k]);
 }
 
 // credits

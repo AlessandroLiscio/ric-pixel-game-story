@@ -88,7 +88,6 @@ def build():
     m.point("seat_chair_r", 7, 8)                       # the clear chair at the east side of the table (faces west)
     m.point("seat_pouf", 12, 7)                         # the pink pouf, in front of the TV
     m.point("seat_floor", 10, 8)                         # on the rug in front of the coffee table
-    m.point("seat_cat", 12, 10)                         # the cat curls up at the end of the sofa
     m.point("bed", 18, 4, 3, 4)                         # the sofa bed under the world map (out of sight of the credits)
     m.point("window", 16, 2, 2, 3)                      # the curtained glass door onto the night: the ambient code puts a moon glow and fireflies behind it
 

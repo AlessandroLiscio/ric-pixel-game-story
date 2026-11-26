@@ -15,7 +15,14 @@ const TEXT_X_FULL = 16;
 export const WRAP_W = { portrait: GAME_WIDTH - TEXT_X_PORTRAIT - 14, full: GAME_WIDTH - TEXT_X_FULL - 16 };
 const TICK_MS = 28;
 const BLIP_EVERY = 3; // letters per blip
-const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
+export const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
+
+/** The blinking "press X" arrow: a downward triangle with its top middle at (x, y), `h` px tall. */
+export function pressArrow(scene: Phaser.Scene, x: number, y: number, h: number): Phaser.GameObjects.Graphics {
+    const arrow = scene.add.graphics().fillStyle(0xffffff).fillTriangle(-5, 0, 5, 0, 0, h).setPosition(x, y);
+    scene.tweens.add({ targets: arrow, alpha: 0.15, duration: 380, yoyo: true, repeat: -1 });
+    return arrow;
+}
 
 /**
  * RPG Maker VX Ace style dialogue window at the bottom of the screen.
@@ -42,8 +49,7 @@ export class DialogBox {
         this.portrait = scene.add.image(6, PANEL_Y + 2, '__DEFAULT').setOrigin(0);
         this.nameText = scene.add.text(TEXT_X_PORTRAIT, PANEL_Y + 8, '', { ...pixelStyle(16, '#ffe27a'), shadow });
         this.body = scene.add.text(TEXT_X_PORTRAIT, PANEL_Y + 26, '', { ...pixelStyle(), shadow, lineSpacing: 2 });
-        this.arrow = scene.add.graphics().fillStyle(0xffffff).fillTriangle(-5, 0, 5, 0, 0, 6).setPosition(GAME_WIDTH / 2, GAME_HEIGHT - 12);
-        scene.tweens.add({ targets: this.arrow, alpha: 0.15, duration: 380, yoyo: true, repeat: -1 });
+        this.arrow = pressArrow(scene, GAME_WIDTH / 2, GAME_HEIGHT - 12, 6);
         this.root = scene.add.container(0, 0, [panel, this.portrait, this.nameText, this.body, this.arrow]).setDepth(1000).setScrollFactor(0).setVisible(false);
 
         this.zKey = scene.input.keyboard!.addKey('Z');

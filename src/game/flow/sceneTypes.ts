@@ -63,6 +63,10 @@ export interface Line {
     speaker: string;
     text: string;
     pause?: number;
+    /** In a scene's `meet`: the happening that follows this line (`losco`: the hooded man walks up to Lara). */
+    event?: 'losco';
+    /** The line the whole room laughs at during the credits (one in `scenes.divano`). */
+    laugh?: boolean;
 }
 
 export interface SceneLines {

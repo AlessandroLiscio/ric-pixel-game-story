@@ -53,10 +53,10 @@ const FOLLOW_MS = 3600; // how long the cat roams before the fake-out
 const GIUGGIU_SCALE = 3;
 const GIUGGIU_FEET_Y = 344;
 const GIUGGIU_EDGE = 24; // his x from the screen edge: at the very right, below the right sofa, his opaque pixels just inside the screen
-const MAX_CLOUDS = 140;
+const MAX_CLOUDS = 45;
 const PUFF_EVERY_MS = 1000;
-const PUFF_CLOUDS = 14;
-const TRICKLE_MS = 100;
+const PUFF_CLOUDS = 6;
+const TRICKLE_MS = 240;
 const COUNTDOWN = 3;
 const KEY_SOFA: Record<string, number> = { ArrowLeft: 0, KeyA: 0, ArrowUp: 1, KeyW: 1, ArrowRight: 2, KeyD: 2 };
 const FACE_ROW: Record<Face, number> = { down: 0, left: 1, right: 2, up: 3 };
@@ -383,7 +383,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
             callback: () => {
                 if (!this.emitting) return;
                 this.spawnCloud(this.mouth.x, this.mouth.y, false); // the trickle between two puffs
-                if (Math.random() < 0.2) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
+                if (Math.random() < 0.1) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
                 if (this.targetChance > 0 && Math.random() < this.targetChance) this.spawnCloud(this.cat.x + Phaser.Math.Between(-18, 18), this.cat.y - 30 + Phaser.Math.Between(-12, 12), false, true);
             }
         });
@@ -413,7 +413,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         });
     }
 
-    /** Giuggiu stops smoking and what hangs in the air fades to a haze, so the last hop and the hiding can be seen. */
+    /** Giuggiu stops smoking and what hangs in the air fades to a haze. */
     private thinSmoke(): void {
         this.emitting = false;
         this.tweens.add({ targets: this.smoke, alpha: 0.3, duration: 600 });
@@ -466,15 +466,13 @@ export default class CatSmokeMinigame extends Phaser.Scene {
         await this.move(back, { under: true });
         if (this.done) return;
 
-        // the real hiding place; Giuggiu stops and the smoke thins out so a careful player can see it
+        // the real hiding place: no more clouds on the cat, so a careful player can see it. Giuggiu stops only once it is under the sofa.
         this.targetChance = 0;
-        this.thinSmoke();
         const target = SOFA_SPOT[this.hideIndex];
         await this.walkTo(this.approaches(target));
-        this.face('up');
-        await this.wait(500); // the smoke has thinned out by now (600 ms fade)
         await this.move(target, { ms: FINAL_SLIDE_MS });
         this.face('up');
+        this.thinSmoke();
         // the player may already pick the sofa the cat went under: keys count from here on, not only from the countdown
         // (root cause of the "wrong sofa" bug: a pick made before the countdown was thrown away and the round was lost)
         this.picking = true;

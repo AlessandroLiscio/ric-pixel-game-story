@@ -10,8 +10,7 @@
     "walk": [],
     "friend": { "personId": "lollino", "facing": "left", "at": "lollino" },
     "extras": [
-      { "personId": "pinolo", "facing": "down", "intro": true, "at": "pinolo" },
-      { "personId": "sconosciuta", "facing": "left", "egg": "extra-1", "tint": "#9fb8ff", "at": "studente" }
+      { "personId": "pinolo", "facing": "down", "intro": true, "at": "pinolo" }
     ],
     "minigame": "simon",
     "bins": [{ "x": 656, "y": 412, "draw": false, "item": "appunti" }],
@@ -55,7 +54,7 @@
     ],
     "minigame": "slackline",
     "exit": "edge",
-    "bins": [{ "x": 368, "y": 410, "draw": false, "item": "peroni" }],
+    "bins": [{ "x": 784, "y": 410, "draw": false, "item": "peroni" }],
     "ambient": []
   },
   {

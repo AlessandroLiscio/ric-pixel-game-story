@@ -114,16 +114,17 @@ def build():
     m.point("door", 10, 17, 2, 1)
     m.point("lara", 12, 8)
     m.point("barista", 6, 11)
-    # Ros and Giusy walk to the bar, where two Albanian lads wait: the top end of the counter, in the corridor above it
-    m.point("bar_ros", 4, 7)
+    # two Albanian lads wait at the bar: the top end of the counter, in the corridor above it
     m.point("albanese1", 5, 7)
-    m.point("bar_giusy", 7, 7)
     m.point("albanese2", 8, 7)
-    m.point("losco", 11, 7)      # the hooded man, next to Lara
+    m.point("losco", 8, 11)      # the hooded man, by the counter: far enough from Lara that his walk to her shows
     m.point("armando", 17, 12)   # Armando and Carolina, together at a big table on the right
     m.point("carolina", 16, 12)
     m.point("trig_bar", 9, 12, 5, 2)  # a few steps in from the door: crossing this zone sends Ros and Giusy to the bar (x, y, w, h in tiles)
     m.point("obj_bar", 7, 8, 1, 8)  # the counter: 1 tile wide, rows 8 to 15
+    # four spots side by side along the bottom wall, right of the door, where the two lads and the girls end up together
+    for i, name in enumerate(("wall_albanese1", "wall_ros", "wall_giusy", "wall_albanese2")):
+        m.point(name, 14 + i, 16)
 
     # lights, in pixels: pendant lamps under the beam, the pillar lamp, the TVs and the projector, the truss spots on the band, the
     # chandelier, the bar and its screens, the table candles, the street at the door

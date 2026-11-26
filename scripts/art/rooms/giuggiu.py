@@ -48,17 +48,16 @@ def build():
     m.block(1, 4, 1, H - 2)
     m.block(20, 4, 20, DOOR[0] - 1)
     m.block(20, DOOR[1] + 1, 20, H - 2)
-    for x in list(range(6, 11)) + list(range(14, 17)):           # the soft shade of the back wall on the floor
+    for x in range(6, 17):                                       # the soft shade of the back wall on the floor
         m.put("below", x, 4, "shade_top")
 
     # sun on the floor: through the big window and through the tall window on the left
     m.stamp("giuggiu_sun_window", 6, 4)
     m.stamp("giuggiu_sun_side", 2, 9)
 
-    # against the back wall: the armoire in the left corner ("mobile marrone"), the console under the window, the cabinet with the
-    # pictures on top in the right corner ("mobile con sopra quadri"), the oak shelf along the right wall
+    # against the back wall: the armoire in the left corner ("mobile marrone"), the cabinet with the pictures on top in the right
+    # corner ("mobile con sopra quadri"), the oak shelf along the right wall; the floor under the window stays free
     m.stamp("giuggiu_armoire", 2, 1)
-    m.stamp("giuggiu_console", 11, 3)
     m.stamp("giuggiu_vitrine", 17, 1)
     m.stamp("giuggiu_shelf", 19, 5)
 

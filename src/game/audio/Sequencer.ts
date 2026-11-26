@@ -69,13 +69,13 @@ export class Sequencer {
         return this.track;
     }
 
-    play(track: Track): void {
+    play(track: Track, fromStep = 0): void {
         this.stop();
         this.track = track;
         this.bus = this.ctx.createGain();
         this.bus.connect(this.dest);
-        this.startTime = this.ctx.currentTime + 0.05;
-        this.nextStep = 0;
+        this.startTime = this.ctx.currentTime + 0.05 - (fromStep * 60) / track.bpm / 4;
+        this.nextStep = fromStep;
         this.timer = setInterval(() => this.tick(), TICK_MS);
         this.tick();
     }

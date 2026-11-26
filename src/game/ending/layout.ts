@@ -40,13 +40,10 @@ export const SPOTS = {
     // tile of depth 32 more) hides the legs
     chairLeft: spot('seat_chair_l', 15, 24, 31),
     chairRight: spot('seat_chair_r', 14, 24, 31),
-    /** Standing on the seat of the right chair (the slackline win). */
-    chairRightStand: spot('seat_chair_r', 14, 16, 33),
     // on the floor behind the pink pouf: the pouf hides all but the head and shoulders
     pouf: spot('seat_pouf', 16, 20, 20),
     /** The middle of the sleeper on the floor in front of the coffee table. */
-    floor: spot('seat_floor', 16, 16, 16),
-    cat: spot('seat_cat', 16, 28, 28)
+    floor: spot('seat_floor', 16, 16, 16)
 } as const;
 
 /** Where the foil "30" balloons float: over the TV wall, by the fairy lights. */
