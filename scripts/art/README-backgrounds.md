@@ -1,5 +1,7 @@
 # Background pipeline
 
+Not used since round 4: the committed backgrounds come from `room_backgrounds.py` (tile room renders). Running `backgrounds.py` would overwrite them with photo-based images, so do not run it for the game.
+
 `backgrounds.py` turns the private reference photos into the six 640x360 pixel-art backgrounds in `public/assets/backgrounds/`. The photos are never copied into the repository: only the converted PNGs and `palette.json` are committed.
 
 ## Run

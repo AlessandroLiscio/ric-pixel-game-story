@@ -1,5 +1,7 @@
 # Backgrounds: source choice and scene hints
 
+Superseded in round 4: the six files in `public/assets/backgrounds/` are now renders of the tile rooms made by `scripts/art/room_backgrounds.py` from `src/data/maps/*.json` and the tileset only (no photo). The text below describes the earlier photo-based backgrounds and stays only as history.
+
 For the scenes worker. All coordinates are in the 640x360 game space, x to the right and y down, rectangles as {x, y, w, h}. They were read off the final PNGs in `public/assets/backgrounds/`, so they are close but not pixel exact: tune them in the browser with a debug overlay. All six files share the 32 colours of `palette.json`. The pipeline is `scripts/art/backgrounds.py`, see `scripts/art/README-backgrounds.md`.
 
 The backgrounds are true low-res pixel art: drawn on a 320x180 grid and shown 2x, so every art pixel is a 2x2 block of the 640x360 image (crops and framing are the same as the earlier blurry version, so every coordinate below still holds). Faces were replaced by simple featureless heads (hair-dark ellipse, small skin-tone face) before pixelising (circe, cortile, divano). No text of the photos remains readable (the sign of the music venue and the door sign in the kitchen were patched too). The patched people are still baked into the picture as flat silhouettes; Alessandro may paint them out by hand in Pixelorama.
