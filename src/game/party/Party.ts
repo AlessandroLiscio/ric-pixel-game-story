@@ -75,6 +75,7 @@ export class Party {
         const i = this.followers.findIndex((f) => f.id === personId);
         if (i < 0) return undefined;
         const [f] = this.followers.splice(i, 1);
+        f.sprite.setVisible(true); // a follower still waiting for trail behind Ric is hidden; once released, update() no longer shows it
         f.sprite.play(idleKey(f.id, f.dir), true);
         return f.sprite;
     }
