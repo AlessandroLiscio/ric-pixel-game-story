@@ -80,7 +80,7 @@ def build():
     m.stamp("giardini_bench_wood", 7, 5)
     m.stamp("giardini_lamp", 6, 4)
     m.stamp("giardini_lamp", 19, 4)
-    m.stamp("giardini_bin", 11, 12)
+    m.stamp("giardini_bin", 24, 12)                                              # bottom right (`bins` in scenes.json)
     m.stamp("giardini_dog", 22, 11)
 
     # named points, in tiles

@@ -55,7 +55,7 @@
     ],
     "minigame": "slackline",
     "exit": "edge",
-    "bins": [{ "x": 368, "y": 410, "draw": false, "item": "peroni" }],
+    "bins": [{ "x": 784, "y": 410, "draw": false, "item": "peroni" }],
     "ambient": []
   },
   {

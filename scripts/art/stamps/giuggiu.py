@@ -1,7 +1,7 @@
 """Stamps of Giuggiu's flat (the living room), rebuilt from the three reference photos (shapes only, nothing copied; the sign and the
 lantern are redrawn in our own pixels): a big old Bologna living room with a dark herringbone parquet, pale lilac cream walls, a wide
 white window with half lowered roller shutters on the back wall (brick houses outside) with a big crystal chandelier and a red Chinese
-paper lantern hanging in front of it, a tall carved walnut armoire with a brass tea trolley next to it, a dark console under the window,
+paper lantern hanging in front of it, a tall carved walnut armoire with a brass tea trolley next to it,
 a glass dining table with chrome legs and one red and one black chair, a walnut display cabinet with leaded glass carrying an old TV and
 a blue pedestrian sign, a light wood open shelf, a tall window on the left wall with trees outside, and the sofas: a long burgundy
 sofa bed, a cream patterned sofa with blankets, a navy two seater with a red throw (the cat's sofa) and a red bean bag pouf.
@@ -478,28 +478,6 @@ def trolley():
     return c
 
 
-def console():
-    """The dark console table under the window: a long thin top that catches the sun, an apron, four slim legs."""
-    c = Canvas(3 * T, 2 * T)
-    c.shadow(50, 62, 42, 2.6, 80)
-    c.rect(4, 36, 91, 42, WAL[2])                              # top face (a thin strip seen from above) and its front edge
-    c.hline(4, 91, 36, WAL[4])
-    c.rect(4, 43, 91, 47, WAL[1])
-    c.hline(4, 91, 43, WAL[3])
-    c.hline(4, 91, 47, WAL[0])
-    for lx in (7, 85):
-        c.rect(lx, 48, lx + 3, 62, WAL[1])
-        c.vline(lx, 48, 62, WAL[2])
-    c.rect(36, 48, 59, 50, WAL[0])
-    # the sun on the dark wood: a warm streak
-    for x in range(8, 60):
-        blend(c, x, 37, "#ffb050", .55 if x < 48 else .55 * (1 - (x - 48) / 12))
-        blend(c, x, 38, "#ff9a3a", .36 if x < 44 else .2)
-    blend(c, 10, 36, "#ffd890", .6)
-    c.outline()
-    return c
-
-
 def vitrine():
     """The big walnut display cabinet on claw feet, with leaded glass doors and drawers, framed pictures standing on top, a blue
     pedestrian sign leaning on it and a green white and red scarf hanging from the cornice."""
@@ -936,7 +914,6 @@ def define(reg):
     reg.stamp("giuggiu_doormat", doormat(), "below")
     reg.stamp("giuggiu_armoire", armoire(), "objects", mask=["..", "..", "..", "##"])
     reg.stamp("giuggiu_trolley", trolley(), "objects", mask=["..", "##"])
-    reg.stamp("giuggiu_console", console(), "objects", mask=["...", "###"])
     reg.stamp("giuggiu_vitrine", vitrine(), "objects", mask=["...", "...", "...", "###"])
     reg.stamp("giuggiu_shelf", shelf_east(), "objects", mask=["#"] * 4)
     reg.stamp("giuggiu_table", glass_table(4), "objects", mask=["####", "####"])
