@@ -9,8 +9,7 @@ const read = (rel) => JSON.parse(readFileSync(resolve(root, rel), 'utf8'));
 const scenes = read(process.argv[2] ?? 'src/data/scenes.json');
 // people the art worker is still drawing (src/data/people.json and public/assets/characters get them in round 4 wave 1): until they land the game
 // stands a stand-in sprite in for them. Remove an id here once people.json has it.
-const PENDING_ART = ['frangetta', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'albanese1', 'albanese2', 'losco'];
-const people = new Set([...read('src/data/people.json').map((p) => p.id), ...PENDING_ART]);
+const people = new Set(read('src/data/people.json').map((p) => p.id));
 const eggs = new Set(Object.keys(read('src/data/dialogue.it.json').easterEggs));
 
 const W = 640;

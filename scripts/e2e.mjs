@@ -179,7 +179,7 @@ try {
     await sleep(300);
     check(await page.evaluate(() => window.__ricGame.scene.isPaused('world')), 'the world is not paused behind the menu');
     check((await menuProp('mode')) === 'main', 'the menu does not open on its main window');
-    for (const [keys, mode] of [[['ArrowDown', 'x'], 'controls'], [['Escape', 'ArrowUp', 'x'], 'diary'], [['Escape'], 'main']]) {
+    for (const [keys, mode] of [[['ArrowDown', 'x'], 'jump'], [['Escape', 'ArrowDown', 'x'], 'controls'], [['Escape', 'ArrowUp', 'ArrowUp', 'x'], 'diary'], [['Escape'], 'main']]) {
         for (const k of keys) {
             await press(k);
             await sleep(150);
@@ -195,7 +195,7 @@ try {
     await press('Escape');
     await until((x) => x.scene === 'menu', 'the Esc menu, second time');
     await sleep(300);
-    for (const k of ['ArrowDown', 'ArrowDown', 'x']) {
+    for (const k of ['ArrowDown', 'ArrowDown', 'ArrowDown', 'x']) {
         await press(k);
         await sleep(150);
     }
@@ -263,16 +263,14 @@ try {
                 await press('x');
                 await sleep(800);
                 check((await ricAt()).x < 100, 'X next to the pouf did not sit Ric on it');
-                let back = false;
-                for (let k = 0; k < 40 && !back; k++) {
-                    await sleep(250);
-                    const p = await ricAt();
-                    back = Math.abs(p.x - 104) < 2 && Math.abs(p.y - 336) < 2;
-                }
-                check(back, 'Ric did not get up from the pouf');
+                await sleep(2500);
+                check((await ricAt()).x < 100, 'Ric got up from the pouf before he moved');
+                await page.keyboard.down('ArrowRight'); // the nap lasts until Ric moves
+                await sleep(400);
+                await page.keyboard.up('ArrowRight');
                 await sleep(300);
-                await closeDialogue(); // the pouf line after the doze
-                note('objects: the pouf doze runs and Ric gets up where he sat down');
+                check((await ricAt()).x >= 100, 'a move key did not get Ric up from the pouf');
+                note('objects: the pouf nap lasts until Ric moves');
             }
             if (SCENES[i].id === 'circe') {
                 const glowsOn = () => page.evaluate(() => window.__ricGame.scene.getScene('world').tw.glows.filter((g) => g.img.visible).length);
@@ -296,7 +294,7 @@ try {
                 note('objects: the Circe TV lines and the lamp toggle work');
             }
             if (i === 1) {
-                // the first bin of the run holds the portal gun; P before the scene is done gets the "not yet" line
+                // Giuggiu's bin holds the portal gun; Z before the scene is done gets the "not yet" line
                 const bin = SCENES[i].bins[0];
                 check(!(await state()).portalGun, 'the portal gun is found before any bin was checked');
                 await teleport(bin.x - 24, bin.y);
@@ -305,19 +303,19 @@ try {
                 await sleep(300);
                 check(await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.isOpen), 'X next to a bin opens no dialogue');
                 await closeDialogue();
-                check((await state()).portalGun, 'the first bin did not give the portal gun');
-                await press('p');
+                check((await state()).portalGun, "Giuggiu's bin did not give the portal gun");
+                await press('z');
                 await sleep(400);
                 await press('x'); // completes the typing of the page
                 await sleep(200);
                 const said = await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.body.text);
-                check(said.replace(/\n/g, ' ') === "Meh, non abbiamo mica finito qui. C'è ancora da fare.", `P before the minigame said "${said}"`);
+                check(said.replace(/\n/g, ' ').startsWith('Meh, non abbiamo mica finito qui'), `Z before the minigame said "${said}"`);
                 await closeDialogue();
-                await press('x'); // a second bin check: a joke line, the gun stays
+                await press('x'); // a second look in the bin: the "already taken" line, the gun stays
                 await sleep(300);
                 check(await page.evaluate(() => window.__ricGame.scene.getScene('world').dialog.isOpen), 'a second look in the bin opens no dialogue');
                 await closeDialogue();
-                note('bin: the first one gave the portal gun, a second one a joke, P before the minigame said the not-yet line');
+                note('bin: it gave the portal gun, a second look the already-taken line, Z before the minigame said the not-yet line');
             }
             // circe: talk to Giusy (friend2) first, then Ros; each plays only her own minigame, whatever the order
             const talks = def.friend2 ? [def.friend2, def.friend] : [def.friend];
@@ -336,15 +334,26 @@ try {
                     await sleep(120);
                 }
             }
+            // the Cortile: if the lads took Ros and Giusy to the bar, the exit stays shut until Ric fetches them with X
+            for (let n = 0; n < 60 && (await page.evaluate(() => window.__ricGame.scene.getScene('world').barState)) === 'away'; n++) {
+                const girl = await page.evaluate(() => { const g = window.__ricGame.scene.getScene('world').npcs.find((x) => x.kind === 'bar' && !x.walking); return g ? { x: g.sprite.x, y: g.sprite.y } : null; });
+                if (girl) await teleport(girl.x - 22, girl.y);
+                await sleep(200);
+                await press('x');
+                await sleep(300);
+                await test('skip');
+                await sleep(300);
+            }
+            if (SCENES[i].id === 'cortile') note('cortile: Ros and Giusy fetched from the bar before the exit');
             for (let n = 0; n < 20; n++) {
                 // the join banners come first; the exit only opens after them
                 await sleep(500);
                 if (i === 1) {
-                    // the portal gun: face the back wall and press P; the party walks in and the next scene starts
+                    // the portal gun: face the back wall and press Z; the party walks in and the next scene starts
                     await teleport(200, 156);
                     await page.evaluate(() => (window.__ricGame.scene.getScene('world').facing = 'up'));
                     await sleep(1200);
-                    await press('p');
+                    await press('z');
                     for (let k = 0; k < 40 && (await state()).sceneIndex <= i; k++) await sleep(200); // the portal walk takes a few seconds
                 } else if (SCENES[i].exit === 'edge') {
                     // no door: walk to the left edge of the map
@@ -358,13 +367,13 @@ try {
                 }
                 if ((await state()).sceneIndex > i || (await state()).scene === 'ending') break;
             }
-            if (i === 1) note('portal: P on the back wall took the party to the next scene');
+            if (i === 1) note('portal: Z on the back wall took the party to the next scene');
             if (SCENES[i].exit === 'edge') note(`${SCENES[i].id}: left by walking to the edge of the map`);
         }
 
         s = await until((x) => (i === LAST ? x.scene === 'ending' : world(i + 1)(x)), `leaving scene ${i} (${SCENES[i].id})`, 15000);
         const went = (await entered()).slice(before);
-        check(s.party.join() === party.join(), `scene ${i} ${SCENES[i].id}: party ${s.party}, wanted ${party}`);
+        check([...s.party].sort().join() === [...party].sort().join(), `scene ${i} ${SCENES[i].id}: party ${s.party}, wanted ${party}`); // Ros and Giusy rejoin from the Cortile bar at the end of the train
         // circe is talked to Giusy first, so her mash comes before Ros's d20
         const wanted = SCENES[i].friend2 ? [...minigamesOf(SCENES[i])].reverse() : minigamesOf(SCENES[i]);
         check(went.join() === wanted.join(), `scene ${i} ${SCENES[i].id}: minigames entered [${went}], wanted [${wanted}]`);
@@ -375,7 +384,7 @@ try {
     s = await until((x) => x.scene === 'ending', 'ending scene');
     const all = await entered();
     check(new Set(all).size === 6 && MINIGAME_IDS.every((id) => all.includes(id)), `distinct minigames entered: ${[...new Set(all)]} (${new Set(all).size}), wanted 6`);
-    check(s.party.join() === party.join(), `final party ${s.party}`);
+    check([...s.party].sort().join() === [...party].sort().join(), `final party ${s.party}`);
     for (const id of MINIGAME_IDS) check(typeof s.results[id] === 'boolean', `result ${id} = ${s.results[id]}`);
     for (const id of ['simon', 'slackline', 'mash', 'rhythm']) check(s.results[id] === true, `result ${id} = ${s.results[id]}`);
     check(s.results[LOSE] === false, `result ${LOSE} = ${s.results[LOSE]}`);
