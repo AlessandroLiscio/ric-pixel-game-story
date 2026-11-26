@@ -62,7 +62,7 @@ Only these choices came from looking at the group photo, the professor photo and
 - Ros: reddish hair with bangs at chin length, dark floral strap top.
 - Lollino: curly dark hair, no beard, sunglasses worn on top of the head, dark navy tee, khaki shorts.
 - Fede: long straight dark brown hair, yellow floral top.
-- Giuggiu: short dark hair, short beard, white tee with a logo print, dark shorts.
+- Giuggiu: short dark hair, no beard (the owner's call, round 4), white tee with a logo print, dark shorts.
 - Giusy: long dark wavy hair, tan skin, dark floral dress.
 - Prof. Pinolo: short grey-brown hair, round dark glasses, light blue striped shirt with an open collar and no tie.
 

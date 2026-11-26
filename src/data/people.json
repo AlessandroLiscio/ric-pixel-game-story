@@ -119,7 +119,7 @@
       "hairColor": "black",
       "outfitTop": "tee:white:logo",
       "outfitBottom": "shorts:navy/charcoal",
-      "accessory": ["beard"],
+      "accessory": [],
       "height": 1.0
     },
     "sprite": "char-giuggiu",
