@@ -22,8 +22,8 @@ const SCENE_KEYS = ['arrival', 'meet', 'minigameIntro', 'win', 'lose', 'join'];
 const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
 const SCENE_EXTRA_KEYS = { circe: ['minigameIntro2', 'win2', 'lose2'] };
 const MINIGAMES = ['simon', 'cat-smoke', 'slackline', 'd20', 'mash', 'rhythm'];
-const EGGS = ['pinolo-pinhole', 'gatto', 'ric-sedia', 'ros-trellone', 'giusy-divano', 'fede', 'extra-1', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
-const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi', 'studente', 'rosanna', 'genitori', 'barista', 'armando', 'carolina', 'slackgirls', 'numero', 'rutto', 'losco', 'albanesi', 'fede', 'puf'];
+const EGGS = ['fede', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'loscoApproach', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
+const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi', 'rosanna', 'genitori', 'barista', 'armando', 'carolina', 'slackgirls', 'numero', 'rutto', 'losco', 'albanesi', 'fede', 'puf'];
 const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look', 'achievement', 'drinkPeroni', 'askNumber'];
 const MENU_KEYS = ['title', 'diary', 'jump', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'jumpTitle', 'jumpHint', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 
@@ -148,6 +148,7 @@ for (const [sid, objs] of Object.entries(data.objects ?? {})) {
   if (!SCENES.includes(sid)) err(`objects.${sid}`, "not a scene id");
   for (const [oid, arr] of Object.entries(objs)) checkLines(`objects.${sid}.${oid}`, arr);
 }
+for (const oid of ['screen', 'seats', 'notice', 'speaker', 'exitdoor', 'sleeper']) if (!data.objects?.universita?.[oid]) err(`objects.universita.${oid}`, 'missing');
 
 // menu, controls (the Esc menu) and diary (one entry per scene, up to 4 rows)
 sameKeys('menu', data.menu ?? {}, MENU_KEYS);
@@ -203,10 +204,6 @@ for (const id of MINIGAMES) {
 // easter eggs
 sameKeys('easterEggs', data.easterEggs ?? {}, EGGS);
 for (const id of EGGS) checkLines(`easterEggs.${id}`, data.easterEggs?.[id]);
-const trellone = data.easterEggs?.['ros-trellone'] ?? [];
-if (!trellone.some((l) => l.speaker === 'ric' && l.text === "Per l'amor di dio basta!")) {
-  err('easterEggs.ros-trellone', "needs a ric line with the exact text \"Per l'amor di dio basta!\"");
-}
 
 const fede = data.easterEggs?.fede ?? [];
 if (fede.length !== 2 || fede[0].speaker !== 'ric' || fede[0].text !== "Allora, Fede dov'è?" || fede[1].speaker !== 'lara' || fede[1].text !== 'Ha paccato.') {
@@ -221,18 +218,23 @@ for (const id of SCENES) {
 }
 
 // the whole file: names capitalised, the cat is Gatto di Paz, "slack" not "fettuccia", no birthday inside the story
-const strings = [];
-const walk = (v, path) => {
-  if (typeof v === 'string') strings.push([path, v]);
-  else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${path}[${i}]`));
-  else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) if (k !== 'speaker') walk(x, path ? `${path}.${k}` : k);
+const strings = []; // [path, text, speaker of the line it belongs to]
+const walk = (v, path, speaker) => {
+  if (typeof v === 'string') strings.push([path, v, speaker]);
+  else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${path}[${i}]`, speaker));
+  else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) if (k !== 'speaker') walk(x, path ? `${path}.${k}` : k, v.speaker ?? speaker);
 };
 walk(data, '');
+// Lollino is Tuscan without the gorgia spelling: no word starting with a mute "h" but the verb forms, no "h" for a hard c inside a word
+const GORGIA = /(?<![\p{L}])h(?!(?:o|a|ai|anno)(?![\p{L}]))\p{L}|[aeiouàèéìòù]h[aouàòù]/iu;
 const word = (w) => new RegExp(`(?<![\\p{L}\\p{N}_])${w}(?![\\p{L}\\p{N}_])`, 'u');
 const LOWER_NAMES = ['ric', 'lollino', 'pinolo', 'giuggiu', 'liscio', 'ros', 'giusy', 'lara', 'fede', 'gatto'].map((n) => [n, word(n)]);
 const BAD_CAT = /Gatto(?! di Paz)/u;
-const BIRTHDAY = /compleann|festegg|auguri|trent'?ann|trentenn|\b30\b/i;
-for (const [path, raw] of strings) {
+const BIRTHDAY = /compleann|festegg|auguri|trentenn|\b30\b/i; // "trent'anni" alone is Pinolo's thirty years of pinhole cameras
+for (const [path, raw, speaker] of strings) {
+  if (/trellon/i.test(raw) && speaker !== 'giuggiu') err(path, 'only Giuggiu says "trellone": use canna, cannetta or cannone');
+  if (/\bnonn[aie]\b/i.test(raw)) err(path, 'no grandmother in the story');
+  if (speaker === 'lollino' && GORGIA.test(raw)) err(path, 'no gorgia spelling ("h" for a hard c) in Lollino\'s lines');
   const text = raw.replace(/\{ric\}/g, 'Ric').replace(/\n/g, ' '); // a name may be split over two rows
   for (const [n, re] of LOWER_NAMES) if (re.test(text)) err(path, `lowercase "${n}": names start with a capital, the cat is "Gatto di Paz"`);
   if (BAD_CAT.test(text)) err(path, 'the cat is "Gatto di Paz", never "Gatto" alone');
@@ -250,14 +252,22 @@ for (const [k, name] of Object.entries(data.achievements ?? {})) {
 const notYet = data.easterEggs?.portalNotYet ?? [];
 if (notYet.length !== 1 || notYet[0].text.replace(/\n/g, ' ') !== "Meh, non abbiamo mica finito qui. C'è ancora da fare.") err('easterEggs.portalNotYet', 'must be exactly one line: "Meh, non abbiamo mica finito qui. C\'è ancora da fare." (a row break instead of the space)');
 
-// ending: the upstairs gag spoken during the credits (src/game/ending/script.ts); its banner is narrower than the dialogue box, so a line stays under 110 characters
+// the lines spoken during the credits (src/game/ending/script.ts): the banner is narrower than the dialogue box, so a line stays under 110 characters
+const bannerFits = (where, list) =>
+  (list ?? []).forEach((l, i) => {
+    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`${where}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
+  });
+for (const k of ['arrival', 'meet', 'join']) bannerFits(`scenes.${CREDITS_SCENE}.${k}`, data.scenes?.[CREDITS_SCENE]?.[k]);
+// the TV exchange: the documentary's punchline, then the laugh (the last line of `meet`, the one the whole room laughs at)
+const punchline = data.scenes?.[CREDITS_SCENE]?.meet?.at(-2);
+if (punchline?.speaker !== 'narratore' || !punchline.text.endsWith('...le acciughe!')) err(`scenes.${CREDITS_SCENE}.meet`, 'the line before the laugh must be the narrator\'s and end exactly "...le acciughe!"');
+
+// ending: the upstairs gag
 sameKeys('ending', data.ending ?? {}, ['fromUpstairs', 'upstairs', 'upstairsFrangetta']);
 checkText('ending.fromUpstairs', data.ending?.fromUpstairs, 1, MAX_CHARS);
 for (const k of ['upstairs', 'upstairsFrangetta']) {
   checkLines(`ending.${k}`, data.ending?.[k]);
-  (data.ending?.[k] ?? []).forEach((l, i) => {
-    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`ending.${k}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
-  });
+  bannerFits(`ending.${k}`, data.ending?.[k]);
 }
 
 // credits

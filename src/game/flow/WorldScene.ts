@@ -37,7 +37,14 @@ const OUTLINE = { stroke: '#0a1040', strokeThickness: 3 };
 // shortcut: remove with the first people.json that lists them.
 const STAND_IN = 'sconosciuta';
 const STAND_IN_TINT: Record<string, number> = { frangetta: 0xffc4e0, slackgirl1: 0xc4f0ff, slackgirl2: 0xd8ffc4, slackgirl3: 0xffe8a8, albanese1: 0xffc890, albanese2: 0xd0a070, losco: 0x606878 };
-const WALK_PX = 70; // px per second of a person walking on their own (Ros and Giusy to the bar, the girl who leaves disgusted)
+const WALK_PX = 70; // px per second of a person walking on their own (the Cortile lads and the girls, the girl who leaves disgusted)
+const LOSCO_AFTER = 5; // Cortile: pages of `meet` (up to Ros's line after Davide Gallo) before the hooded man walks up to Lara
+const BESIDE = 22; // px between two people standing side by side
+// Cortile: the girls and the lad who goes for each of them
+const COUPLES = [
+    ['ros', 'albanese1'],
+    ['giusy', 'albanese2']
+] as const;
 
 // The object pictures of public/assets/objects, loaded by the world itself (BootScene does not know them). The glob only tells which files exist
 // on this branch, so a missing picture is never requested; its code falls back to a drawn stand-in.
@@ -49,7 +56,7 @@ interface Npc {
     sprite: Phaser.GameObjects.Sprite;
     /** The sheet the sprite is drawn from (`char-<sheet>`): the person's own, or the stand-in. */
     sheet: string;
-    /** talks on X: 'friend' runs the scene's story, 'egg' plays an easter egg, 'bar' is Ros or Giusy at the Cortile bar. */
+    /** talks on X: 'friend' runs the scene's story, 'egg' plays an easter egg, 'bar' is Ros or Giusy while they are with the lads at the Cortile. */
     kind: 'friend' | 'egg' | 'decor' | 'bar';
     /** Walking on their own: nobody to talk to until they arrive. */
     walking?: boolean;
@@ -84,10 +91,10 @@ export class WorldScene extends Phaser.Scene {
     private objects: RoomObject[] = [];
     private menuClosedAt = -1000; // performance.now() when the Esc menu closed: ignores the key press that closed it
     private portalWalk = false; // Ric is walking into a portal: his walk animation is not reset to idle
-    /** Cortile: 'idle' until Ric crosses the trigger zone, 'away' while Ros and Giusy are at the bar, 'back' once they are in the train again. */
+    /** Cortile: 'idle' until Ric crosses the trigger zone, 'away' while Ros and Giusy are with the lads, 'back' once they are in the train again. */
     private barState: 'idle' | 'away' | 'back' = 'idle';
     private barZone?: Rect; // the map's `trig_bar` zone in pixels
-    private loscoDone = false; // the hooded man's offer to Lara played
+    private loscoDone = false; // the hooded man walked up to Lara and made his offer
     private tvOn = false; // Giuggiu's TV shows its green picture
 
     constructor() {
@@ -338,7 +345,7 @@ export class WorldScene extends Phaser.Scene {
         if (npc.kind === 'bar') return this.barGirls();
         if (npc.def.personId === 'frangetta') return this.frangetta(npc);
         if (npc.def.personId === 'losco') return this.losco();
-        return this.sayEgg(npc.def.egg!);
+        return this.sayEgg(npc.def.egg!); // an egg without an entry in EGG_ACHIEVEMENT (the dog girl) shows no popup
     }
 
     /** The first time an egg triggers in a run its popup shows (the `achievements` table of dialogue.it.json). */
@@ -359,9 +366,16 @@ export class WorldScene extends Phaser.Scene {
         const games = minigamesOf(def);
         const second = !!def.friend2 && friend?.def === def.friend2;
         const mine = def.friend2 ? games.filter((_, i) => (i === 1) === second) : games;
-        // Cortile: the hooded man is close to Lara and makes his offer when Ric talks to her first
-        if (def.id === 'cortile' && !this.loscoDone && this.npcs.some((n) => n.def.personId === 'losco' && Phaser.Math.Distance.Between(this.ric.x, this.ric.y, n.sprite.x, n.sprite.y) < 90)) await this.losco();
-        if (!second && !this.metFriend) await this.say(L('meet'));
+        if (!second && !this.metFriend) {
+            const meet = L('meet');
+            // Cortile: a few lines in, the hooded man walks up to Lara and makes his offer, then the talk goes on
+            if (def.id === 'cortile' && !this.loscoDone) {
+                await this.say(meet.slice(0, LOSCO_AFTER));
+                await this.losco();
+                if (friend) this.face(friend);
+                await this.say(meet.slice(LOSCO_AFTER));
+            } else await this.say(meet);
+        }
         this.metFriend ||= !second;
 
         for (const id of mine) {
@@ -561,7 +575,7 @@ export class WorldScene extends Phaser.Scene {
         if (!this.run.portalGun || !this.tw) return;
         if (!this.doorOpen || this.barState === 'away') {
             this.busy = true;
-            // the friend joined but Ros and Giusy are still at the Cortile bar
+            // the friend joined but Ros and Giusy are still with the lads
             await this.say(lines(isSceneDone(this.def, this.run) && this.barState === 'away' ? 'easterEggs.portalGirls' : 'easterEggs.portalNotYet'));
             this.busy = this.leaving;
             return;
@@ -630,35 +644,76 @@ export class WorldScene extends Phaser.Scene {
         }
     }
 
-    /** Cortile: the hooded man offers Lara some "cocco"; Ric pulls her away and thanks him. */
+    /** Cortile: the hooded man offers Lara some "cocco"; Ric pulls her away and thanks him. The first time, while Lara is still in the room, he walks up to her. */
     private async losco(): Promise<void> {
-        this.loscoDone = true;
+        const man = this.npcs.find((n) => n.def.personId === 'losco');
+        const lara = this.npcs.find((n) => n.kind === 'friend' && n.def.personId === 'lara');
+        if (!this.loscoDone && man && lara) {
+            this.loscoDone = true;
+            man.walking = true;
+            const away = this.ric.x < lara.sprite.x ? 1 : -1; // on the side of Lara Ric is not on
+            const to = this.beside(lara.sprite, away);
+            const facing: Dir = to.x > lara.sprite.x ? 'left' : 'right';
+            await Promise.all([this.walkAlong(man.sprite, this.pathTo(man.sprite, to), facing), this.say(lines('easterEggs.loscoApproach'))]);
+            man.walking = false;
+            lara.sprite.play(idleKey(lara.sheet, facing === 'left' ? 'right' : 'left'));
+        }
         this.award('losco');
         await this.say(lines('easterEggs.losco'));
     }
 
-    // ---- the Cortile bar: Ros and Giusy leave the train, Ric fetches them ----
+    /** The free spot next to someone, on the `side` asked for (1 right, -1 left) or else on the other one; their own spot when neither is free. */
+    private beside(of: Point, side: number): Point {
+        const spot = [side, -side].map((s) => ({ x: of.x + s * BESIDE, y: of.y })).find((p) => !this.tw || this.tw.canStand(p.x, p.y));
+        return spot ?? { x: of.x, y: of.y };
+    }
 
-    /** A few steps in, two Albanian lads go for Ros and Giusy: both leave the train and walk to the bar, next to the lads. */
+    // ---- the Cortile lads: Ros and Giusy leave the train, Ric fetches them ----
+
+    /** A few steps in, two Albanian lads walk over to Ros and Giusy; then all four go to the bottom wall and stand close together. */
     private async albanesiApproach(): Promise<void> {
         this.busy = true;
         this.barState = 'away';
-        await this.say(lines('easterEggs.albanesi'));
-        const walks = ['ros', 'giusy'].flatMap((id) => {
-            const sprite = this.party.release(id);
-            const spot = this.tw?.data.points[id === 'ros' ? 'bar_ros' : 'bar_giusy'];
-            if (!sprite || !spot) return [];
-            const def: NpcDef = { personId: id, facing: 'right', x: sprite.x, y: sprite.y };
-            const npc: Npc = { def, sprite, sheet: id, kind: 'bar', walking: true };
-            this.npcs.push(npc);
-            const to = feetOf(spot);
-            return [this.walkAlong(sprite, this.pathTo(sprite, to), 'right').then(() => (npc.walking = false))];
-        });
-        this.busy = this.leaving; // Ric is free to walk on while they cross the room
-        await Promise.all(walks);
+        const four: Npc[] = [];
+        const approaches: Promise<void>[] = [];
+        for (const [girlId, ladId] of COUPLES) {
+            const sprite = this.party.release(girlId);
+            if (!sprite) continue;
+            const def: NpcDef = { personId: girlId, facing: 'down', x: sprite.x, y: sprite.y };
+            const girl: Npc = { def, sprite, sheet: girlId, kind: 'bar', walking: true };
+            this.npcs.push(girl);
+            four.push(girl);
+            sprite.play(idleKey(girlId, 'down'));
+            const lad = this.npcs.find((n) => n.def.personId === ladId);
+            if (!lad) continue;
+            lad.walking = true;
+            four.push(lad);
+            const to = this.beside(sprite, lad.sprite.x < sprite.x ? -1 : 1);
+            approaches.push(this.walkAlong(lad.sprite, this.pathTo(lad.sprite, to)));
+        }
+        await this.say(lines('easterEggs.albanesi')); // the lads cross the room while the narrator speaks
+        this.busy = this.leaving; // Ric is free to walk on
+        await Promise.all(approaches);
+        await Promise.all(
+            four.map(async (n) => {
+                const points = this.tw?.data.points;
+                const id = n.def.personId;
+                // shortcut: a map without the wall_* points sends them to the old bar points; drop the fallback once every cortile map has them
+                const spot = points?.[`wall_${id}`] ?? points?.[`bar_${id}`] ?? points?.[id];
+                if (spot) await this.walkAlong(n.sprite, this.pathTo(n.sprite, feetOf(spot)));
+            })
+        );
+        // each of a couple turns to the other
+        for (const [girlId, ladId] of COUPLES) {
+            const [a, b] = [girlId, ladId].map((id) => four.find((n) => n.def.personId === id));
+            if (!a || !b) continue;
+            a.sprite.play(idleKey(a.sheet, b.sprite.x < a.sprite.x ? 'left' : 'right'));
+            b.sprite.play(idleKey(b.sheet, a.sprite.x < b.sprite.x ? 'left' : 'right'));
+        }
+        for (const n of four) n.walking = false; // nobody is talked to until all four have arrived
     }
 
-    /** X on Ros or Giusy at the bar: with the 20 EUR Ric buys the round and the lads leave; after the minigame he can just fetch them; before it they are busy. */
+    /** X on Ros or Giusy while they are with the lads: with the 20 EUR Ric buys the round and the lads leave; after the minigame he can just fetch them; before it they are busy. */
     private async barGirls(): Promise<void> {
         const { run } = this;
         if (run.flags.soldi && !run.flags.soldiUsati) {

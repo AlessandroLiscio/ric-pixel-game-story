@@ -10,23 +10,12 @@ const SEQUENCES: Record<string, string[]> = { circe: ['d20', 'mash'] };
 /** An easter egg played after the win/lose lines, before the friend joins. */
 const EGG_AFTER_MINIGAME: Record<string, string> = { cortile: 'fede' };
 
-/** The divano eggs, in play order, each shown only when its minigame was won. */
-const DIVANO_EGGS: [egg: string, minigame: string][] = [
-    ['pinolo-pinhole', 'simon'],
-    ['gatto', 'cat-smoke'],
-    ['ric-sedia', 'slackline'],
-    ['ros-trellone', 'd20'],
-    ['giusy-divano', 'mash']
-]; // the rhythm win has no gag of its own: the upstairs gag of the credits plays every time
-
 export const minigamesOf = (def: SceneDef): string[] => SEQUENCES[def.id] ?? (def.minigame ? [def.minigame] : []);
 
 /** Who joins in this scene: the friend, plus friend2 in circe; nobody in divano. */
 export const joinersOf = (def: SceneDef): string[] => [def.friend, def.friend2].flatMap((f) => (f ? [f.personId] : []));
 
 export const eggAfterMinigame = (def: SceneDef): string | undefined => EGG_AFTER_MINIGAME[def.id];
-
-export const divanoEggs = (results: RunState['results']): string[] => DIVANO_EGGS.filter(([, mg]) => results[mg]).map(([egg]) => egg);
 
 /** The friends who would have joined before scene `index` (used when a debug key jumps into the middle of the story). */
 export const friendsBefore = (index: number): string[] => SCENES.slice(0, index).flatMap(joinersOf);
@@ -39,13 +28,12 @@ export const resultsBefore = (index: number): Record<string, boolean> => Object.
 
 /** Easter egg (an `easterEggs` key played when Ric talks to an extra) -> the `achievements` id of its popup. */
 export const EGG_ACHIEVEMENT: Record<string, string> = {
-    'extra-1': 'studente',
     'extra-rosanna': 'rosanna',
     'extra-genitori': 'genitori',
     'extra-3': 'barista',
     'extra-armando': 'armando',
     'extra-carolina': 'carolina',
-    slackgirl1: 'slackgirls',
+    // slackgirl1, the dog girl, is no easter egg: no popup
     slackgirl2: 'slackgirls',
     slackgirl3: 'slackgirls',
     fede: 'fede'
