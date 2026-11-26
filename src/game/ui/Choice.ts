@@ -47,6 +47,7 @@ export function askChoice(scene: Phaser.Scene, question: string): Promise<boolea
                 if (e.repeat) return;
                 audio.sfx('confirm');
                 kb.off('keydown', onKey);
+                scene.events.off('shutdown', onShutdown);
                 root.destroy();
                 resolve(sel === 0);
             } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'].includes(e.code)) {
@@ -55,7 +56,8 @@ export function askChoice(scene: Phaser.Scene, question: string): Promise<boolea
                 draw();
             }
         };
+        const onShutdown = () => kb.off('keydown', onKey);
         kb.on('keydown', onKey);
-        scene.events.once('shutdown', () => kb.off('keydown', onKey));
+        scene.events.once('shutdown', onShutdown);
     });
 }

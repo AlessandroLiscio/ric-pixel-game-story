@@ -121,9 +121,9 @@ try {
                 check(Date.now() < end, `${id} did not finish in 60 s`);
                 await press('x');
                 await sleep(gap);
-                if (id === 'd20') seen = (await page.evaluate((sc) => { const s = window.__ricGame.scene.getScene(sc); return s ? { presses: s.presses, roll: s.roll } : null; }, scene)) ?? seen;
+                if (id === 'd20') seen = (await page.evaluate((sc) => { const s = window.__ricGame.scene.getScene(sc); return s ? { presses: s.presses, roll: s.roll, fumo: s.fumo } : null; }, scene)) ?? seen;
             }
-            if (id === 'd20') check(seen && seen.presses > 0 && seen.roll === Math.ceil(Math.min(seen.presses, 40) / 2), `d20: ${JSON.stringify(seen)} is not ceil(presses / 2)`);
+            if (id === 'd20') check(seen && seen.presses > 0 && seen.fumo === true && seen.roll === Math.min(20, Math.ceil(Math.min(seen.presses, 40) / 2) + 2), `d20: ${JSON.stringify(seen)} is not min(20, ceil(presses / 2) + 2) with the hash`);
             how[id] = 'real';
         }
         await until((x) => x.scene === 'world', `back to the world after ${id}`);
@@ -221,6 +221,8 @@ try {
         });
         const def = { ...SCENES[i], ...live };
         const before = (await entered()).length;
+        // Ric carries the hash into Casa Circe, so the d20 check below covers its +2 bonus
+        if (SCENES[i].id === 'circe') await page.evaluate(() => { window.__ricGame.registry.get('run').flags.fumo = true; });
         const want = friendsOf(SCENES[i]);
         party.push(...want);
         const finale = i === LAST && minigamesOf(SCENES[i]).length === 0;

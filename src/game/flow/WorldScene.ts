@@ -387,7 +387,8 @@ export class WorldScene extends Phaser.Scene {
 
     private tvPortal(): void {
         const tv = this.objects.find((o) => o.id === 'tv');
-        if (tv && !this.tvOn) tvPortalGlow(this, tv);
+        if (!tv || this.tvOn) return;
+        tvPortalGlow(this, tv);
         this.tvOn = true;
     }
 
@@ -690,7 +691,6 @@ export class WorldScene extends Phaser.Scene {
                 this.party.add(g.def.personId);
             })
         );
-        this.run.flags.rosGiusyBack = true;
         this.barState = 'back';
         this.openDoorIfReady();
     }

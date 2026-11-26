@@ -10,9 +10,9 @@ export interface RunState {
     /** True once Ric found Rick's portal gun in a litter bin: Z then opens a portal on a wall. */
     portalGun: boolean;
     /**
-     * Named switches of the run (the contract the minigames read as `getRun(game).flags?.[name]`): `appunti` (cinema notes found),
+     * Named switches of the run (the minigames read them with `runFlag` in `minigames/flags.ts`): `appunti` (cinema notes found),
      * `peroni` (found), `peroniBevuta` (drunk), `fumo` (hash found), `soldi` (20 EUR found), `numeroFrangetta` (got the fringe
-     * girl's number), `soldiUsati` (the 20 EUR bought the drinks), `rosGiusyBack` (Ros and Giusy are back in the train at the Cortile).
+     * girl's number), `soldiUsati` (the 20 EUR bought the drinks).
      */
     flags: Record<string, boolean>;
     /** Ids of `achievements` in dialogue.it.json already shown as a popup in this run. */
