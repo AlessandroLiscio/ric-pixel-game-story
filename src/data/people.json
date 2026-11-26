@@ -134,7 +134,7 @@
       "skin": "olive",
       "hair": "long",
       "hairStyle": "long-straight",
-      "hairColor": "brown",
+      "hairColor": "black",
       "outfitTop": "dress:charcoal:floral",
       "outfitBottom": "dress:charcoal/white",
       "accessory": [],
@@ -211,7 +211,7 @@
     "id": "rosanna",
     "name": "Rosanna",
     "role": "npc",
-    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-straight", "hairColor": "black", "outfitTop": "tee:charcoal", "outfitBottom": "trousers:khaki/charcoal", "accessory": ["sunglasses"], "height": 0.95 },
+    "traits": { "skin": "light", "hair": "long", "hairStyle": "long-straight", "hairColor": "black", "outfitTop": "tee:charcoal", "outfitBottom": "trousers:khaki/charcoal", "accessory": ["sunglasses", "buckethat"], "height": 0.95 },
     "sprite": "char-rosanna",
     "portrait": "portrait-rosanna",
     "portraitSource": "parametric"

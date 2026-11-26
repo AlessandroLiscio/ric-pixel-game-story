@@ -24,7 +24,7 @@ SKIN = {"light": (250, 220, 196), "medium": (238, 198, 164), "tan": (226, 176, 1
 HAIR = {
     "black": (44, 34, 48), "darkbrown": (64, 42, 34), "brown": (96, 62, 42), "chestnut": (146, 96, 60),
     "auburn": (170, 72, 58), "greybrown": (132, 122, 112), "copper": (200, 108, 56), "lightbrown": (140, 100, 66),
-    "ash": (156, 146, 136), "salt": (104, 98, 98), "mahogany": (92, 40, 42), "wavybrown": (84, 52, 38),
+    "ash": (156, 146, 136), "salt": (104, 98, 98),"wavybrown": (84, 52, 38),
     "inkbrown": (52, 40, 40), "pinbrown": (122, 104, 90), "silverbrown": (148, 132, 120), "ginger": (208, 118, 62),
     "blonde": (226, 188, 118), "hoodie": (52, 56, 70),  # hoodie is the cloth of a hood, drawn like hair
 }
@@ -55,7 +55,7 @@ FACES = {
     "giuggiu": dict(skin="tan", hair="black", eyes="darkbrown", style="quiff", fw=20.5, chin=75, cw=5.0, brow=2.6,
                     eye=(9.5, 5.4), mouth="smile", beard=None, acc=[], male=True,
                     top=("tee", (244, 244, 240), "logo")),
-    "giusy": dict(skin="tan", hair="mahogany", eyes="darkbrown", style="longstraight", fw=19, chin=71, cw=2.6, brow=1.6,
+    "giusy": dict(skin="tan", hair="black", eyes="darkbrown", style="longstraight", fw=19, chin=71, cw=2.6, brow=1.6,
                   eye=(10.5, 6.4), mouth="grin", squint=True, acc=["chain"], lashes=True, part=41,
                   top=("vneck", (40, 30, 44), "floral")),
     "pinolo": dict(skin="light", hair="pinbrown", eyes="brown", style="sidepart", fw=21.5, chin=74, cw=5.0, brow=2.0,

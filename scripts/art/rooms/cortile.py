@@ -124,6 +124,9 @@ def build():
     m.point("carolina", 16, 12)
     m.point("trig_bar", 9, 12, 5, 2)  # a few steps in from the door: crossing this zone sends Ros and Giusy to the bar (x, y, w, h in tiles)
     m.point("obj_bar", 7, 8, 1, 8)  # the counter: 1 tile wide, rows 8 to 15
+    # four spots side by side along the bottom wall, right of the door, where the two lads and the girls end up together
+    for i, name in enumerate(("wall_albanese1", "wall_ros", "wall_giusy", "wall_albanese2")):
+        m.point(name, 14 + i, 16)
 
     # lights, in pixels: pendant lamps under the beam, the pillar lamp, the TVs and the projector, the truss spots on the band, the
     # chandelier, the bar and its screens, the table candles, the street at the door

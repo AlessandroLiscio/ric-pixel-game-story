@@ -33,6 +33,7 @@ SEAT_Y0 = 2 * T
 BLOCKS = [(2 * T, 8 * T), (11 * T, 17 * T)]                  # x of the first and the last seat of each block, in px
 ROWS = 6
 LOLLINO = (0, 0)                                             # his seat: seat 0 of block 0, row 0 (map tile 3,6), left free
+SLEEPER = (1, 0, ROWS - 1)                                   # block, seat, row of the sleeping student (map tile 12,11)
 
 
 # ---------------------------------------------------------------- shared bits
@@ -305,8 +306,34 @@ def hall():
                 seat(c, x, y, empty)
                 if not empty:
                     face = "up" if r.random() < .84 else ("left" if r.random() < .5 else "right")
-                    paste_person(c, sheets[keys[r.randrange(len(keys))]], face, x, y, r.choice((-1, 0, 0, 1)))
+                    sheet, dx = sheets[keys[r.randrange(len(keys))]], r.choice((-1, 0, 0, 1))
+                    if (b, i, k) != SLEEPER:
+                        paste_person(c, sheet, face, x, y, dx)
+                if (b, i, k) == SLEEPER:
+                    sleeper(c, x, y)
     return c
+
+
+def sleeper(c, x, y):
+    """The student asleep (map point obj_sleeper) in the cell at (x, y): turned round, the head lolling over the armrest into the centre
+    aisle, eyes shut, mouth open, a bubble at the nose and "zZ" rising over the aisle."""
+    ink = "#24161c"
+    c.poly([(x + 6, y + 17), (x + 12, y + 8), (x + 22, y + 12), (x + 21, y + 17)], "#3f8a68")   # the shoulders of a green hoodie
+    c.disc(x + 6, y + 9, 8.6, ink)
+    c.disc(x + 6, y + 9, 7.6, "#eab894")
+    c.ell(x + 8, y + 4, 7.6, 4.2, "#6a4026")                   # hair, tipped with the head
+    c.ell(x + 12, y + 8, 3, 5, "#6a4026")
+    for (ex, ey) in ((x + 1, y + 9), (x + 7, y + 11)):         # shut eyes, on the slant
+        c.line(ex, ey, ex + 3, ey + 1, ink)
+    c.rect(x + 2, y + 14, x + 4, y + 15, "#7a2c34")            # the open mouth
+    c.disc(x - 1, y + 13, 4.4, "#28508c")                      # the nose bubble
+    c.disc(x - 1, y + 13, 3.4, "#bfe8ff")
+    c.rect(x - 3, y + 11, x - 2, y + 12, "#ffffff")
+    for (zx, zy, s) in ((x - 8, y - 1, 5), (x - 18, y - 10, 7)):
+        for off, tone in ((1, ink), (0, "#e8f2ff")):
+            c.hline(zx + off, zx + s + off, zy + off, tone)
+            c.line(zx + s + off, zy + off, zx + off, zy + s + off, tone)
+            c.hline(zx + off, zx + s + off, zy + s + off, tone)
 
 
 # ---------------------------------------------------------------- objects
