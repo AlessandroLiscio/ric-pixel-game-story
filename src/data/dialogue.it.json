@@ -16,11 +16,15 @@
     "look": "X: controlla",
     "loading": "Caricamento...",
     "joined": "si unisce al gruppo!",
-    "theEnd": "Fine"
+    "theEnd": "Fine",
+    "achievement": "Easter egg sbloccato",
+    "drinkPeroni": "Bevi la Peroni?",
+    "askNumber": "Chiedi il numero?"
   },
   "menu": {
     "title": "Menu",
     "diary": "Diario",
+    "jump": "Vai alla scena",
     "controls": "Comandi",
     "quit": "Esci al menu principale",
     "back": "Indietro",
@@ -29,6 +33,8 @@
     "yes": "Sì",
     "no": "No",
     "diaryTitle": "Diario di Ric",
+    "jumpTitle": "Vai alla scena",
+    "jumpHint": "Su e giù: scegli   X: vai   Esc: indietro",
     "controlsTitle": "Comandi",
     "done": "Fatto",
     "todo": "Da fare",
@@ -46,15 +52,14 @@
       "M: audio sì/no",
       "F: schermo intero"
     ],
-    "portal": "P davanti a un muro: apri il portale"
+    "portal": "Z davanti a un muro: apri il portale"
   },
   "diary": {
     "universita": "Trova Lollino all'Università ed evita le\nlezioni di Pinolo, o ci resti fino a sera.\nPoi dimostra di avere memoria: ripeti le\nfrecce nell'ordine giusto.",
     "giuggiu": "Passa da Giuggiu e saluta il Gatto di Paz\n(lui non saluta nessuno). Vinci il gioco\ndel fumo e Giuggiu viene con te.",
     "giardini": "Ai Giardini Margherita c'è Liscio con la\nslack. Cammina sulla slack senza cadere.\nRegola uno: non guardare i cani che\npassano. Regola due: guardali.",
     "circe": "A Casa Circe ti aspettano Ros e Giusy.\nTira il d20 e spera nel venti, poi martella\nX finché Giusy non ha pietà di te.\nOcchio al trellone di Ros.",
-    "cortile": "Al Cortile Cafe suona la musica. Tieni il\nritmo per Lara. Se qualcuno chiede di Fede:\nha paccato, inutile cercarlo.",
-    "divano": "Ultima tappa: il divano di Casa Circe.\nSiete tutti qui, in una normalissima sera\ndi venerdì. Goditi i titoli di coda."
+    "cortile": "Al Cortile Cafe suona la musica. Tieni il\nritmo per Lara. Se qualcuno chiede di Fede:\nha paccato, inutile cercarlo."
   },
   "titleScreen": {
     "title": "Ric 30: Un Venerdì a Bologna",
@@ -98,7 +103,7 @@
     "giuggiu": {
       "arrival": [
         { "speaker": "narratore", "text": "Casa di Giuggiu, ora di pranzo.\nSi mangia, poi si studia. In teoria." },
-        { "speaker": "giuggiu", "text": "Ric! Lollino! Entrate, ho fatto la pasta.\nEra per due, siete in tre. Si divide." }
+        { "speaker": "giuggiu", "text": "Ah regà! Daje moveteve che è pronto" }
       ],
       "meet": [
         { "speaker": "lollino", "text": "Studiamo subito? Ho fatto uno schema\ndi quattordici pagine sul foro." },
@@ -109,9 +114,10 @@
         { "speaker": "narratore", "text": "Gatto di Paz osserva tutto da sopra\nun mobile. Giudica, in silenzio." }
       ],
       "minigameIntro": [
-        { "speaker": "giuggiu", "text": "Ric, Gatto di Paz ti ha messo gli occhi\naddosso. Secondo lui sei da sfida." },
-        { "speaker": "giuggiu", "text": "Vediamo se lo trovi quando fa il mago,\ncon tutto questo fumo in giro." },
-        { "speaker": "ric", "text": "Ho gli occhi allenati dai concerti.\nChe sarà mai, un micio?" }
+        { "speaker": "giuggiu", "text": "Sono le 16:20. Come ogni santo giorno si accende il trellone." },
+        { "speaker": "giuggiu", "text": "Intanto mettiamo su un episodio di Rick and Morty. La TV oggi fa cose strane." },
+        { "speaker": "narratore", "text": "Sullo schermo si apre un portale verde. Il fumo riempie la stanza, piano piano." },
+        { "speaker": "ric", "text": "Madonna... Gatto di Paz ha due code. Lo seguo. Devo seguirlo. Dov'è andato?" }
       ],
       "win": [
         { "speaker": "giuggiu", "text": "Eccolo! Hai l'occhio di un falco.\nUn falco con le pupille grandi." },
@@ -318,15 +324,10 @@
         { "speaker": "narratore", "text": "In TV: episodio #104 di Daily Dose of\nInternet. Un tizio viene schiaffeggiato\nda una carpa." }
       ],
       "cat": [
-        { "speaker": "ric", "text": "È il Gatto di Paz!" },
-        { "speaker": "giuggiu", "text": "Etciù! ...Lo adoro, ma il mio naso no." }
+        { "speaker": "giuggiu", "text": "Etciù! ...Bello eh, ma porcoggiuda sti peli stanno ovunque..." }
       ],
       "window": [
         { "speaker": "narratore", "text": "Al semaforo rosso, due giocolieri si\nesibiscono tra le macchine ferme." }
-      ],
-      "puf": [
-        { "speaker": "narratore", "text": "Ric si appisola sul puf. Una bolla dal\nnaso cresce, cresce... e scoppia." },
-        { "speaker": "ric", "text": "Eh? Chi? Non stavo dormendo." }
       ]
     },
     "circe": {
@@ -354,17 +355,46 @@
     "portalFound": [
       { "speaker": "narratore", "text": "Nel cestino brilla qualcosa. Una pistola\nverde, con una lucina che pulsa piano." },
       { "speaker": "ric", "text": "Questa è la portal gun di Rick Sanchez!\nChi la butta nella spazzatura?" },
-      { "speaker": "ric", "text": "Wubba lubba dub dub! Davanti a un muro\npremo P e si apre un portale. Comodo." }
+      { "speaker": "ric", "text": "Wubba lubba dub dub! Davanti a un muro\npremo Z e si apre un portale. Comodo." }
     ],
-    "binEmpty": [
-      { "speaker": "ric", "text": "Una lattina vuota e un fazzoletto. Niente\nportali, solo raccolta differenziata." },
-      { "speaker": "ric", "text": "Uno scontrino del 2019. Non è nemmeno\nmio. Lo rimetto dove l'ho trovato." },
-      { "speaker": "ric", "text": "Puzza di caffè vecchio. Non ci frugo\nancora: ho una dignità. Poca, ma ce l'ho." },
-      { "speaker": "ric", "text": "Solo carta e briciole. Vorrebbe essere\nun portale, ma resta un cestino." },
-      { "speaker": "ric", "text": "Vuoto. Speravo in un tesoro, trovo\nun'aria di tristezza." }
+    "appuntiFound": [
+      { "speaker": "narratore", "text": "Nel cestino c'è un foglio accartocciato: gli appunti di uno studente sulla pinhole camera." },
+      { "speaker": "ric", "text": "Foro, luce, immagine capovolta... Questi me li tengo: potrebbero servire." }
+    ],
+    "peroniFound": [
+      { "speaker": "narratore", "text": "In fondo al cestino spunta una bottiglia di Peroni. Chiusa e ancora fresca." },
+      { "speaker": "ric", "text": "Una Peroni intatta nel cestino. Qualcuno ha buttato un tesoro." }
+    ],
+    "peroniDrink": [
+      { "speaker": "narratore", "text": "Ric stappa la Peroni sul bordo del cestino e la scola in pochi sorsi." },
+      { "speaker": "ric", "text": "Ahhh. Che meraviglia. Ho una tempesta nello stomaco." }
+    ],
+    "peroniKeep": [
+      { "speaker": "ric", "text": "Meglio di no. La porto con me, per dopo." }
+    ],
+    "fumoFound": [
+      { "speaker": "narratore", "text": "In un angolo del cestino, avvolta nella pellicola trasparente, c'è una pallina scura." },
+      { "speaker": "ric", "text": "Una pallina di fumo nella pellicola. Io la raccolgo: a qualcuno farà comodo." }
+    ],
+    "fumoRos": [
+      { "speaker": "ric", "text": "Ros, guarda cosa ho qui. Se non ne accendi un altro adesso, te lo regalo io." },
+      { "speaker": "ros", "text": "...Aspetta. Davvero? Fammi vedere." },
+      { "speaker": "ric", "text": "Un momento di saggezza, e poi è tuo. Affare fatto?" }
+    ],
+    "soldiFound": [
+      { "speaker": "narratore", "text": "Tra i fazzoletti c'è una banconota piegata in quattro: venti euro." },
+      { "speaker": "ric", "text": "Venti euro nel cestino. Non fanno rumore e non fanno storie. Li tengo io." }
+    ],
+    "binTaken": [
+      { "speaker": "ric", "text": "Qui ho già preso tutto. Il resto è spazzatura vera." },
+      { "speaker": "ric", "text": "Già preso. Il cestino è tornato a essere un cestino." },
+      { "speaker": "ric", "text": "Già preso: non frugo due volte, ho una dignità. Poca." }
     ],
     "portalNotYet": [
       { "speaker": "ric", "text": "Meh, non abbiamo mica finito qui.\nC'è ancora da fare." }
+    ],
+    "portalGirls": [
+      { "speaker": "ric", "text": "Meh, senza Ros e Giusy non si va da nessuna parte." }
     ],
     "pinolo-pinhole": [
       { "speaker": "ric", "text": "Ragazzi, sapete come funziona la pinhole\ncamera? Un foro, e l'immagine si capovolge." },
@@ -417,9 +447,80 @@
       { "speaker": "narratore", "text": "Studente: «Scusa, hai gli appunti di\nPinolo? Io ho solo disegni di pesci.»" },
       { "speaker": "narratore", "text": "Studente: «Se non segui, chiedi al tipo\ncon i quaderni a colori.»" }
     ],
-    "extra-2": [
-      { "speaker": "narratore", "text": "Passante col cane: «Quello sulla slack\nè un tuo amico? Il cane lo sfida.»" },
-      { "speaker": "liscio", "text": "Digli che il cane può provarci.\nMa niente zampate sulla slack." }
+    "slackgirl1": [
+      { "speaker": "slackgirl1", "text": "Ciao! Posso salire anch'io sulla slack?" },
+      { "speaker": "liscio", "text": "Certo! Basta non guardare in basso. Né in alto." }
+    ],
+    "slackgirl2": [
+      { "speaker": "slackgirl2", "text": "Scusa, la slack è libera? Vorrei provare." },
+      { "speaker": "ric", "text": "Prima tocca a me. Poi ti presento il telo arancione." }
+    ],
+    "slackgirl3": [
+      { "speaker": "slackgirl3", "text": "Ma sulla slack si può salire anche senza saper camminare?" },
+      { "speaker": "liscio", "text": "Certo, si cade solo un po'. Ma con stile." }
+    ],
+    "frangetta": [
+      { "speaker": "narratore", "text": "Una ragazza con la frangetta netta e i Birkenstock guarda il prato, un po' annoiata." },
+      { "speaker": "ric", "text": "(Guarda lì: una stinderina con la frangetta. Mi faccio coraggio.)" }
+    ],
+    "frangettaNumber": [
+      { "speaker": "ric", "text": "Scusa, hai un secondo? Mi daresti il tuo numero?" },
+      { "speaker": "frangetta", "text": "Boh, va bene. Segna." },
+      { "speaker": "narratore", "text": "Ric salva il numero. Sorriderà per i prossimi dieci minuti." }
+    ],
+    "frangettaNo": [
+      { "speaker": "ric", "text": "Niente, volevo solo dirti che hai dei bei sandali." },
+      { "speaker": "frangetta", "text": "...Grazie?" }
+    ],
+    "frangettaAgain": [
+      { "speaker": "frangetta", "text": "Ci sentiamo. Ora lasciami al mio prato." }
+    ],
+    "frangettaBurp": [
+      { "speaker": "ric", "text": "Ciao, stinderina con la frangetta! Posso chiederti una cosa?" },
+      { "speaker": "narratore", "text": "Ric apre la bocca e dal fondo della Peroni sale un ruttone gigantesco." },
+      { "speaker": "frangetta", "text": "Che schifo! Ma che sei, un animale?!" },
+      { "speaker": "narratore", "text": "La ragazza se ne va a passo svelto, disgustata. Niente numero." }
+    ],
+    "extra-armando": [
+      { "speaker": "armando", "text": "Ric! Io voglio solo andare a giocare alla Xbox. Mi rifiuto di restare qui." },
+      { "speaker": "armando", "text": "Da Giuggiu si mangia sempre pasta al pesto. Sempre. Da una vita." }
+    ],
+    "extra-carolina": [
+      { "speaker": "ric", "text": "Oh ma Flavia?" },
+      { "speaker": "carolina", "text": "Booooh, non la vedo da due settimane." }
+    ],
+    "losco": [
+      { "speaker": "losco", "text": "Psst... Lo vuoi un po' di cocco?" },
+      { "speaker": "lara", "text": "Madòòòò siiiii, quanto piace il coccoooo!" },
+      { "speaker": "ric", "text": "No Lara... non hai capito..." },
+      { "speaker": "ric", "text": "No grazie, comunque gentilissimo <3" }
+    ],
+    "albanese": [
+      { "speaker": "albanese1", "text": "Ciao amico! Tu amico di queste belle ragazze?" },
+      { "speaker": "ric", "text": "Più che amico... trasportatore ufficiale." }
+    ],
+    "albanesi": [
+      { "speaker": "narratore", "text": "Vedete due ragazzi albanesi che si avvicinano a Giusy e Ros." },
+      { "speaker": "ric", "text": "Eh vabè, le abbiamo già perse..." }
+    ],
+    "barBusy": [
+      { "speaker": "ros", "text": "Ric, non vedi che siamo impegnate? Dopo, dopo." },
+      { "speaker": "giusy", "text": "Questi ragazzi sono molto gentili, sai?" },
+      { "speaker": "ric", "text": "(Gentili un corno. Ma prima c'è il concerto.)" }
+    ],
+    "barSoldi": [
+      { "speaker": "ric", "text": "Meh ragazze, posso offrirvi da bere?" },
+      { "speaker": "narratore", "text": "Ric sventola i venti euro. I due albanesi si guardano, borbottano e se ne vanno." }
+    ],
+    "barSoldiAfter": [
+      { "speaker": "ros", "text": "Sei proprio un coglione Ric." },
+      { "speaker": "giusy", "text": "Sei proprio un coglione Ric." },
+      { "speaker": "ric", "text": "Che ingrate." }
+    ],
+    "barFetch": [
+      { "speaker": "ric", "text": "Meh... sciamanin?!" },
+      { "speaker": "ros", "text": "Eccoci, eccoci. Tanto parlavano solo di calcio." },
+      { "speaker": "giusy", "text": "Dai, torniamo dagli altri." }
     ],
     "extra-3": [
       { "speaker": "alessandro", "text": "Ragazzi! Cosa vi porto? Spritz al\nlimoncello o spritz al lambrusco?" },
@@ -429,14 +530,35 @@
     "extra-rosanna": [
       { "speaker": "rosanna", "text": "Ric! Il mese prossimo parto per un\nprogetto Erasmus in Estonia." },
       { "speaker": "rosanna", "text": "Tre giorni a costruire igloo con dei\nfinlandesi e un ukulele. Vieni?" },
-      { "speaker": "ric", "text": "Meh. Ci penso. (No.)" }
+      { "speaker": "ric", "text": "Vengo! Igloo, ukulele e finlandesi: dove devo firmare?" }
     ],
     "extra-genitori": [
-      { "speaker": "mamma", "text": "Ric! Passavamo di qui e siamo saliti\na salutare." },
+      { "speaker": "mamma", "text": "Ric! Passavamo di qui e siamo entrati\na salutare." },
       { "speaker": "papa", "text": "Ros, lo sai? Ci siamo fatti un tiro di\ntrellone con lui. Che serata!" },
       { "speaker": "mamma", "text": "Shh! Non dirlo a nessuno.\nSoprattutto alla nonna." },
       { "speaker": "ric", "text": "(Questa non la racconto. Mai.)" }
     ]
+  },
+  "achievements": {
+    "appunti": "Gli appunti dello studente",
+    "portalGun": "Portal gun",
+    "portal": "Wubba lubba dub dub",
+    "peroni": "Peroni nel cestino",
+    "fumo": "Pallina nella pellicola",
+    "soldi": "Venti euro",
+    "studente": "Lo studente senza appunti",
+    "rosanna": "Erasmus in Estonia",
+    "genitori": "Mamma e papà",
+    "barista": "Il barista Alessandro",
+    "armando": "Armando e il pesto",
+    "carolina": "Carolina e Flavia",
+    "slackgirls": "Un posto sulla slack",
+    "numero": "Il numero della frangetta",
+    "rutto": "Il rutto della Peroni",
+    "losco": "Lo sconosciuto del cocco",
+    "albanesi": "Albanesi in fuga",
+    "fede": "Fede ha paccato",
+    "puf": "Pisolino sul puf"
   },
   "credits": {
     "title": "Un compleanno da trent'anni",

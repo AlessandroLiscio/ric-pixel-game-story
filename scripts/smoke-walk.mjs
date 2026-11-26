@@ -1,6 +1,6 @@
 // npm run smoke-walk-nolog: a quick smoke of the whole flow (the final e2e is W4). Builds the offline single file with
 // VITE_TEST_BUILD=1 into logs/smoke-walk/dist, opens it through file:// with ?spike=1 (exposes window.__ricGame), and walks
-// the six scenes: title, a real walk, real key presses at the friend in scene 1, door exits, minigames forced through
+// the five scenes: title, a real walk, real key presses at the friend in scene 1, door exits, minigames forced through
 // window.__ricTest, the end. Asserts results, party and no console errors. Prints PASS or one FAIL block; log in logs/smoke-walk/.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -65,7 +65,7 @@ try {
     check(s.party.length === 0, `F1 party ${s.party}`);
     note('debug jumps F2/F1 ok');
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < SCENES.length; i++) {
         await until(world(i), `world ${i}`);
         // a tile room takes door and friend positions from its map: read the resolved entry from the live scene
         await page.waitForFunction((sid) => window.__ricGame.scene.getScene('world').def?.id === sid, SCENES[i].id, { timeout: 10000 });
@@ -115,17 +115,8 @@ try {
             } else {
                 await sleep(2500); // join banners
                 await teleport(def.door.x + def.door.w / 2, def.door.y + def.door.h / 2);
-                await until(world(i + 1), `door exit of scene ${i}`, 8000);
-            }
-        } else {
-            // divano: the finale plays by itself
-            for (let n = 0; n < 400; n++) {
-                s = await state();
-                if (s.scene === 'ending') break;
-                await page.keyboard.press('x');
-                await sleep(120);
-                await test('skip');
-                await sleep(120);
+                // the last scene (cortile) leaves for the ending
+                await until(i === SCENES.length - 1 ? (x) => x.scene === 'ending' : world(i + 1), `door exit of scene ${i}`, 8000);
             }
         }
     }
@@ -144,4 +135,4 @@ try {
 }
 writeFileSync(logFile, `${steps.join('\n')}\n`);
 await browser?.close();
-console.log('PASS smoke: 6 scenes walked, no console errors');
+console.log('PASS smoke: 5 scenes walked, no console errors');

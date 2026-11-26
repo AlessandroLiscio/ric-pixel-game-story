@@ -227,6 +227,54 @@ function windowShafts(scene: Phaser.Scene, win: Rect): void {
     }
 }
 
+/** Three plates of carbonara on the glass table, each with a wisp of steam. The picture is the `obj-carbonara` object (public/assets/objects/carbonara.png, loaded by WorldScene when the file exists), a plate drawn here otherwise. */
+function carbonaraPlates(scene: Phaser.Scene, table: Rect): void {
+    const real = scene.textures.exists('obj-carbonara');
+    const key = real
+        ? 'obj-carbonara'
+        : texture(scene, 'obj-carbonara-placeholder', 20, 12, (c) => {
+              // a placeholder: a white plate seen from above and a yellow mound of pasta with dark specks
+              c.fillStyle = '#3a2a28';
+              c.fillRect(2, 10, 16, 2); // shadow on the glass
+              c.fillStyle = '#f2f2f2';
+              c.fillRect(3, 3, 14, 7);
+              c.fillRect(2, 5, 16, 3);
+              c.fillStyle = '#c8c8d0';
+              c.fillRect(3, 9, 14, 1);
+              c.fillStyle = '#f0c640';
+              c.fillRect(6, 3, 8, 5);
+              c.fillRect(5, 5, 10, 2);
+              c.fillStyle = '#fbe28a';
+              c.fillRect(7, 3, 4, 2);
+              c.fillStyle = '#5a3a20';
+              for (const [x, y] of [[7, 5], [10, 4], [12, 6], [9, 7], [6, 6]]) c.fillRect(x, y, 1, 1);
+          });
+    const spots = [[0.36, 0.4], [0.55, 0.47], [0.74, 0.4]].map(([fx, fy]) => ({ x: Math.round(table.x + table.w * fx), y: Math.round(table.y + table.h * fy) }));
+    // the art is a 32 x 32 object: shown at three quarters, three plates fit side by side on the table
+    for (const p of spots) scene.add.image(p.x, p.y, key).setScale(real ? 0.75 : 1).setDepth(table.y + table.h + 2);
+    scene.add
+        .particles(0, 0, glow(scene), {
+            emitZone: { type: 'random', source: { getRandomPoint: (q) => { const p = Phaser.Utils.Array.GetRandom(spots); q.x = p.x + Phaser.Math.Between(-2, 2); q.y = p.y - 4; } } },
+            tint: 0xffffff,
+            alpha: { start: 0.55, end: 0 },
+            scale: { start: 0.06, end: 0.16 },
+            speedX: { min: -3, max: 3 },
+            speedY: { min: -16, max: -9 },
+            lifespan: 1500,
+            frequency: 170
+        })
+        .setDepth(LIT);
+}
+
+/** The TV of Giuggiu's room playing a green, portal-like picture: a flickering green glow on the screen and on the floor in front of it. */
+export function tvPortalGlow(scene: Phaser.Scene, tv: Rect): void {
+    const tints = [0x44ff66, 0x9bff6e, 0xd8ffc4];
+    const cx = tv.x + tv.w / 2;
+    const cy = tv.y + 20;
+    jitter(scene, glowAt(scene, cx, cy, 120, 80, GLOW), 0.18, 0.5, tints);
+    jitter(scene, glowAt(scene, cx, cy + 56, 200, 80, FLOOR), 0.1, 0.35, tints);
+}
+
 /** The park: shadows of clouds crossing the grass, drifting pollen and leaves, two butterflies, and now and then a bird. */
 function park(scene: Phaser.Scene, map: MapData): void {
     const W = map.width * TILE;
@@ -314,6 +362,7 @@ export function startLife(scene: Phaser.Scene, sceneId: string, map: MapData | u
     if (sceneId === 'cortile' && p.obj_bar) barSteam(scene, rectOf(p.obj_bar));
     if (sceneId === 'universita' && p.obj_screen) cinema(scene, map);
     if (sceneId === 'giuggiu' && p.obj_window) windowShafts(scene, rectOf(p.obj_window));
+    if (sceneId === 'giuggiu' && p.obj_plates) carbonaraPlates(scene, rectOf(p.obj_plates));
     if (sceneId === 'giardini') park(scene, map);
     if (sceneId === 'divano' && p.window) nightWindow(scene, rectOf(p.window));
 }

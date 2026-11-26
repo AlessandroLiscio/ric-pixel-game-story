@@ -19,11 +19,18 @@ export interface NpcDef extends Point {
     intro?: boolean;
     /** Tile worlds: name of a point in the scene's map; the flow turns it into x and y (the scenes.json entry then omits them). */
     at?: string;
+    /** Sits on a chair: the map point may be a blocked chair tile, and the person is drawn in front of the chair with the chair's depth. */
+    seat?: boolean;
 }
 
-/** A litter bin at `x`,`y` (its feet, pixels). `draw: false` means the room map already draws it; otherwise the flow draws a bin there. */
+/**
+ * A litter bin at `x`,`y` (its feet, pixels). `draw: false` means the room map already draws it; otherwise the flow draws a bin there.
+ * `item` is what the bin holds, found once per run (a flag of RunState.flags, `portalGun` is its own field): `appunti`, `portalGun`,
+ * `peroni`, `fumo`, `soldi`. A second look says a "già preso" line.
+ */
 export interface BinDef extends Point {
     draw?: boolean;
+    item?: string;
 }
 
 /** One entry of scenes.json. Coordinates are 640x360 pixels; a character's x,y is where its feet are. */
@@ -35,14 +42,14 @@ export interface SceneDef {
     title: string;
     music: string;
     spawn: Point;
-    /** null in the last scene (divano), which has no door. */
+    /** From the map point `door` in a tile room (every room is one). */
     door: (Rect & { draw?: boolean }) | null;
     walk: Rect[];
     /** `"edge"`: once the scene is done Ric also leaves by walking to any edge of the map (a room with no visible door). */
     exit?: 'edge';
-    /** Litter bins Ric can check with X (the first one he checks in a run holds the portal gun). */
+    /** Litter bins Ric can check with X, each with its item. */
     bins?: BinDef[];
-    /** null in the last scene (divano), which has no friend to talk to. */
+    /** The scene's friend, who joins after the minigame. */
     friend: NpcDef | null;
     /** The second friend who joins in the same scene (circe: Giusy). */
     friend2?: NpcDef;
@@ -51,7 +58,7 @@ export interface SceneDef {
     ambient: Record<string, unknown>[];
 }
 
-/** One box page: at most 3 rows of at most 44 characters. `pause` is a beat (ms) before the page starts. */
+/** One box page: the text wraps to the width of the box (a `\n` counts as a space), at most 3 wrapped lines. `pause` is a beat (ms) before the page starts. */
 export interface Line {
     speaker: string;
     text: string;
@@ -87,6 +94,8 @@ export interface Dialogue {
     scenes: Record<string, SceneLines>;
     minigames: Record<string, MinigameTexts>;
     easterEggs: Record<string, Line[]>;
+    /** Easter egg id -> the name shown in the popup (ui/Achievement.ts), the one table of egg names. */
+    achievements: Record<string, string>;
     credits: { title: string; lines: string[] };
     titleScreen: { title: string; subtitle: string; press: string };
 }
