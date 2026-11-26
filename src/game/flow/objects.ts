@@ -46,16 +46,22 @@ export function toggleLamp(scene: Phaser.Scene, tw: TileWorld, o: RoomObject): v
 const MOVE_CODES = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'];
 
 /**
- * Ric sits on the pouf (drawn in front of him: his depth is one under the pouf's own row, kept in the sprite's data `sitDepth`, which the
- * world scene's update reads) and naps, a "z" floating up now and then, until a movement key is pressed; then he gets up and goes back.
+ * Ric lies back on the pouf, drawn over it (his depth is one over the pouf's own row, kept in the sprite's data `sitDepth`, which the
+ * world scene's update reads) and naps, a nose bubble swelling and a "z" floating up, until a movement key is pressed; then he goes back.
  */
 export async function dozeOnPuf(scene: Phaser.Scene, ric: Phaser.GameObjects.Sprite, o: RoomObject): Promise<void> {
     const from = { x: ric.x, y: ric.y };
     ric.anims.stop();
     ric.setFrame(1); // standing frame, facing down
-    ric.setData('sitDepth', o.y + o.h - 1);
-    await tween(scene, { targets: ric, x: o.x + o.w / 2, y: o.y + o.h / 2 + 2, duration: 300 });
-    const zzz = scene.add.text(ric.x + 10, ric.y - 40, 'z', pixelStyle(16, '#cfe0ff')).setDepth(ric.depth + 1);
+    ric.setData('sitDepth', o.y + o.h + 1);
+    await tween(scene, { targets: ric, x: o.x + o.w / 2 + 14, y: o.y + o.h / 2 + 4, angle: -70, duration: 300 });
+    // over the room's mood overlay (750) and dust, under the dialogue and the hints
+    const zzz = scene.add.text(o.x + o.w / 2, o.y - 8, 'z', pixelStyle(16, '#cfe0ff')).setDepth(790);
+    // the nose is 20 px up the sprite, so with Ric tipped back by 70 degrees it is 19 px left of his feet and 7 px up
+    const bubble = scene.add.graphics({ x: ric.x - 18, y: ric.y - 9 }).setDepth(790);
+    bubble.fillStyle(0xbfe8ff, 0.85).fillCircle(7, -7, 8).lineStyle(1.5, 0x1d3a6e).strokeCircle(7, -7, 8);
+    bubble.fillStyle(0xffffff).fillCircle(4, -10, 2.5);
+    const breathe = scene.tweens.add({ targets: bubble, scale: { from: 0.55, to: 1.15 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     const float = scene.tweens.add({ targets: zzz, y: zzz.y - 14, alpha: { from: 1, to: 0 }, duration: 900, repeat: -1, onRepeat: () => zzz.setText(zzz.text.length < 3 ? zzz.text + 'z' : 'z') });
     await new Promise<void>((resolve) => {
         const kb = scene.input.keyboard!;
@@ -69,7 +75,9 @@ export async function dozeOnPuf(scene: Phaser.Scene, ric: Phaser.GameObjects.Spr
     });
     float.remove();
     zzz.destroy();
-    await tween(scene, { targets: ric, x: from.x, y: from.y, duration: 300 });
+    breathe.remove();
+    bubble.destroy();
+    await tween(scene, { targets: ric, x: from.x, y: from.y, angle: 0, duration: 300 });
     ric.setData('sitDepth', undefined);
 }
 
