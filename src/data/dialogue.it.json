@@ -264,10 +264,10 @@
   },
   "minigames": {
     "simon": {
-      "title": "Memoria da Prof",
-      "instructions": "Guarda la sequenza e ripetila con le\nfrecce o WASD. 3 round, 3 vite.",
-      "winText": "Sequenza perfetta! Pinolo è fiero.",
-      "loseText": "Sequenza sbagliata. Pinolo sospira."
+      "title": "Quiz del Prof",
+      "instructions": "Su/giù per scegliere, X per confermare.\n3 domande: ne servono 2 giuste.",
+      "winText": "Quiz superato! Pinolo è fiero.",
+      "loseText": "Quiz bocciato. Pinolo sospira."
     },
     "cat-smoke": {
       "title": "Dov'è Gatto di Paz?",
@@ -283,7 +283,7 @@
     },
     "d20": {
       "title": "Tiro di Saggezza",
-      "instructions": "X a raffica carica il d20: smetti e rotola.\nPiù di 10 e Ros ti ascolta.",
+      "instructions": "5 secondi: premi X più che puoi (max 40).\nOgni 2 colpi +1 sul d20: serve più di 10.",
       "winText": "Bel tiro: Ros ci ripensa.",
       "loseText": "Dado sfortunato: Ros accende."
     },

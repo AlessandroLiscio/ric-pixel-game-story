@@ -90,6 +90,8 @@ export interface TrackSpec {
     bpm: number;
     /** Name notes with flats (Bb, Eb) instead of sharps in the generated bass and arpeggio. */
     flats?: boolean;
+    /** Fewest bars the track may have (default 16): the rhythm game's song is 14. */
+    minBars?: number;
     sections: Section[];
     /** Channel waves and volumes. Volumes are scaled by the sequencer (x0.2), so 1 = a lead peak of about 0.2. */
     lead?: { wave?: 'square' | 'pulse25'; volume?: number };
@@ -186,7 +188,8 @@ export function compose(spec: TrackSpec): Track {
 
     const steps = lead.length;
     const bars = steps / STEPS_PER_BAR;
-    if (bars < 16 || bars > 32) throw new Error(`${spec.id}: ${bars} bars, need 16 to 32`);
+    const minBars = spec.minBars ?? 16;
+    if (bars < minBars || bars > 32) throw new Error(`${spec.id}: ${bars} bars, need ${minBars} to 32`);
     return {
         id: spec.id,
         bpm: spec.bpm,
