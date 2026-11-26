@@ -21,10 +21,9 @@ const MINIGAMES = { universita: 'simon', giuggiu: 'cat-smoke', giardini: 'slackl
 // what each room's bin holds (BinDef.item), found once per run
 const BIN_ITEMS = { universita: 'appunti', giuggiu: 'portalGun', giardini: 'peroni', circe: 'fumo', cortile: 'soldi' };
 // map points a scene's story needs, on free tiles Ric can reach: the Cortile bar scene, the plates on Giuggiu's table
-const STORY_POINTS = { cortile: ['bar_ros', 'bar_giusy', 'albanese1', 'albanese2'], giuggiu: ['obj_plates', 'obj_tv'] };
+// the wall_* points are where the two couples end up, along the bottom wall
+const STORY_POINTS = { cortile: ['albanese1', 'albanese2', 'wall_ros', 'wall_giusy', 'wall_albanese1', 'wall_albanese2'], giuggiu: ['obj_plates', 'obj_tv'] };
 const STORY_ZONES = { cortile: ['trig_bar'] }; // rectangles in tiles (x, y, w, h) that must hold a free tile
-// checked when the map has them (the flow falls back to the bar points without them): where the two couples end up, along the bottom wall
-const OPTIONAL_POINTS = { cortile: ['wall_ros', 'wall_giusy', 'wall_albanese1', 'wall_albanese2'] };
 const FACINGS = ['down', 'left', 'right', 'up'];
 const PRESETS = {
   particles: ['dust', 'pollen', 'steam', 'sparkle'],
@@ -150,7 +149,7 @@ function mapScene(at, sc, id) {
   // the cinema's exit-door object is a look-at spot: it must not cover the scene's real exit
   const exitObj = pt('obj_exitdoor');
   if (exitObj && door && exitObj.x < door.x + door.w && door.x < exitObj.x + (exitObj.w ?? 1) && exitObj.y < door.y + door.h && door.y < exitObj.y + (exitObj.h ?? 1)) err(w, 'point "obj_exitdoor" overlaps the real exit "door"');
-  for (const name of [...(STORY_POINTS[id] ?? []), ...(OPTIONAL_POINTS[id] ?? []).filter((n) => pt(n))]) {
+  for (const name of STORY_POINTS[id] ?? []) {
     const q = pt(name);
     if (!q) err(w, `story point "${name}" is missing`);
     else if (name.startsWith('obj_')) continue; // an object footprint, not a standing place

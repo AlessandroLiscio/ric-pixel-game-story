@@ -17,7 +17,7 @@ import { lines, pixelStyle, t } from '../ui/text';
 import { SCENES, person } from './data';
 import { BIN_BLOCK, BIN_RANGE, addBin, openPortal } from './props';
 import { ACTIVE_MINIGAME_KEY, getRun, type RunState } from './RunState';
-import type { BinDef, Facing, NpcDef, Point, Rect, SceneDef } from './sceneTypes';
+import type { BinDef, Facing, Line, NpcDef, Point, Rect, SceneDef } from './sceneTypes';
 import { BIN_ITEMS, EGG_ACHIEVEMENT, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
 import { MAPS, TILE, TileWorld, resolveMapScene, feetOf } from './tileMap';
 import { dozeOnPuf, objectNear, roomObjects, toggleLamp, type RoomObject } from './objects';
@@ -38,7 +38,6 @@ const OUTLINE = { stroke: '#0a1040', strokeThickness: 3 };
 const STAND_IN = 'sconosciuta';
 const STAND_IN_TINT: Record<string, number> = { frangetta: 0xffc4e0, slackgirl1: 0xc4f0ff, slackgirl2: 0xd8ffc4, slackgirl3: 0xffe8a8, albanese1: 0xffc890, albanese2: 0xd0a070, losco: 0x606878 };
 const WALK_PX = 70; // px per second of a person walking on their own (the Cortile lads and the girls, the girl who leaves disgusted)
-const LOSCO_AFTER = 5; // Cortile: pages of `meet` (up to Ros's line after Davide Gallo) before the hooded man walks up to Lara
 const BESIDE = 22; // px between two people standing side by side
 // Cortile: the girls and the lad who goes for each of them
 const COUPLES = [
@@ -313,10 +312,10 @@ export class WorldScene extends Phaser.Scene {
         if (near) this.talkHint.setPosition(near.sprite.x, near.sprite.y - 36);
     }
 
-    private face(n: Npc): void {
+    private face(n: Npc, to: Point = this.ric): void {
         if (n.def.seat) return; // sitting down, he keeps facing the table
-        const dx = this.ric.x - n.sprite.x;
-        const dy = this.ric.y - n.sprite.y;
+        const dx = to.x - n.sprite.x;
+        const dy = to.y - n.sprite.y;
         const dir: Facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
         n.sprite.play(idleKey(n.sheet, dir));
     }
@@ -368,12 +367,15 @@ export class WorldScene extends Phaser.Scene {
         const mine = def.friend2 ? games.filter((_, i) => (i === 1) === second) : games;
         if (!second && !this.metFriend) {
             const meet = L('meet');
-            // Cortile: a few lines in, the hooded man walks up to Lara and makes his offer, then the talk goes on
-            if (def.id === 'cortile' && !this.loscoDone) {
-                await this.say(meet.slice(0, LOSCO_AFTER));
-                await this.losco();
+            // a line marked with `event` is followed by that happening, unless it already took place, then the talk goes on
+            // (Cortile: the hooded man walks up to Lara and makes his offer)
+            const events: Record<NonNullable<Line['event']>, (() => Promise<void>) | undefined> = { losco: this.loscoDone ? undefined : () => this.losco() };
+            const cut = meet.findIndex((l) => l.event && events[l.event]);
+            if (cut >= 0) {
+                await this.say(meet.slice(0, cut + 1));
+                await events[meet[cut].event!]!();
                 if (friend) this.face(friend);
-                await this.say(meet.slice(LOSCO_AFTER));
+                await this.say(meet.slice(cut + 1));
             } else await this.say(meet);
         }
         this.metFriend ||= !second;
@@ -656,7 +658,7 @@ export class WorldScene extends Phaser.Scene {
             const facing: Dir = to.x > lara.sprite.x ? 'left' : 'right';
             await Promise.all([this.walkAlong(man.sprite, this.pathTo(man.sprite, to), facing), this.say(lines('easterEggs.loscoApproach'))]);
             man.walking = false;
-            lara.sprite.play(idleKey(lara.sheet, facing === 'left' ? 'right' : 'left'));
+            this.face(lara, man.sprite);
         }
         this.award('losco');
         await this.say(lines('easterEggs.losco'));
@@ -674,7 +676,7 @@ export class WorldScene extends Phaser.Scene {
     private async albanesiApproach(): Promise<void> {
         this.busy = true;
         this.barState = 'away';
-        const four: Npc[] = [];
+        const couples: Npc[][] = []; // a girl and, when he is in the room, the lad who goes for her
         const approaches: Promise<void>[] = [];
         for (const [girlId, ladId] of COUPLES) {
             const sprite = this.party.release(girlId);
@@ -682,33 +684,31 @@ export class WorldScene extends Phaser.Scene {
             const def: NpcDef = { personId: girlId, facing: 'down', x: sprite.x, y: sprite.y };
             const girl: Npc = { def, sprite, sheet: girlId, kind: 'bar', walking: true };
             this.npcs.push(girl);
-            four.push(girl);
+            const couple = [girl];
+            couples.push(couple);
             sprite.play(idleKey(girlId, 'down'));
             const lad = this.npcs.find((n) => n.def.personId === ladId);
             if (!lad) continue;
             lad.walking = true;
-            four.push(lad);
+            couple.push(lad);
             const to = this.beside(sprite, lad.sprite.x < sprite.x ? -1 : 1);
             approaches.push(this.walkAlong(lad.sprite, this.pathTo(lad.sprite, to)));
         }
         await this.say(lines('easterEggs.albanesi')); // the lads cross the room while the narrator speaks
         this.busy = this.leaving; // Ric is free to walk on
         await Promise.all(approaches);
+        const four = couples.flat();
         await Promise.all(
             four.map(async (n) => {
-                const points = this.tw?.data.points;
-                const id = n.def.personId;
-                // shortcut: a map without the wall_* points sends them to the old bar points; drop the fallback once every cortile map has them
-                const spot = points?.[`wall_${id}`] ?? points?.[`bar_${id}`] ?? points?.[id];
+                const spot = this.tw?.data.points[`wall_${n.def.personId}`];
                 if (spot) await this.walkAlong(n.sprite, this.pathTo(n.sprite, feetOf(spot)));
             })
         );
         // each of a couple turns to the other
-        for (const [girlId, ladId] of COUPLES) {
-            const [a, b] = [girlId, ladId].map((id) => four.find((n) => n.def.personId === id));
-            if (!a || !b) continue;
-            a.sprite.play(idleKey(a.sheet, b.sprite.x < a.sprite.x ? 'left' : 'right'));
-            b.sprite.play(idleKey(b.sheet, a.sprite.x < b.sprite.x ? 'left' : 'right'));
+        for (const [girl, lad] of couples) {
+            if (!lad) continue;
+            this.face(girl, lad.sprite);
+            this.face(lad, girl.sprite);
         }
         for (const n of four) n.walking = false; // nobody is talked to until all four have arrived
     }

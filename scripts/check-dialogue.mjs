@@ -1,6 +1,6 @@
 // Validates src/data/dialogue.it.json against the contract (see docs/dialogue-it.md).
 // Standard library only. Quiet: prints one PASS line, or up to 20 errors and exits 1.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -27,7 +27,12 @@ const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi
 const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look', 'achievement', 'drinkPeroni', 'askNumber'];
 const MENU_KEYS = ['title', 'diary', 'jump', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'jumpTitle', 'jumpHint', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 
-const CLOSING_LINE = 'Meh, sciamanin.';
+const EVENTS = ['losco']; // happenings a line of `meet` can set off (WorldScene.talkToFriend)
+// obj_* points of the maps that need no lines: the ids code acts on (src/game/flow/objects.ts ACTIONS) and footprints code only reads (ambient/life.ts)
+const OBJECT_ACTIONS = ['lamp', 'puf'];
+const OBJECT_FOOTPRINTS = { cortile: ['bar'], giuggiu: ['plates'] };
+
+const CLOSING_LINE ='Meh, sciamanin.';
 
 const errors = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -119,7 +124,9 @@ function checkLines(where, arr, allowEmpty = false) {
   arr.forEach((line, i) => {
     const w = `${where}[${i}]`;
     if (line === null || typeof line !== 'object') return err(w, 'not an object');
-    for (const k of Object.keys(line)) if (!['speaker', 'text', 'pause'].includes(k)) err(w, `unknown key ${k}`);
+    for (const k of Object.keys(line)) if (!['speaker', 'text', 'pause', 'event', 'laugh'].includes(k)) err(w, `unknown key ${k}`);
+    if ('event' in line && !EVENTS.includes(line.event)) err(w, `unknown event "${line.event}"`);
+    if ('laugh' in line && line.laugh !== true) err(w, 'laugh must be true when present');
     if (!PERSONS.includes(line.speaker)) err(w, `bad speaker "${line.speaker}"`);
     checkPage(w, line.text, line.speaker);
     if ('pause' in line && !(Number.isInteger(line.pause) && line.pause >= 0)) err(w, 'pause must be a non-negative integer (ms)');
@@ -148,7 +155,14 @@ for (const [sid, objs] of Object.entries(data.objects ?? {})) {
   if (!SCENES.includes(sid)) err(`objects.${sid}`, "not a scene id");
   for (const [oid, arr] of Object.entries(objs)) checkLines(`objects.${sid}.${oid}`, arr);
 }
-for (const oid of ['screen', 'seats', 'notice', 'speaker', 'exitdoor', 'sleeper']) if (!data.objects?.universita?.[oid]) err(`objects.universita.${oid}`, 'missing');
+// every obj_<id> point of every map has its lines (but the exceptions above), and no lines lack a point
+const mapDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'maps');
+for (const f of readdirSync(mapDir).filter((n) => n.endsWith('.json'))) {
+  const room = f.slice(0, -'.json'.length);
+  const skip = [...OBJECT_ACTIONS, ...(OBJECT_FOOTPRINTS[room] ?? [])];
+  const ids = Object.keys(JSON.parse(readFileSync(join(mapDir, f), 'utf8')).points).filter((n) => n.startsWith('obj_')).map((n) => n.slice(4));
+  sameKeys(`objects.${room}`, data.objects?.[room] ?? {}, ids.filter((id) => !skip.includes(id)));
+}
 
 // menu, controls (the Esc menu) and diary (one entry per scene, up to 4 rows)
 sameKeys('menu', data.menu ?? {}, MENU_KEYS);
@@ -258,9 +272,14 @@ const bannerFits = (where, list) =>
     if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`${where}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
   });
 for (const k of ['arrival', 'meet', 'join']) bannerFits(`scenes.${CREDITS_SCENE}.${k}`, data.scenes?.[CREDITS_SCENE]?.[k]);
-// the TV exchange: the documentary's punchline, then the laugh (the last line of `meet`, the one the whole room laughs at)
-const punchline = data.scenes?.[CREDITS_SCENE]?.meet?.at(-2);
-if (punchline?.speaker !== 'narratore' || !/\.\.\. ?le acciughe!$/.test(punchline.text)) err(`scenes.${CREDITS_SCENE}.meet`, 'the line before the laugh must be the narrator\'s and end "... le acciughe!" (the space is optional)');
+// the TV exchange: the documentary's punchline, then the laugh (the one line marked `laugh`, the one the whole room laughs at)
+const spoken = Object.values(data.scenes?.[CREDITS_SCENE] ?? {}).flat();
+const laughs = spoken.filter((l) => l?.laugh);
+if (laughs.length !== 1) err(`scenes.${CREDITS_SCENE}`, `needs exactly one line with "laugh": true, has ${laughs.length}`);
+else {
+  const punchline = spoken[spoken.indexOf(laughs[0]) - 1];
+  if (punchline?.speaker !== 'narratore' || !/\.\.\. ?le acciughe!$/.test(punchline.text)) err(`scenes.${CREDITS_SCENE}`, 'the line before the laugh must be the narrator\'s and end "... le acciughe!" (the space is optional)');
+}
 
 // ending: the upstairs gag
 sameKeys('ending', data.ending ?? {}, ['fromUpstairs', 'upstairs', 'upstairsFrangetta']);

@@ -1,19 +1,20 @@
 import Phaser from 'phaser';
 import { audio } from '../audio';
+import { BIRTHDAY_STEP } from '../audio/music/credits';
 import { person } from '../flow/data';
 import { getRun, resetRun } from '../flow/RunState';
 import { MAPS, TileWorld } from '../flow/tileMap';
+import { CONFIRM_CODES, pressArrow } from '../ui/DialogBox';
 import { panelTexture } from '../ui/panel';
 import { DIALOGUE, pixelStyle } from '../ui/text';
 import { balloonTexture, bandTexture, blanketTexture, glowTexture, particleTextures, pillowTexture, scanTexture } from './art';
 import { finaleFx, startTvFx } from './fx';
 import { LABELS } from './labels';
 import { BALLOONS, BAND_CX, BAND_TEXT_W, BAND_X, DEPTH, GAME_HEIGHT, GAME_WIDTH, SCREEN, SPEECH, SPOTS, UPSTAIRS, type Spot } from './layout';
-import { awayOf, type Beat, BIRTHDAY_STEP, buildBeats, LEAD_IN_MS, SCROLL_MS } from './script';
+import { awayOf, type Beat, buildBeats, LEAD_IN_MS, SCROLL_MS } from './script';
 import { FishTv } from './tv';
 
 const FINALE_CX = 494;
-const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
 const CONFETTI = [0xff5a6e, 0xffd34a, 0x6ee08a, 0x6ab4ff, 0xff8ae0];
 const HURRY = 5; // how much faster the credits column runs once the last line has been read
 
@@ -54,9 +55,8 @@ export class EndingScene extends Phaser.Scene {
     /** Time of the credits column in ms: it has gone by at SCROLL_MS. */
     private roll = 0;
     private beats: Beat[] = [];
-    /** The next line to show, or the one on screen (`activeBeat`); `beats.length` once all are read. */
-    private beatIx = 0;
-    private activeBeat: Beat | null = null;
+    /** The line on screen (`activeBeat`); -1 before the first one, `beats.length` once all are read. */
+    private beatIx = -1;
     private laughs: Phaser.GameObjects.Text[] = [];
     private left = false; // the ones who go upstairs have left the room
     private upstairsBusy = false; // they have reached the top of the stairs: the bed creaks
@@ -90,6 +90,10 @@ export class EndingScene extends Phaser.Scene {
         super('ending');
     }
 
+    private get activeBeat(): Beat | null {
+        return this.beats[this.beatIx] ?? null;
+    }
+
     create(): void {
         this.clock = 0;
         this.tvAcc = 0;
@@ -98,8 +102,7 @@ export class EndingScene extends Phaser.Scene {
         this.phase = 'credits';
         this.scroll = 0;
         this.roll = 0;
-        this.beatIx = 0;
-        this.activeBeat = null;
+        this.beatIx = -1;
         this.laughs = [];
         this.creakAcc = 0;
         this.menuClosedAt = 0;
@@ -268,9 +271,7 @@ export class EndingScene extends Phaser.Scene {
         this.speechFace = this.add.image(0, 0, '__DEFAULT').setOrigin(0).setScale(SPEECH.portrait / 96);
         this.speechName = this.add.text(0, 0, '', { ...style, color: '#ffe27a' });
         this.speechBody = this.add.text(0, 0, '', style);
-        // the blinking "press X" arrow of the dialogue box
-        const arrow = this.add.graphics().fillStyle(0xffffff).fillTriangle(-5, 0, 5, 0, 0, 5).setPosition(SPEECH.x + SPEECH.w / 2, SPEECH.bottom - 7);
-        this.tweens.add({ targets: arrow, alpha: 0.15, duration: 380, yoyo: true, repeat: -1 });
+        const arrow = pressArrow(this, SPEECH.x + SPEECH.w / 2, SPEECH.bottom - 7, 5);
         this.speech = this.add.container(0, 0, [this.speechPanel, this.speechFace, this.speechName, this.speechBody, arrow]).setDepth(DEPTH.speech).setAlpha(0);
     }
 
@@ -299,7 +300,6 @@ export class EndingScene extends Phaser.Scene {
 
     /** Puts line `beatIx` on screen (nothing once all are read); the first line of the gag sends its people upstairs. */
     private speak(): void {
-        this.activeBeat = this.beats[this.beatIx] ?? null;
         this.showBeat(this.activeBeat);
         this.laugh(!!this.activeBeat?.laugh);
         if (this.activeBeat?.upstairs && !this.left) {
@@ -314,16 +314,16 @@ export class EndingScene extends Phaser.Scene {
             this.tweens.killTweensOf(text);
             text.destroy();
         }
-        this.laughs = !on
-            ? []
-            : [...this.talkers.values()].map(({ img }, i) => {
-                  const lying = img.rotation !== 0;
-                  const y = img.y - (lying ? 22 : 40) - (i % 2) * 9; // every other one higher, so neighbours on the sofa do not overlap
-                  const x = img.x - (lying ? 34 : 0); // over the sleeper's head, clear of the sofa
-                  const text = this.add.text(x, y,LABELS.laugh, { ...pixelStyle(16, '#ffe27a'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(DEPTH.speech);
-                  this.tweens.add({ targets: text, y: y - 5, duration: 160, delay: (i * 70) % 300, yoyo: true, repeat: -1 });
-                  return text;
-              });
+        this.laughs = [];
+        if (!on) return;
+        this.laughs = [...this.talkers.values()].map(({ img }, i) => {
+            const lying = img.rotation !== 0;
+            const y = img.y - (lying ? 22 : 40) - (i % 2) * 9; // every other one higher, so neighbours on the sofa do not overlap
+            const x = img.x - (lying ? 34 : 0); // over the sleeper's head, clear of the sofa
+            const text = this.add.text(x, y, LABELS.laugh, { ...pixelStyle(16, '#ffe27a'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(DEPTH.speech);
+            this.tweens.add({ targets: text, y: y - 5, duration: 160, delay: (i * 70) % 300, yoyo: true, repeat: -1 });
+            return text;
+        });
     }
 
     /** A bed creaking upstairs: two low blips, only once someone has gone up there. */
@@ -403,7 +403,10 @@ export class EndingScene extends Phaser.Scene {
             const who = this.talkers.get(this.activeBeat.speaker);
             if (who) who.img.y = who.base - (Math.floor(t / 130) % 2) * 2;
             // and the whole room shakes with laughter, out of step
-            if (this.activeBeat.laugh) [...this.talkers.values()].forEach((l, i) => (l.img.y = l.base - ((Math.floor(t / 110) + i) % 2) * 3));
+            if (this.activeBeat.laugh) {
+                let i = 0;
+                for (const l of this.talkers.values()) l.img.y = l.base - ((Math.floor(t / 110) + i++) % 2) * 3;
+            }
         }
 
         if (this.phase === 'credits') this.rollCredits(delta);
@@ -412,14 +415,21 @@ export class EndingScene extends Phaser.Scene {
     private rollCredits(delta: number): void {
         const read = this.beatIx >= this.beats.length;
         this.roll += delta * (read ? HURRY : 1);
-        if (!this.activeBeat && !read && this.roll >= LEAD_IN_MS) this.speak();
+        if (!read) this.roll = Math.min(this.roll, SCROLL_MS); // the column has gone by: it waits for the lines
+        if (this.beatIx < 0 && this.roll >= LEAD_IN_MS) {
+            this.beatIx = 0;
+            this.speak();
+        }
         this.creak(delta);
-        this.scroll = (this.maxScroll * this.roll) / SCROLL_MS;
-        for (const line of this.credits) {
-            const y = Math.round(line.y - this.scroll);
-            line.obj.setY(y);
-            const mid = y + line.obj.height / 2;
-            line.obj.setAlpha(Phaser.Math.Clamp(mid / 40, 0, 1) * Phaser.Math.Clamp((GAME_HEIGHT - mid) / 24, 0, 1));
+        const scroll = (this.maxScroll * this.roll) / SCROLL_MS;
+        if (scroll !== this.scroll) {
+            this.scroll = scroll;
+            for (const line of this.credits) {
+                const y = Math.round(line.y - scroll);
+                line.obj.setY(y);
+                const mid = y + line.obj.height / 2;
+                line.obj.setAlpha(Phaser.Math.Clamp(mid / 40, 0, 1) * Phaser.Math.Clamp((GAME_HEIGHT - mid) / 24, 0, 1));
+            }
         }
         if (read && this.scroll >= this.maxScroll) this.startFinale();
     }
@@ -428,7 +438,7 @@ export class EndingScene extends Phaser.Scene {
 
     private startFinale(): void {
         this.phase = 'finale';
-        this.activeBeat = null;
+        this.beatIx = this.beats.length; // nobody speaks any more (a test skip lands here mid-speech)
         this.showBeat(null);
         this.laugh(false);
         this.hearts.stop();

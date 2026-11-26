@@ -227,7 +227,7 @@
         { "speaker": "ros", "text": "Aspetta... ma quello al bancone è Davide Gallo?" },
         { "speaker": "ric", "text": "E anche oggi è stato nominato." },
         { "speaker": "ros", "text": "Ah no. Però mi sembrava proprio lui, giuro!" },
-        { "speaker": "ros", "text": "Vabè, tanto stasera qualcuno mi scopo. Davide Gallo o non Davide Gallo." },
+        { "speaker": "ros", "text": "Vabè, tanto stasera qualcuno mi scopo. Davide Gallo o non Davide Gallo.", "event": "losco" },
         { "speaker": "lara", "text": "Ric, sul palco fammi un sorriso ogni tanto! È il sogno che si avvera!" },
         { "speaker": "ric", "text": "(Lara. Una sorella. Anzi, un fratello: Lara ha il cazzo.)" }
       ],
@@ -260,7 +260,7 @@
         { "speaker": "narratore", "text": "«Si muovono in migliaia come un solo corpo. Una danza che nessun uomo saprebbe imitare.»" },
         { "speaker": "narratore", "text": "«Eleganti. Instancabili. Argentei come la luna. Veri gioielli del mare.»" },
         { "speaker": "narratore", "text": "Signore e signori... le acciughe!" },
-        { "speaker": "narratore", "text": "Scoppiano tutti a ridere." }
+        { "speaker": "narratore", "text": "Scoppiano tutti a ridere.", "laugh": true }
       ],
       "minigameIntro": [],
       "win": [],
