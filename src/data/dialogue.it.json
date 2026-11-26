@@ -578,9 +578,26 @@
       "Fede ... grande assente",
       "Prof. Pinolo ... foro stenopeico a vita",
       "Gatto di Paz ... se stesso, ovviamente",
+      "Armando ... Xbox e pasta al pesto",
+      "Carolina ... in cerca di Flavia",
+      "Rosanna ... Erasmus in Estonia",
+      "Mamma e Papà ... trellone a sorpresa",
+      "Alessandro ... barista di spritz",
+      "La tipa con la frangetta ... un numero",
       "Effetti e suoni: vinish.dev (CC BY 4.0)",
       "Un gioco di tutti i tuoi amici",
       "Buon compleanno, Ric!"
+    ]
+  },
+  "ending": {
+    "fromUpstairs": "(da sopra)",
+    "upstairs": [
+      { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Poi una risatina." },
+      { "speaker": "ric", "text": "Madonna quei due... certo che si sente sempre tutto... Chiudete almeno la porta, cazzo!" }
+    ],
+    "upstairsFrangetta": [
+      { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Ric non si vede da un pezzo, il porco." },
+      { "speaker": "ros", "text": "Madonna quanto lo odio. Dovevo esserci io di sopra con quella tipa." }
     ]
   }
 }
