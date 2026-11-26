@@ -26,9 +26,15 @@ export class MenuScene extends Phaser.Scene {
     private ui?: Phaser.GameObjects.Container;
     private leaving = false;
     private openedAt = 0;
+    /** The scene that launched the menu and is paused under it: closing the menu resumes it (the world, or the ending's credits). */
+    private from = 'world';
 
     constructor() {
         super('menu');
+    }
+
+    init(data?: { from?: string }): void {
+        this.from = data?.from ?? 'world';
     }
 
     create(): void {
@@ -124,7 +130,7 @@ export class MenuScene extends Phaser.Scene {
 
     private close(): void {
         this.leaving = true;
-        this.scene.resume('world');
+        this.scene.resume(this.from);
         this.scene.stop();
     }
 
@@ -141,7 +147,7 @@ export class MenuScene extends Phaser.Scene {
             onComplete: () => {
                 resetRun(this.game);
                 this.game.registry.set(ACTIVE_MINIGAME_KEY, undefined);
-                this.scene.stop('world');
+                this.scene.stop(this.from);
                 this.scene.start('title');
             }
         });
