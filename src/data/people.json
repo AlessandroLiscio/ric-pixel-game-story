@@ -83,7 +83,7 @@
       "hairColor": "brown",
       "outfitTop": "tee:navy",
       "outfitBottom": "shorts:khaki/white",
-      "accessory": ["beard", "sunglasses-on-head"],
+      "accessory": ["sunglasses-on-head"],
       "height": 1.0
     },
     "sprite": "char-lollino",
@@ -115,7 +115,7 @@
     "traits": {
       "skin": "tan",
       "hair": "short",
-      "hairStyle": "curly",
+      "hairStyle": "short",
       "hairColor": "black",
       "outfitTop": "tee:white:logo",
       "outfitBottom": "shorts:navy/charcoal",
