@@ -1,20 +1,24 @@
+import { assetUrl } from 'asset-url';
 import Phaser from 'phaser';
 import { startAmbient } from '../ambient';
+import { tvPortalGlow } from '../ambient/life';
 import { audio } from '../audio';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { joinFx, resultFx } from '../fx/moments';
 import { MINIGAME_DONE, type MinigameDone, type MinigameInit } from '../minigames/types';
 import { Party } from '../party/Party';
 import { idleLife } from '../party/idle';
-import { ensureCharAnims, walkKey, type Dir } from '../party/anims';
+import { ensureCharAnims, idleKey, walkKey, type Dir } from '../party/anims';
 import { fadeToScene } from '../transitions';
+import { showAchievement } from '../ui/Achievement';
+import { askChoice } from '../ui/Choice';
 import { DialogBox } from '../ui/DialogBox';
 import { lines, pixelStyle, t } from '../ui/text';
 import { SCENES, person } from './data';
 import { BIN_BLOCK, BIN_RANGE, addBin, openPortal } from './props';
 import { ACTIVE_MINIGAME_KEY, getRun, type RunState } from './RunState';
-import type { BinDef, Facing, NpcDef, Rect, SceneDef } from './sceneTypes';
-import { divanoEggs, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
+import type { BinDef, Facing, NpcDef, Point, Rect, SceneDef } from './sceneTypes';
+import { BIN_ITEMS, EGG_ACHIEVEMENT, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
 import { MAPS, TILE, TileWorld, resolveMapScene, feetOf } from './tileMap';
 import { dozeOnPuf, objectNear, roomObjects, toggleLamp, type RoomObject } from './objects';
 
@@ -29,11 +33,26 @@ const DOOR_SLACK = 6; // the door counts a few pixels outside its rectangle, so 
 const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
 const OUTLINE = { stroke: '#0a1040', strokeThickness: 3 };
 
+// A person whose sheet is not in the game yet (the art of round 4 lands in a later merge) stands as `sconosciuta` in a colour of their own.
+// shortcut: remove with the first people.json that lists them.
+const STAND_IN = 'sconosciuta';
+const STAND_IN_TINT: Record<string, number> = { frangetta: 0xffc4e0, slackgirl1: 0xc4f0ff, slackgirl2: 0xd8ffc4, slackgirl3: 0xffe8a8, albanese1: 0xffc890, albanese2: 0xd0a070, losco: 0x606878 };
+const WALK_PX = 70; // px per second of a person walking on their own (Ros and Giusy to the bar, the girl who leaves disgusted)
+
+// The object pictures of public/assets/objects, loaded by the world itself (BootScene does not know them). The glob only tells which files exist
+// on this branch, so a missing picture is never requested; its code falls back to a drawn stand-in.
+const OBJECT_ART = import.meta.glob('/public/assets/objects/*.png', { query: '?inline', import: 'default' });
+const OBJECT_TEXTURES: Record<string, string> = { 'obj-carbonara': 'carbonara.png' };
+
 interface Npc {
     def: NpcDef;
     sprite: Phaser.GameObjects.Sprite;
-    /** talks on X: 'friend' runs the scene's story, 'egg' plays an easter egg. */
-    kind: 'friend' | 'egg' | 'decor';
+    /** The sheet the sprite is drawn from (`char-<sheet>`): the person's own, or the stand-in. */
+    sheet: string;
+    /** talks on X: 'friend' runs the scene's story, 'egg' plays an easter egg, 'bar' is Ros or Giusy at the Cortile bar. */
+    kind: 'friend' | 'egg' | 'decor' | 'bar';
+    /** Walking on their own: nobody to talk to until they arrive. */
+    walking?: boolean;
 }
 
 type Keys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
@@ -65,12 +84,27 @@ export class WorldScene extends Phaser.Scene {
     private objects: RoomObject[] = [];
     private menuClosedAt = -1000; // performance.now() when the Esc menu closed: ignores the key press that closed it
     private portalWalk = false; // Ric is walking into a portal: his walk animation is not reset to idle
+    /** Cortile: 'idle' until Ric crosses the trigger zone, 'away' while Ros and Giusy are at the bar, 'back' once they are in the train again. */
+    private barState: 'idle' | 'away' | 'back' = 'idle';
+    private barZone?: Rect; // the map's `trig_bar` zone in pixels
+    private loscoDone = false; // the hooded man's offer to Lara played
+    private tvOn = false; // Giuggiu's TV shows its green picture
 
     constructor() {
         super('world');
     }
 
+    preload(): void {
+        for (const [key, file] of Object.entries(OBJECT_TEXTURES)) {
+            if (`/public/assets/objects/${file}` in OBJECT_ART && !this.textures.exists(key)) this.load.image(key, assetUrl(`objects/${file}`));
+        }
+    }
+
     init(): void {
+        this.barState = 'idle';
+        this.barZone = undefined;
+        this.loscoDone = false;
+        this.tvOn = false;
         this.npcs = [];
         this.crowd = [];
         this.tw = undefined;
@@ -108,8 +142,6 @@ export class WorldScene extends Phaser.Scene {
         this.ric.play(`ric-idle-${this.facing}`);
         this.party = new Party(this, this.ric);
         run.party.forEach((id) => this.party.add(id, { instant: true })); // a rebuilt party: no pop-in, no join sound
-        // Ric never walks in divano before the credits, so the trail would keep everyone hidden: line them up beside him
-        if (!def.friend) this.party.lineUpBeside(28, this.facing);
 
         this.spawnNpcs();
         if (map && this.tw) this.spawnCrowd();
@@ -130,6 +162,8 @@ export class WorldScene extends Phaser.Scene {
         this.dialog = new DialogBox(this);
         this.spawnBins();
         this.objects = roomObjects(def.id, this.tw);
+        const zone = this.tw?.data.points.trig_bar;
+        if (zone) this.barZone = { x: zone.x * TILE, y: zone.y * TILE, w: (zone.w ?? 1) * TILE, h: (zone.h ?? 1) * TILE };
         this.showKeyHints();
 
         const kb = this.input.keyboard!;
@@ -139,25 +173,22 @@ export class WorldScene extends Phaser.Scene {
         kb.on('keydown', this.onKey, this);
         this.events.once('shutdown', () => kb.off('keydown', this.onKey, this));
 
-        this.doorOpen = isSceneDone(def, run);
-        if (this.doorOpen) this.showDoorHint();
+        this.openDoorIfReady();
 
         this.cameras.main.fadeIn(300);
         this.showTitle();
-        // divano has no friend to talk to: the finale (meet, eggs, join) plays by itself after the arrival lines
-        void this.say(lines(`scenes.${def.id}.arrival`)).then(() => {
-            if (def.friend) this.busy = false;
-            else void this.talkToFriend();
-        });
+        void this.say(lines(`scenes.${def.id}.arrival`)).then(() => (this.busy = false));
     }
 
     update(_time: number, delta: number): void {
         if (!this.busy) this.moveRic(delta / 1000);
         else if (!this.portalWalk) this.ric.anims.play(`ric-idle-${this.facing}`, true);
         this.party.update();
-        this.ric.setDepth(this.ric.y);
+        this.ric.setDepth((this.ric.getData('sitDepth') as number | undefined) ?? this.ric.y); // napping on the pouf, Ric sits behind it
         this.updateTalkHint();
         this.updateBinHint();
+        // Cortile: a few steps in, the Albanian lads go for Ros and Giusy
+        if (this.barZone && this.barState === 'idle' && !this.busy && this.inRect(this.barZone) && ['ros', 'giusy'].every((id) => this.run.party.includes(id))) void this.albanesiApproach();
 
         if (this.doorOpen && !this.busy && ((this.def.door && this.inRect(this.def.door, DOOR_SLACK)) || this.atEdge())) this.leave();
     }
@@ -231,11 +262,16 @@ export class WorldScene extends Phaser.Scene {
     }
 
     private addNpc(npcDef: NpcDef, kind: Npc['kind']): Npc {
-        ensureCharAnims(this, npcDef.personId);
-        const sprite = this.add.sprite(npcDef.x, npcDef.y, `char-${npcDef.personId}`, 1).setOrigin(0.5, 1).setDepth(npcDef.y);
-        sprite.play(`${npcDef.personId}-idle-${npcDef.facing}`);
-        idleLife(this).add(sprite, { look: true, shift: kind !== 'friend', canLook: () => !this.busy });
-        const npc: Npc = { def: npcDef, sprite, kind };
+        const own = this.textures.exists(`char-${npcDef.personId}`);
+        const sheet = own ? npcDef.personId : STAND_IN;
+        ensureCharAnims(this, sheet);
+        const sprite = this.add.sprite(npcDef.x, npcDef.y, `char-${sheet}`, 1).setOrigin(0.5, 1).setDepth(npcDef.y);
+        if (!own && STAND_IN_TINT[npcDef.personId]) sprite.setTint(STAND_IN_TINT[npcDef.personId]);
+        sprite.play(idleKey(sheet, npcDef.facing));
+        // someone on a chair is drawn in front of it (the chair's row sorts at the row's lower edge)
+        if (npcDef.seat) sprite.setDepth(npcDef.y + 5);
+        else idleLife(this).add(sprite, { look: true, shift: kind !== 'friend', canLook: () => !this.busy });
+        const npc: Npc = { def: npcDef, sprite, sheet, kind };
         this.npcs.push(npc);
         return npc;
     }
@@ -257,7 +293,7 @@ export class WorldScene extends Phaser.Scene {
         let best: Npc | undefined;
         let bestDist = this.tw ? TALK_RANGE_TILES : TALK_RANGE;
         for (const n of this.npcs) {
-            if (n.kind === 'decor') continue;
+            if (n.kind === 'decor' || n.walking) continue;
             const d = Phaser.Math.Distance.Between(this.ric.x, this.ric.y, n.sprite.x, n.sprite.y);
             if (d <= bestDist) [best, bestDist] = [n, d];
         }
@@ -271,10 +307,11 @@ export class WorldScene extends Phaser.Scene {
     }
 
     private face(n: Npc): void {
+        if (n.def.seat) return; // sitting down, he keeps facing the table
         const dx = this.ric.x - n.sprite.x;
         const dy = this.ric.y - n.sprite.y;
         const dir: Facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
-        n.sprite.play(`${n.def.personId}-idle-${dir}`);
+        n.sprite.play(idleKey(n.sheet, dir));
     }
 
     // ---- talking ----
@@ -282,7 +319,7 @@ export class WorldScene extends Phaser.Scene {
     private onKey(e: KeyboardEvent): void {
         if (e.repeat || this.busy || this.time.now - this.dialog.lastClosed < 250 || performance.now() - this.menuClosedAt < 250) return;
         if (e.code === 'Escape' || e.code === 'KeyC') return this.openMenu(); // C too: the browser keeps Esc to leave fullscreen
-        if (e.code === 'KeyP') return void this.usePortal();
+        if (e.code === 'KeyZ') return void this.usePortal(); // Z only in free walk: the dialogue box (hold: faster text) and the menus (back) read it themselves
         if (!CONFIRM_CODES.includes(e.code)) return;
         const npc = this.nearestTalkable();
         if (!npc) {
@@ -292,8 +329,26 @@ export class WorldScene extends Phaser.Scene {
         }
         this.busy = true;
         this.face(npc);
-        const story = npc.kind === 'friend' ? this.talkToFriend(npc) : this.say(lines(`easterEggs.${npc.def.egg}`));
-        void story.then(() => (this.busy = this.leaving));
+        void this.talkTo(npc).then(() => (this.busy = this.leaving));
+    }
+
+    /** X next to a person: the friend runs the scene's story, the bar girls the Cortile bar scene, the others play their easter egg (some with a twist). */
+    private talkTo(npc: Npc): Promise<void> {
+        if (npc.kind === 'friend') return this.talkToFriend(npc);
+        if (npc.kind === 'bar') return this.barGirls();
+        if (npc.def.personId === 'frangetta') return this.frangetta(npc);
+        if (npc.def.personId === 'losco') return this.losco();
+        return this.sayEgg(npc.def.egg!);
+    }
+
+    /** The first time an egg triggers in a run its popup shows (the `achievements` table of dialogue.it.json). */
+    private award(id: string | undefined): void {
+        if (id) showAchievement(this, id);
+    }
+
+    private async sayEgg(egg: string): Promise<void> {
+        this.award(EGG_ACHIEVEMENT[egg]);
+        await this.say(lines(`easterEggs.${egg}`));
     }
 
     private async talkToFriend(friend?: Npc): Promise<void> {
@@ -304,20 +359,19 @@ export class WorldScene extends Phaser.Scene {
         const games = minigamesOf(def);
         const second = !!def.friend2 && friend?.def === def.friend2;
         const mine = def.friend2 ? games.filter((_, i) => (i === 1) === second) : games;
+        // Cortile: the hooded man is close to Lara and makes his offer when Ric talks to her first
+        if (def.id === 'cortile' && !this.loscoDone && this.npcs.some((n) => n.def.personId === 'losco' && Phaser.Math.Distance.Between(this.ric.x, this.ric.y, n.sprite.x, n.sprite.y) < 90)) await this.losco();
         if (!second && !this.metFriend) await this.say(L('meet'));
         this.metFriend ||= !second;
-
-        if (def.id === 'divano') {
-            for (const egg of divanoEggs(run.results)) await this.say(lines(`easterEggs.${egg}`));
-            await this.say(L('join'));
-            this.leave();
-            return;
-        }
 
         for (const id of mine) {
             if (id in run.results) continue; // this friend's part is already done
             const n = games.indexOf(id) ? String(games.indexOf(id) + 1) : ''; // circe: minigameIntro2 / win2 / lose2 for the second one
+            // Giuggiu's room: the TV shows Rick and Morty, a green portal picture, while the cat game is set up
+            if (def.id === 'giuggiu') this.tvPortal();
             await this.say(L(`minigameIntro${n}`));
+            // Casa Circe: with the hash from the bin Ric has an extra exchange with Ros before the roll
+            if (def.id === 'circe' && id === 'd20' && run.flags.fumo) await this.say(lines('easterEggs.fumoRos'));
             const result = await this.runMinigame(id);
             run.results[id] = result.won;
             resultFx(this, result.won);
@@ -326,9 +380,15 @@ export class WorldScene extends Phaser.Scene {
         }
         if (!games.every((id) => id in run.results)) return; // the other friend's part is still to play
         const egg = eggAfterMinigame(def);
-        if (egg) await this.say(lines(`easterEggs.${egg}`));
+        if (egg) await this.sayEgg(egg);
         await this.say(L('join'));
         await this.join(friend!);
+    }
+
+    private tvPortal(): void {
+        const tv = this.objects.find((o) => o.id === 'tv');
+        if (tv && !this.tvOn) tvPortalGlow(this, tv);
+        this.tvOn = true;
     }
 
     private async join(friend: Npc): Promise<void> {
@@ -341,6 +401,12 @@ export class WorldScene extends Phaser.Scene {
             await this.banner(`${person(id)?.name ?? id} ${t('ui.joined')}`, true, 20);
         }
         this.npcs = this.npcs.filter((n) => n !== friend && n.sprite.active);
+        this.openDoorIfReady();
+    }
+
+    /** The exit opens once the scene's friend joined and, at the Cortile, Ros and Giusy are back in the train. */
+    private openDoorIfReady(): void {
+        if (this.doorOpen || !isSceneDone(this.def, this.run) || this.barState === 'away') return;
         this.doorOpen = true;
         this.showDoorHint();
     }
@@ -426,13 +492,14 @@ export class WorldScene extends Phaser.Scene {
         return objectNear(this.objects, this.ric.x, this.ric.y);
     }
 
-    /** X next to an object of the room: its lines, or its action (the lamp switches, Ric naps on the pouf). */
+    /** X next to an object of the room: its lines, or its action (the lamp switches, Ric naps on the pouf until he moves). */
     private async useObject(o: RoomObject): Promise<void> {
         this.busy = true;
         if (o.id === 'lamp' && this.tw) {
             toggleLamp(this, this.tw, o);
             audio.sfx('confirm');
         } else if (o.id === 'puf') {
+            this.award('puf');
             await dozeOnPuf(this, this.ric, o);
         }
         const said = lines(`objects.${this.def.id}.${o.id}`);
@@ -441,16 +508,35 @@ export class WorldScene extends Phaser.Scene {
         this.busy = this.leaving;
     }
 
-    /** X next to a bin. The first one Ric checks in a run holds Rick's portal gun; the others hold a joke. */
+    private hasItem(item: string): boolean {
+        return item === 'portalGun' ? this.run.portalGun : !!this.run.flags[item];
+    }
+
+    /** X next to a bin: the item the room's bin holds (scenes.json `item`), found once per run; a second look says "già preso". */
     private async checkBin(): Promise<void> {
         this.busy = true;
-        if (!this.run.portalGun) {
-            this.run.portalGun = true;
-            await this.say(lines('easterEggs.portalFound'));
+        const item = this.nearestBin()?.item;
+        const info = item ? BIN_ITEMS[item] : undefined;
+        if (!item || !info || this.hasItem(item)) {
+            await this.say([Phaser.Utils.Array.GetRandom(lines('easterEggs.binTaken'))]);
         } else {
-            await this.say([Phaser.Utils.Array.GetRandom(lines('easterEggs.binEmpty'))]);
+            if (item === 'portalGun') this.run.portalGun = true;
+            else this.run.flags[item] = true;
+            this.award(info.achievement);
+            await this.say(lines(`easterEggs.${info.lines}`));
+            if (item === 'peroni') await this.drinkPeroni();
         }
         this.busy = this.leaving;
+    }
+
+    /** Right after finding the Peroni: drink it or keep it. Drinking sets `peroniBevuta`, which the slack minigame and the fringe girl read. */
+    private async drinkPeroni(): Promise<void> {
+        if (await askChoice(this, t('ui.drinkPeroni'))) {
+            this.run.flags.peroniBevuta = true;
+            await this.say(lines('easterEggs.peroniDrink'));
+        } else {
+            await this.say(lines('easterEggs.peroniKeep'));
+        }
     }
 
     /** The wall in front of Ric, if one is within reach: where it meets the floor in his lane, and whether it faces him. */
@@ -469,18 +555,20 @@ export class WorldScene extends Phaser.Scene {
         return undefined;
     }
 
-    /** P with the portal gun: opens a portal on the wall Ric faces and the whole party walks in; the scene ends as through the exit. */
+    /** Z with the portal gun: opens a portal on the wall Ric faces and the whole party walks in; the scene ends as through the exit. */
     private async usePortal(): Promise<void> {
         if (!this.run.portalGun || !this.tw) return;
         if (!this.doorOpen) {
             this.busy = true;
-            await this.say(lines('easterEggs.portalNotYet'));
+            // the friend joined but Ros and Giusy are still at the Cortile bar
+            await this.say(lines(isSceneDone(this.def, this.run) && this.barState === 'away' ? 'easterEggs.portalGirls' : 'easterEggs.portalNotYet'));
             this.busy = this.leaving;
             return;
         }
         const wall = this.wallAhead();
         if (!wall) return void audio.sfx('cancel');
         this.busy = true;
+        this.award('portal');
         this.portalWalk = true;
         const face = this.facing;
         // the oval stands on the wall face above the contact line; on a wall seen from above it lies on the wall top
@@ -515,6 +603,157 @@ export class WorldScene extends Phaser.Scene {
         portal.close();
         await wait(300);
         this.leave();
+    }
+
+    // ---- extras with a story of their own ----
+
+    /** Giardini: the girl with the blunt fringe. Ric can ask for her number (yes or no); after a drunk Peroni he burps instead and she walks off. */
+    private async frangetta(npc: Npc): Promise<void> {
+        const { run } = this;
+        if (run.flags.numeroFrangetta) return this.say(lines('easterEggs.frangettaAgain'));
+        if (run.flags.peroniBevuta) {
+            this.award('rutto');
+            await this.say(lines('easterEggs.frangettaBurp'));
+            this.cameras.main.shake(260, 0.006);
+            this.npcs = this.npcs.filter((n) => n !== npc);
+            void this.walkOff(npc.sprite); // she walks to the exit while Ric is free again
+            return;
+        }
+        await this.say(lines('easterEggs.frangetta'));
+        if (await askChoice(this, t('ui.askNumber'))) {
+            run.flags.numeroFrangetta = true;
+            this.award('numero');
+            await this.say(lines('easterEggs.frangettaNumber'));
+        } else {
+            await this.say(lines('easterEggs.frangettaNo'));
+        }
+    }
+
+    /** Cortile: the hooded man offers Lara some "cocco"; Ric pulls her away and thanks him. */
+    private async losco(): Promise<void> {
+        this.loscoDone = true;
+        this.award('losco');
+        await this.say(lines('easterEggs.losco'));
+    }
+
+    // ---- the Cortile bar: Ros and Giusy leave the train, Ric fetches them ----
+
+    /** A few steps in, two Albanian lads go for Ros and Giusy: both leave the train and walk to the bar, next to the lads. */
+    private async albanesiApproach(): Promise<void> {
+        this.busy = true;
+        this.barState = 'away';
+        await this.say(lines('easterEggs.albanesi'));
+        const walks = ['ros', 'giusy'].flatMap((id) => {
+            const sprite = this.party.release(id);
+            const spot = this.tw?.data.points[id === 'ros' ? 'bar_ros' : 'bar_giusy'];
+            if (!sprite || !spot) return [];
+            const def: NpcDef = { personId: id, facing: 'right', x: sprite.x, y: sprite.y };
+            const npc: Npc = { def, sprite, sheet: id, kind: 'bar', walking: true };
+            this.npcs.push(npc);
+            const to = feetOf(spot);
+            return [this.walkAlong(sprite, this.pathTo(sprite, to), 'right').then(() => (npc.walking = false))];
+        });
+        this.busy = this.leaving; // Ric is free to walk on while they cross the room
+        await Promise.all(walks);
+    }
+
+    /** X on Ros or Giusy at the bar: with the 20 EUR Ric buys the round and the lads leave; after the minigame he can just fetch them; before it they are busy. */
+    private async barGirls(): Promise<void> {
+        const { run } = this;
+        if (run.flags.soldi && !run.flags.soldiUsati) {
+            await this.say(lines('easterEggs.barSoldi'));
+            run.flags.soldiUsati = true;
+            this.award('albanesi');
+            for (const lad of this.npcs.filter((n) => n.def.personId.startsWith('albanese'))) {
+                this.npcs = this.npcs.filter((n) => n !== lad);
+                void this.walkOff(lad.sprite);
+            }
+            await this.wait(1400);
+            await this.say(lines('easterEggs.barSoldiAfter'));
+            await this.girlsRejoin();
+        } else if (isSceneDone(this.def, run)) {
+            await this.say(lines('easterEggs.barFetch'));
+            await this.girlsRejoin();
+        } else {
+            await this.say(lines('easterEggs.barBusy'));
+        }
+    }
+
+    /** Ros and Giusy walk to Ric and are in the train again; the exit opens if the minigame is done. */
+    private async girlsRejoin(): Promise<void> {
+        const girls = this.npcs.filter((n) => n.kind === 'bar');
+        this.npcs = this.npcs.filter((n) => n.kind !== 'bar');
+        await Promise.all(
+            girls.map(async (g) => {
+                await this.walkAlong(g.sprite, this.pathTo(g.sprite, { x: this.ric.x, y: this.ric.y }));
+                g.sprite.destroy();
+                this.party.add(g.def.personId);
+            })
+        );
+        this.run.flags.rosGiusyBack = true;
+        this.barState = 'back';
+        this.openDoorIfReady();
+    }
+
+    /** Someone walks to the room's door and is gone. */
+    private async walkOff(sprite: Phaser.GameObjects.Sprite): Promise<void> {
+        const d = this.def.door;
+        if (d) await this.walkAlong(sprite, this.pathTo(sprite, { x: d.x + d.w / 2, y: d.y + d.h / 2 }));
+        sprite.destroy();
+    }
+
+    private wait(ms: number): Promise<void> {
+        return new Promise((resolve) => this.time.delayedCall(ms, resolve));
+    }
+
+    /** The way from one point to another over the free tiles of the room (breadth first, 4 directions), as the feet points to walk through; a straight line when there is none. */
+    private pathTo(from: Point, to: Point): Point[] {
+        const tw = this.tw;
+        if (!tw) return [to];
+        const { width, height, collision } = tw.data;
+        const tile = (p: Point) => ({ x: Math.floor(p.x / TILE), y: Math.floor((p.y - 1) / TILE) });
+        const a = tile(from);
+        const b = tile(to);
+        const id = (x: number, y: number) => y * width + x;
+        const prev = new Map<number, number>([[id(a.x, a.y), -1]]);
+        const queue = [a];
+        for (let i = 0; i < queue.length && !prev.has(id(b.x, b.y)); i++) {
+            for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                const x = queue[i].x + dx;
+                const y = queue[i].y + dy;
+                if (x < 0 || y < 0 || x >= width || y >= height || collision[y][x] === 1 || prev.has(id(x, y))) continue;
+                prev.set(id(x, y), id(queue[i].x, queue[i].y));
+                queue.push({ x, y });
+            }
+        }
+        if (!prev.has(id(b.x, b.y))) return [to];
+        const tiles: Point[] = [];
+        for (let k = id(b.x, b.y); k !== -1; k = prev.get(k)!) tiles.unshift({ x: k % width, y: Math.floor(k / width) });
+        const pts = [...tiles.slice(1).map(feetOf), to];
+        // keep only the corners: a straight run is one walk
+        return pts.filter((p, i) => {
+            const before = i ? pts[i - 1] : from;
+            const after = pts[i + 1];
+            return !after || !((before.x === p.x && p.x === after.x) || (before.y === p.y && p.y === after.y));
+        });
+    }
+
+    /** A person walks through the points one after the other at WALK_PX, with their walk animation, then stands facing `end` (the way of their last step when omitted). */
+    private async walkAlong(sprite: Phaser.GameObjects.Sprite, path: Point[], end?: Dir): Promise<void> {
+        const sheet = sprite.texture.key.slice('char-'.length);
+        let dir: Dir = end ?? 'down';
+        for (const p of path) {
+            const dx = p.x - sprite.x;
+            const dy = p.y - sprite.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 0.5 || !sprite.active) continue;
+            dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down';
+            sprite.play(walkKey(sheet, dir), true);
+            await new Promise<void>((resolve) =>
+                this.tweens.add({ targets: sprite, x: p.x, y: p.y, duration: (dist / WALK_PX) * 1000, onUpdate: () => sprite.setDepth(sprite.y), onComplete: () => resolve() })
+            );
+        }
+        if (sprite.active) sprite.play(idleKey(sheet, end ?? dir), true);
     }
 
     // ---- texts on screen ----
@@ -552,7 +791,7 @@ export class WorldScene extends Phaser.Scene {
         this.busy = true;
         this.leaving = true;
         const next = this.run.sceneIndex + 1;
-        if (this.def.id === 'divano' || next >= SCENES.length) return fadeToScene(this, 'ending');
+        if (next >= SCENES.length) return fadeToScene(this, 'ending');
         this.run.sceneIndex = next;
         fadeToScene(this, 'world');
     }

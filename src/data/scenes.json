@@ -14,7 +14,7 @@
       { "personId": "sconosciuta", "facing": "left", "egg": "extra-1", "tint": "#9fb8ff", "at": "studente" }
     ],
     "minigame": "simon",
-    "bins": [{ "x": 656, "y": 412, "draw": false }],
+    "bins": [{ "x": 656, "y": 412, "draw": false, "item": "appunti" }],
     "ambient": []
   },
   {
@@ -26,12 +26,13 @@
     "spawn": { "facing": "up" },
     "door": null,
     "walk": [],
-    "friend": { "personId": "giuggiu", "facing": "left", "at": "giuggiu" },
+    "friend": { "personId": "giuggiu", "facing": "left", "at": "giuggiu", "seat": true },
     "extras": [
-      { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" }
+      { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" },
+      { "personId": "armando", "facing": "left", "egg": "extra-armando", "at": "armando" }
     ],
     "minigame": "cat-smoke",
-    "bins": [{ "x": 80, "y": 540 }],
+    "bins": [{ "x": 80, "y": 540, "item": "portalGun" }],
     "ambient": []
   },
   {
@@ -45,12 +46,15 @@
     "walk": [],
     "friend": { "personId": "liscio", "facing": "right", "at": "liscio" },
     "extras": [
-      { "personId": "sconosciuta", "facing": "left", "egg": "extra-2", "tint": "#ffd08a", "at": "dogwalker" },
+      { "personId": "slackgirl1", "facing": "left", "egg": "slackgirl1", "at": "dogwalker" },
+      { "personId": "slackgirl2", "facing": "down", "egg": "slackgirl2", "at": "slackgirl2" },
+      { "personId": "slackgirl3", "facing": "down", "egg": "slackgirl3", "at": "slackgirl3" },
+      { "personId": "frangetta", "facing": "left", "egg": "frangetta", "at": "frangetta" },
       { "personId": "rosanna", "facing": "down", "egg": "extra-rosanna", "at": "rosanna" }
     ],
     "minigame": "slackline",
     "exit": "edge",
-    "bins": [{ "x": 368, "y": 410, "draw": false }],
+    "bins": [{ "x": 368, "y": 410, "draw": false, "item": "peroni" }],
     "ambient": []
   },
   {
@@ -64,12 +68,9 @@
     "walk": [],
     "friend": { "personId": "ros", "facing": "left", "at": "ros" },
     "friend2": { "personId": "giusy", "facing": "down", "at": "giusy" },
-    "extras": [
-      { "personId": "papa", "facing": "up", "egg": "extra-genitori", "at": "papa" },
-      { "personId": "mamma", "facing": "up", "egg": "extra-genitori", "at": "mamma" }
-    ],
+    "extras": [],
     "minigame": "d20",
-    "bins": [{ "x": 560, "y": 380 }],
+    "bins": [{ "x": 560, "y": 380, "item": "fumo" }],
     "minigame2": "mash",
     "ambient": []
   },
@@ -84,25 +85,16 @@
     "walk": [],
     "friend": { "personId": "lara", "facing": "up", "at": "lara" },
     "extras": [
-      { "personId": "alessandro", "facing": "right", "egg": "extra-3", "at": "barista" }
+      { "personId": "alessandro", "facing": "right", "egg": "extra-3", "at": "barista" },
+      { "personId": "papa", "facing": "right", "egg": "extra-genitori", "at": "papa" },
+      { "personId": "mamma", "facing": "right", "egg": "extra-genitori", "at": "mamma" },
+      { "personId": "carolina", "facing": "up", "egg": "extra-carolina", "at": "carolina" },
+      { "personId": "losco", "facing": "right", "egg": "losco", "at": "losco" },
+      { "personId": "albanese1", "facing": "left", "egg": "albanese", "at": "albanese1" },
+      { "personId": "albanese2", "facing": "left", "egg": "albanese", "at": "albanese2" }
     ],
     "minigame": "rhythm",
-    "bins": [{ "x": 656, "y": 538 }],
-    "ambient": []
-  },
-  {
-    "id": "divano",
-    "background": "bg-divano",
-    "map": "divano",
-    "title": "Casa Circe, la sera",
-    "music": "divano",
-    "spawn": { "facing": "up" },
-    "door": null,
-    "walk": [],
-    "friend": null,
-    "extras": [],
-    "minigame": null,
-    "bins": [{ "x": 560, "y": 348 }],
+    "bins": [{ "x": 656, "y": 538, "item": "soldi" }],
     "ambient": []
   }
 ]

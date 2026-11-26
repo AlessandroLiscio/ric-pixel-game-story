@@ -110,7 +110,7 @@
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
  ],
- "points": {"spawn":{"x":1,"y":14},"door":{"x":24,"y":14,"w":2,"h":2},"liscio":{"x":6,"y":9},"dogwalker":{"x":21,"y":11},"rosanna":{"x":16,"y":10}},
+ "points": {"spawn":{"x":1,"y":14},"door":{"x":24,"y":14,"w":2,"h":2},"liscio":{"x":6,"y":9},"dogwalker":{"x":21,"y":11},"slackgirl2":{"x":9,"y":7},"slackgirl3":{"x":12,"y":7},"frangetta":{"x":19,"y":9},"rosanna":{"x":16,"y":10}},
  "lights": [],
  "dancers": [],
  "crowd": [{"sheet":"crowd-5","x":4,"y":10,"facing":"up","bob":2600},{"sheet":"crowd-9","x":13,"y":12,"facing":"right","bob":2900},{"sheet":"crowd-12","x":14,"y":12,"facing":"left","bob":2400},{"sheet":"crowd-16","x":23,"y":13,"facing":"left","bob":2700},{"sheet":"crowd-3","x":5,"y":13,"facing":"up","bob":3000},{"sheet":"crowd-7","x":16,"y":9,"facing":"left","bob":2500}]

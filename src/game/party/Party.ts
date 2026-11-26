@@ -68,6 +68,19 @@ export class Party {
         audio.sfx('confirm');
     }
 
+    /**
+     * A follower leaves the train: it is dropped from the trail (the ones behind it close up) and its sprite is handed to the caller,
+     * which owns it from now on (it walks off, or stands somewhere as a person of the room). `add(id)` takes the friend back.
+     * Returns undefined for an id that is not in the train.
+     */
+    release(personId: string): Phaser.GameObjects.Sprite | undefined {
+        const i = this.followers.findIndex((f) => f.id === personId);
+        if (i < 0) return undefined;
+        const [f] = this.followers.splice(i, 1);
+        f.sprite.play(idleKey(f.id, f.dir), true);
+        return f.sprite;
+    }
+
     /** Call every frame after the leader moved. */
     update(_dt?: number): void {
         if (this.paused) return;

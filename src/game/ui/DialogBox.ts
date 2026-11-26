@@ -11,6 +11,8 @@ const PANEL_Y = GAME_HEIGHT - PANEL_H;
 const PORTRAIT = 96;
 const TEXT_X_PORTRAIT = 6 + PORTRAIT + 8;
 const TEXT_X_FULL = 16;
+// Where a page wraps: the whole width left of the right edge (with a portrait the box is narrower). scripts/check-dialogue.mjs measures against the same numbers.
+export const WRAP_W = { portrait: GAME_WIDTH - TEXT_X_PORTRAIT - 14, full: GAME_WIDTH - TEXT_X_FULL - 16 };
 const TICK_MS = 28;
 const BLIP_EVERY = 3; // letters per blip
 const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
@@ -82,14 +84,16 @@ export class DialogBox {
         this.portrait.setVisible(hasPortrait);
         if (hasPortrait) this.portrait.setTexture(who!.portrait!);
         this.nameText.setText(who?.name ?? '').setX(x);
-        this.body.setText('').setPosition(x, who ? PANEL_Y + 26 : PANEL_Y + 14);
+        this.body.setWordWrapWidth(hasPortrait ? WRAP_W.portrait : WRAP_W.full).setText('').setPosition(x, who ? PANEL_Y + 26 : PANEL_Y + 14);
         this.arrow.setVisible(false);
         if (line.pause) await this.wait(line.pause);
 
         await new Promise<void>((resolve) => {
             let shown = 0;
             let letters = 0;
-            const full = line.text.replace(/\{ric\}/g, person('ric')?.name ?? 'Ric');
+            // the text reflows to the box: an old hard break counts as a space, and the wrap is worked out once for the whole page so a word never jumps while it types
+            const raw = line.text.replace(/\{ric\}/g, person('ric')?.name ?? 'Ric').replace(/\s*\n\s*/g, ' ');
+            const full = this.body.getWrappedText(raw).join('\n');
             let done = false;
             const timer = this.scene.time.addEvent({
                 delay: TICK_MS,
