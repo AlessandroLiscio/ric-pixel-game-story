@@ -28,8 +28,7 @@
     "walk": [],
     "friend": { "personId": "giuggiu", "facing": "left", "at": "giuggiu", "seat": true },
     "extras": [
-      { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" },
-      { "personId": "armando", "facing": "left", "egg": "extra-armando", "at": "armando" }
+      { "personId": "gatto", "facing": "down", "sfx": "meow", "at": "gatto" }
     ],
     "minigame": "cat-smoke",
     "bins": [{ "x": 80, "y": 540, "item": "portalGun" }],
@@ -50,7 +49,9 @@
       { "personId": "slackgirl2", "facing": "down", "egg": "slackgirl2", "at": "slackgirl2" },
       { "personId": "slackgirl3", "facing": "down", "egg": "slackgirl3", "at": "slackgirl3" },
       { "personId": "frangetta", "facing": "left", "egg": "frangetta", "at": "frangetta" },
-      { "personId": "rosanna", "facing": "down", "egg": "extra-rosanna", "at": "rosanna" }
+      { "personId": "rosanna", "facing": "down", "egg": "extra-rosanna", "at": "rosanna" },
+      { "personId": "papa", "facing": "right", "egg": "extra-genitori", "at": "papa" },
+      { "personId": "mamma", "facing": "left", "egg": "extra-genitori", "at": "mamma" }
     ],
     "minigame": "slackline",
     "exit": "edge",
@@ -86,9 +87,8 @@
     "friend": { "personId": "lara", "facing": "up", "at": "lara" },
     "extras": [
       { "personId": "alessandro", "facing": "right", "egg": "extra-3", "at": "barista" },
-      { "personId": "papa", "facing": "right", "egg": "extra-genitori", "at": "papa" },
-      { "personId": "mamma", "facing": "right", "egg": "extra-genitori", "at": "mamma" },
-      { "personId": "carolina", "facing": "up", "egg": "extra-carolina", "at": "carolina" },
+      { "personId": "armando", "facing": "right", "egg": "extra-armando", "at": "armando" },
+      { "personId": "carolina", "facing": "right", "egg": "extra-carolina", "at": "carolina" },
       { "personId": "losco", "facing": "right", "egg": "losco", "at": "losco" },
       { "personId": "albanese1", "facing": "left", "egg": "albanese", "at": "albanese1" },
       { "personId": "albanese2", "facing": "left", "egg": "albanese", "at": "albanese2" }

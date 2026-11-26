@@ -486,7 +486,7 @@
       { "speaker": "ric", "text": "Meh. U pulpe se cosce che l'àcqua soa stèsse." }
     ],
     "extra-armando": [
-      { "speaker": "armando", "text": "Ric, io voglio solo andare a casa a giocare all'Xbox. Ma prima mangio." },
+      { "speaker": "armando", "text": "Ric, bel concerto, eh. Ma io voglio solo andare a casa a giocare all'Xbox. Prima però mangio." },
       { "speaker": "armando", "text": "Pasta al pesto, ovviamente. Come ogni giorno da dieci anni." },
       { "speaker": "giuggiu", "text": "Aò, er pesto der barattolo. Me sto a sentì male." }
     ],
@@ -538,8 +538,8 @@
       { "speaker": "ric", "text": "Vengo! Igloo, ukulele e finlandesi: dove devo firmare?" }
     ],
     "extra-genitori": [
-      { "speaker": "mamma", "text": "Ric! Passavamo di qui e siamo entrati a sentirti suonare." },
-      { "speaker": "papa", "text": "Ros, lo sai? L'altra volta ci siamo fatti un tiro di trellone con lui. Che serata!" },
+      { "speaker": "mamma", "text": "Ric! Facevamo due passi ai Giardini e guarda chi c'è!" },
+      { "speaker": "papa", "text": "Liscio, lo sai? L'altra volta ci siamo fatti un tiro di trellone con lui. Che serata!" },
       { "speaker": "mamma", "text": "Shh! Non dirlo a nessuno. Soprattutto alla nonna." },
       { "speaker": "ric", "text": "(Questa non la racconto. Mai.)" }
     ]

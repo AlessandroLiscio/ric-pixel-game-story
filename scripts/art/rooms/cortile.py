@@ -121,9 +121,8 @@ def build():
     m.point("bar_giusy", 7, 7)
     m.point("albanese2", 8, 7)
     m.point("losco", 11, 7)      # the hooded man, next to Lara
-    m.point("papa", 17, 12)      # Ric's parents and Carolina, at the big tables on the right
-    m.point("mamma", 16, 12)
-    m.point("carolina", 17, 14)
+    m.point("armando", 17, 12)   # Armando and Carolina, together at a big table on the right
+    m.point("carolina", 16, 12)
     m.point("trig_bar", 9, 12, 5, 2)  # a few steps in from the door: crossing this zone sends Ros and Giusy to the bar (x, y, w, h in tiles)
     m.point("obj_bar", 7, 8, 1, 8)  # the counter: 1 tile wide, rows 8 to 15
 

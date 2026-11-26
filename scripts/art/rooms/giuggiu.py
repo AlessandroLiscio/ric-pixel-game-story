@@ -95,7 +95,6 @@ def build():
     m.point("door", 20, DOOR[0], 1, 2)
     m.point("giuggiu", 13, 5)                                    # Giuggiu sits on the black chair at the east end of the glass table (a seat: the tile stays blocked)
     m.point("gatto", 18, 11)
-    m.point("armando", 13, 8)                                    # Armando, an extra, between the glass table and the sofas
     # the things the player can look at or use (x, y, w, h in tiles, the footprint of each object)
     m.point("obj_plates", 9, 5, 4, 2)                            # the glass table: the three carbonara plates and their steam stand on it
     m.point("obj_table", 8, 12, 4, 2)                            # the low black table
