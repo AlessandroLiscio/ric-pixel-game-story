@@ -9,17 +9,16 @@ import { balloonTexture, bandTexture, blanketTexture, glowTexture, particleTextu
 import { finaleFx, startTvFx } from './fx';
 import { LABELS } from './labels';
 import { BALLOONS, BAND_CX, BAND_TEXT_W, BAND_X, DEPTH, GAME_HEIGHT, GAME_WIDTH, SCREEN, SPEECH, SPOTS, UPSTAIRS, type Spot } from './layout';
-import { awayOf, type Beat, buildBeats, FINALE_MS, LOOP_MS } from './script';
+import { awayOf, type Beat, BIRTHDAY_STEP, buildBeats, LEAD_IN_MS, SCROLL_MS } from './script';
 import { FishTv } from './tv';
 
 const FINALE_CX = 494;
-const RESTART_CODES = ['KeyX', 'Enter', 'Space'];
+const CONFIRM_CODES = ['KeyX', 'Enter', 'Space'];
 const CONFETTI = [0xff5a6e, 0xffd34a, 0x6ee08a, 0x6ab4ff, 0xff8ae0];
+const HURRY = 5; // how much faster the credits column runs once the last line has been read
 
-/** Frames of a character sheet (3 columns, rows down, left, right, up): the standing frame of each facing, and the two steps of the up row. */
+/** Frames of a character sheet (3 columns, rows down, left, right, up): the standing frame of each facing. */
 const FACE = { down: 1, left: 4, right: 7, up: 10 } as const;
-const STEP_L = 9;
-const STEP_R = 11;
 
 interface Breather {
     img: Phaser.GameObjects.Sprite;
@@ -42,8 +41,8 @@ type Phase = 'credits' | 'finale';
  * The `ending` scene: Casa Circe late at night, the real tile room of the divano scene (src/data/maps/divano.json) as the backdrop.
  * The TV plays a fish documentary, and the whole party is asleep or half asleep on the sofa (seen from behind, facing the TV), the
  * chairs of the dinner table and the floor. The credits roll over a dark column on the right while the night scene of the divano room is
- * spoken in a banner along the bottom of the room (script.ts), with no input; then "Buon compleanno Ric!" and the way back to the title.
- * Esc or C opens the menu over a paused roll.
+ * spoken in a banner along the bottom of the room (script.ts), one line per press of X like any dialogue; once the last line is read and
+ * the column has gone by, "Buon compleanno Ric!" and the way back to the title. Esc or C opens the menu over a paused roll.
  */
 export class EndingScene extends Phaser.Scene {
     private tv!: FishTv;
@@ -52,15 +51,13 @@ export class EndingScene extends Phaser.Scene {
     private flickerAcc = 0;
     private flicker = 1;
     private phase: Phase = 'credits';
-    /** Roll time in ms, advanced by `rate` x the frame time; the roll (and the finale) ends at `rollMs`. */
+    /** Time of the credits column in ms: it has gone by at SCROLL_MS. */
     private roll = 0;
-    private rollMs = FINALE_MS;
-    private rate = 1;
-    private musicStart = 0;
     private beats: Beat[] = [];
+    /** The next line to show, or the one on screen (`activeBeat`); `beats.length` once all are read. */
     private beatIx = 0;
     private activeBeat: Beat | null = null;
-    private gagStart = Infinity;
+    private laughs: Phaser.GameObjects.Text[] = [];
     private left = false; // the ones who go upstairs have left the room
     private upstairsBusy = false; // they have reached the top of the stairs: the bed creaks
     private creakAcc = 0;
@@ -84,8 +81,6 @@ export class EndingScene extends Phaser.Scene {
     private glow!: Phaser.GameObjects.Image;
     private band!: Phaser.GameObjects.Image;
     private dim!: Phaser.GameObjects.Rectangle;
-    private ricStand: Phaser.GameObjects.Sprite | null = null;
-    private catSprite: Phaser.GameObjects.Sprite | null = null;
     private canRestart = false;
     private leaving = false;
     private showEnd: (() => void) | null = null;
@@ -103,9 +98,9 @@ export class EndingScene extends Phaser.Scene {
         this.phase = 'credits';
         this.scroll = 0;
         this.roll = 0;
-        this.rate = 1;
         this.beatIx = 0;
         this.activeBeat = null;
+        this.laughs = [];
         this.creakAcc = 0;
         this.menuClosedAt = 0;
         this.talkers = new Map();
@@ -113,8 +108,6 @@ export class EndingScene extends Phaser.Scene {
         this.breathers = [];
         this.zzz = [];
         this.balloons = [];
-        this.ricStand = null;
-        this.catSprite = null;
         this.left = false;
         this.upstairsBusy = false;
         this.canRestart = false;
@@ -124,14 +117,10 @@ export class EndingScene extends Phaser.Scene {
 
         const run = getRun(this.game);
         this.away = awayOf(run.flags);
-        const { beats, rollMs } = buildBeats(run);
-        this.beats = beats;
-        this.rollMs = rollMs;
-        this.gagStart = beats.find((b) => b.upstairs)?.start ?? Infinity;
+        this.beats = buildBeats(run);
 
         this.cameras.main.fadeIn(700, 0, 0, 0);
         audio.playTrack('credits');
-        this.musicStart = performance.now();
         particleTextures(this);
 
         this.buildRoom();
@@ -189,29 +178,18 @@ export class EndingScene extends Phaser.Scene {
     }
 
     private buildParty(): void {
-        const results = getRun(this.game).results;
-        const slackline = results.slackline === true;
-        const cat = results['cat-smoke'] === true;
-
         // everyone is in the room for the whole night; the ones who go upstairs (Liscio and Lara, or Ric) leave when the gag starts (leave())
-        const ricOnChair = slackline;
 
-        // the sofa, seen from behind, facing the TV: Liscio, Ric (Ros while Ric balances on the chair) and Lara
+        // the sofa, seen from behind, facing the TV: Liscio, Ric and Lara
         this.person('liscio', SPOTS.sofaLeft, FACE.up);
-        this.person(slackline ? 'ros' : 'ric', SPOTS.sofaMid, FACE.up);
+        this.person('ric', SPOTS.sofaMid, FACE.up);
         this.person('lara', SPOTS.sofaRight, FACE.up);
 
-        // the chairs of the dinner table: Giusy asleep on the left one (it faces east), the right one (it faces west) is Ric's stage when he won the slackline
-        const { chairLeft, chairRight, chairRightStand } = SPOTS;
+        // the chairs of the dinner table: Giusy asleep on the left one (it faces east), Ros on the right one (it faces west)
+        const { chairLeft, chairRight } = SPOTS;
         this.person('giusy', chairLeft, FACE.right);
         this.sleepy(chairLeft.x + 8, chairLeft.y - 38);
-        if (ricOnChair) {
-            // standing on one foot on the seat, wobbling
-            this.ricStand = this.person('ric', chairRightStand, STEP_L);
-            this.breathers.pop(); // the wobble replaces the breathing
-        } else {
-            this.person('ros', chairRight);
-        }
+        this.person('ros', chairRight);
 
         // the floor: Lollino leans against the pink pouf (it hides all but his head and shoulders), Giuggiu sleeps on her back under a blanket
         const pouf = this.person('lollino', SPOTS.pouf, FACE.up);
@@ -222,12 +200,6 @@ export class EndingScene extends Phaser.Scene {
         this.lying('giuggiu', g, -Math.PI / 2);
         this.add.image(g.x + 7, g.y + 2, blanketTexture(this)).setDepth(g.depth + 1);
         this.sleepy(g.x - 6, g.y - 14);
-
-        if (cat) {
-            // curled up from behind (the rear row of the sheet shows the striped tail), the tail wagging until he dozes off with the gag
-            this.catSprite = this.person('gatto', SPOTS.cat, FACE.up);
-            this.sleepy(SPOTS.cat.x + 8, SPOTS.cat.y - 28);
-        }
     }
 
     // ---- light ----
@@ -277,7 +249,6 @@ export class EndingScene extends Phaser.Scene {
             if (!who) continue;
             this.talkers.delete(id);
             this.breathers = this.breathers.filter((b) => b.img !== who.img);
-            if (who.img === this.ricStand) this.ricStand = null;
             who.img.setRotation(0).setFrame(FACE.up);
             this.tweens.add({ targets: who.img, x: UPSTAIRS.x, y: UPSTAIRS.y + 26, alpha: 0, duration: 1800, ease: 'Sine.easeIn' });
         }
@@ -297,7 +268,10 @@ export class EndingScene extends Phaser.Scene {
         this.speechFace = this.add.image(0, 0, '__DEFAULT').setOrigin(0).setScale(SPEECH.portrait / 96);
         this.speechName = this.add.text(0, 0, '', { ...style, color: '#ffe27a' });
         this.speechBody = this.add.text(0, 0, '', style);
-        this.speech = this.add.container(0, 0, [this.speechPanel, this.speechFace, this.speechName, this.speechBody]).setDepth(DEPTH.speech).setAlpha(0);
+        // the blinking "press X" arrow of the dialogue box
+        const arrow = this.add.graphics().fillStyle(0xffffff).fillTriangle(-5, 0, 5, 0, 0, 5).setPosition(SPEECH.x + SPEECH.w / 2, SPEECH.bottom - 7);
+        this.tweens.add({ targets: arrow, alpha: 0.15, duration: 380, yoyo: true, repeat: -1 });
+        this.speech = this.add.container(0, 0, [this.speechPanel, this.speechFace, this.speechName, this.speechBody, arrow]).setDepth(DEPTH.speech).setAlpha(0);
     }
 
     /** Shows `b` in the banner (or hides it for null): portrait and name of the speaker, or the plain narrator text. */
@@ -323,18 +297,33 @@ export class EndingScene extends Phaser.Scene {
         this.tweens.add({ targets: this.speech, alpha: 1, duration: 120 });
     }
 
-    private runBeats(): void {
-        while (this.beatIx < this.beats.length && this.roll >= this.beats[this.beatIx].end) this.beatIx++;
-        const b = this.beats[this.beatIx];
-        const now = b && this.roll >= b.start ? b : null;
-        if (now !== this.activeBeat) {
-            this.activeBeat = now;
-            this.showBeat(now);
-        }
-        if (this.roll >= this.gagStart && !this.left) {
+    /** Puts line `beatIx` on screen (nothing once all are read); the first line of the gag sends its people upstairs. */
+    private speak(): void {
+        this.activeBeat = this.beats[this.beatIx] ?? null;
+        this.showBeat(this.activeBeat);
+        this.laugh(!!this.activeBeat?.laugh);
+        if (this.activeBeat?.upstairs && !this.left) {
             this.left = true;
             this.leave();
         }
+    }
+
+    /** Everyone bursts out laughing: an "AH!" pops over every head (their hops are in update()). */
+    private laugh(on: boolean): void {
+        for (const text of this.laughs) {
+            this.tweens.killTweensOf(text);
+            text.destroy();
+        }
+        this.laughs = !on
+            ? []
+            : [...this.talkers.values()].map(({ img }, i) => {
+                  const lying = img.rotation !== 0;
+                  const y = img.y - (lying ? 22 : 40) - (i % 2) * 9; // every other one higher, so neighbours on the sofa do not overlap
+                  const x = img.x - (lying ? 34 : 0); // over the sleeper's head, clear of the sofa
+                  const text = this.add.text(x, y,LABELS.laugh, { ...pixelStyle(16, '#ffe27a'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(DEPTH.speech);
+                  this.tweens.add({ targets: text, y: y - 5, duration: 160, delay: (i * 70) % 300, yoyo: true, repeat: -1 });
+                  return text;
+              });
     }
 
     /** A bed creaking upstairs: two low blips, only once someone has gone up there. */
@@ -345,21 +334,6 @@ export class EndingScene extends Phaser.Scene {
         this.creakAcc = 0;
         audio.tone(Phaser.Math.Between(88, 120), 70);
         this.time.delayedCall(110, () => audio.tone(Phaser.Math.Between(120, 150), 60));
-    }
-
-    /** The menu was closed: the music kept playing, so stretch or squeeze the rest of the roll to make its end meet the next Happy Birthday phrase. */
-    private resync(): void {
-        this.rate = 1;
-        if (this.phase !== 'credits') return;
-        const left = this.rollMs - this.roll;
-        const now = performance.now();
-        let best = 0;
-        for (let j = 0; j < 8; j++) {
-            const gap = this.musicStart + FINALE_MS + j * LOOP_MS - now;
-            const r = gap > 0 ? left / gap : 0;
-            if (r >= 0.7 && r <= 1.4 && (!best || Math.abs(Math.log(r)) < Math.abs(Math.log(best)))) best = r;
-        }
-        if (best) this.rate = best;
     }
 
     // ---- credits ----
@@ -414,13 +388,8 @@ export class EndingScene extends Phaser.Scene {
         // breathing: one pixel up and down, out of step
         for (const b of this.breathers) b.img.y = b.base + (Math.sin(t / 640 + b.phase) > 0.15 ? 1 : 0);
         for (const b of this.balloons) b.img.y = b.base + Math.round(Math.sin(t / 900 + b.phase) * 2);
-        if (this.ricStand) {
-            this.ricStand.setRotation(Math.sin(t / 330) * 0.08 + Math.sin(t / 870) * 0.05);
-            this.ricStand.setFrame(Math.sin(t / 470) > 0 ? STEP_L : STEP_R);
-        }
-        if (this.catSprite) this.catSprite.setFrame(this.roll >= this.gagStart ? FACE.up : Math.sin(t / 380) > 0 ? STEP_L : STEP_R);
         for (const z of this.zzz) {
-            if (this.roll < this.gagStart) break; // they talk through the night and only doze off once the gag starts
+            if (!this.left) break; // they talk through the night and only doze off once the gag starts
             z.imgs.forEach((img, i) => {
                 const p = ((t + i * 1100) % 3300) / 3300;
                 img.setPosition(Math.round(z.x + p * 10 + Math.sin(p * 8) * 2), Math.round(z.y - p * 22));
@@ -433,23 +402,26 @@ export class EndingScene extends Phaser.Scene {
         if (this.activeBeat) {
             const who = this.talkers.get(this.activeBeat.speaker);
             if (who) who.img.y = who.base - (Math.floor(t / 130) % 2) * 2;
+            // and the whole room shakes with laughter, out of step
+            if (this.activeBeat.laugh) [...this.talkers.values()].forEach((l, i) => (l.img.y = l.base - ((Math.floor(t / 110) + i) % 2) * 3));
         }
 
         if (this.phase === 'credits') this.rollCredits(delta);
     }
 
     private rollCredits(delta: number): void {
-        this.roll += delta * this.rate;
-        this.runBeats();
+        const read = this.beatIx >= this.beats.length;
+        this.roll += delta * (read ? HURRY : 1);
+        if (!this.activeBeat && !read && this.roll >= LEAD_IN_MS) this.speak();
         this.creak(delta);
-        this.scroll = (this.maxScroll * this.roll) / this.rollMs;
+        this.scroll = (this.maxScroll * this.roll) / SCROLL_MS;
         for (const line of this.credits) {
             const y = Math.round(line.y - this.scroll);
             line.obj.setY(y);
             const mid = y + line.obj.height / 2;
             line.obj.setAlpha(Phaser.Math.Clamp(mid / 40, 0, 1) * Phaser.Math.Clamp((GAME_HEIGHT - mid) / 24, 0, 1));
         }
-        if (this.scroll >= this.maxScroll) this.startFinale();
+        if (read && this.scroll >= this.maxScroll) this.startFinale();
     }
 
     // ---- finale ----
@@ -458,8 +430,10 @@ export class EndingScene extends Phaser.Scene {
         this.phase = 'finale';
         this.activeBeat = null;
         this.showBeat(null);
+        this.laugh(false);
         this.hearts.stop();
         this.puffs.stop();
+        audio.playTrack('credits', BIRTHDAY_STEP); // the player sets the pace of the lines, so the music jumps to meet the title
         finaleFx(this);
         this.tweens.add({ targets: this.band, alpha: 0.45, duration: 700 });
         for (const line of this.credits) line.obj.destroy();
@@ -541,7 +515,6 @@ export class EndingScene extends Phaser.Scene {
         this.events.once('resume', () => {
             this.input.keyboard!.resetKeys();
             this.menuClosedAt = performance.now();
-            this.resync();
         });
         this.scene.launch('menu', { from: 'ending' });
         this.scene.pause();
@@ -550,7 +523,14 @@ export class EndingScene extends Phaser.Scene {
     private onKey(e: KeyboardEvent): void {
         if (e.repeat || this.leaving || performance.now() - this.menuClosedAt < 250) return;
         if (e.code === 'Escape' || e.code === 'KeyC') return this.openMenu();
-        if (!this.canRestart || !RESTART_CODES.includes(e.code)) return;
+        if (!CONFIRM_CODES.includes(e.code)) return;
+        if (this.phase === 'credits') {
+            if (!this.activeBeat) return;
+            audio.sfx('confirm');
+            this.beatIx++;
+            return this.speak();
+        }
+        if (!this.canRestart) return;
         this.leaving = true;
         audio.sfx('confirm');
         audio.stopTrack();
@@ -562,7 +542,7 @@ export class EndingScene extends Phaser.Scene {
 
     /** Test builds only (the 'test-skip' event): the first skip ends the roll, the next shows the prompt at once. */
     private onSkip(): void {
-        if (this.phase === 'credits') this.roll = this.rollMs;
+        if (this.phase === 'credits') this.startFinale();
         else if (!this.canRestart) this.showEnd?.();
     }
 }

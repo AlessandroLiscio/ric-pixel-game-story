@@ -23,13 +23,15 @@ const BIN_ITEMS = { universita: 'appunti', giuggiu: 'portalGun', giardini: 'pero
 // map points a scene's story needs, on free tiles Ric can reach: the Cortile bar scene, the plates on Giuggiu's table
 const STORY_POINTS = { cortile: ['bar_ros', 'bar_giusy', 'albanese1', 'albanese2'], giuggiu: ['obj_plates', 'obj_tv'] };
 const STORY_ZONES = { cortile: ['trig_bar'] }; // rectangles in tiles (x, y, w, h) that must hold a free tile
+// checked when the map has them (the flow falls back to the bar points without them): where the two couples end up, along the bottom wall
+const OPTIONAL_POINTS = { cortile: ['wall_ros', 'wall_giusy', 'wall_albanese1', 'wall_albanese2'] };
 const FACINGS = ['down', 'left', 'right', 'up'];
 const PRESETS = {
   particles: ['dust', 'pollen', 'steam', 'sparkle'],
   tween: ['flicker', 'sway', 'pulse'],
   sprite: ['heads-bob']
 };
-const EXTRA_EGGS = ['extra-1', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'losco'];
+const EXTRA_EGGS = ['extra-3','extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'losco'];
 const SHARED_EGGS = { 'extra-genitori': 2 }; // eggs said by more than one extra: how many
 
 const errors = [];
@@ -145,7 +147,10 @@ function mapScene(at, sc, id) {
   };
   person(`${at} friend`, sc.friend, true);
   if (sc.friend?.personId !== FRIENDS[id]) err(at, `friend must be "${FRIENDS[id]}"`);
-  for (const name of STORY_POINTS[id] ?? []) {
+  // the cinema's exit-door object is a look-at spot: it must not cover the scene's real exit
+  const exitObj = pt('obj_exitdoor');
+  if (exitObj && door && exitObj.x < door.x + door.w && door.x < exitObj.x + (exitObj.w ?? 1) && exitObj.y < door.y + door.h && door.y < exitObj.y + (exitObj.h ?? 1)) err(w, 'point "obj_exitdoor" overlaps the real exit "door"');
+  for (const name of [...(STORY_POINTS[id] ?? []), ...(OPTIONAL_POINTS[id] ?? []).filter((n) => pt(n))]) {
     const q = pt(name);
     if (!q) err(w, `story point "${name}" is missing`);
     else if (name.startsWith('obj_')) continue; // an object footprint, not a standing place

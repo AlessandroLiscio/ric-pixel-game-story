@@ -79,9 +79,10 @@ export class AudioEngine {
         voice(ctx, this.master, { wave: 'square', freq, when: ctx.currentTime, dur: ms / 1000, vol: 0.12 });
     }
 
-    playTrack(id: string): void {
+    /** Plays the track from its start; with `fromStep` (a 16th note) it jumps there, even when the track is already playing. */
+    playTrack(id: string, fromStep?: number): void {
         if (!this.sequencer) return;
-        if (this.wanted === id && this.sequencer.current) return;
+        if (fromStep === undefined && this.wanted === id && this.sequencer.current) return;
         this.tracks ??= collectTracks();
         const track = this.tracks.get(id);
         if (!track) {
@@ -89,7 +90,7 @@ export class AudioEngine {
             return;
         }
         this.wanted = id;
-        this.sequencer.play(track);
+        this.sequencer.play(track, fromStep);
     }
 
     stopTrack(): void {

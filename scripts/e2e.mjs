@@ -7,6 +7,7 @@
 // finale plays by itself); simon (the pinhole camera quiz: arrows to the right answer, X), mash and d20 (X for its 5 s window) are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
+// The Cortile lads and the hooded man must walk where the story puts them, and the credits speech must wait for X.
 // Also covered: Shift runs, the Esc menu (opens, pauses the world, controls and diary, quit to the title resets the run), a litter bin
 // (the first one gives the portal gun), the portal (scene 2 is left through a wall) and the edge exit (giardini has no door). A last step plays
 // cat-smoke with real keys and picks the right sofa the moment the cat hides (regression: that pick used to be dropped and lose the round).
@@ -319,6 +320,32 @@ try {
                 await closeDialogue();
                 note('bin: it gave the portal gun, a second look the already-taken line, Z before the minigame said the not-yet line');
             }
+            // the Cortile: a few steps in, the two lads walk over to Ros and Giusy and all four end up close together, two by two
+            if (SCENES[i].id === 'cortile') {
+                await page.evaluate(() => {
+                    const w = window.__ricGame.scene.getScene('world');
+                    w.ric.setPosition(w.barZone.x + w.barZone.w / 2, w.barZone.y + w.barZone.h / 2);
+                });
+                for (let n = 0; n < 50 && (await worldProp('barState')) !== 'away'; n++) await sleep(100);
+                check((await worldProp('barState')) === 'away', 'the trigger zone did not send the lads to Ros and Giusy');
+                await closeDialogue();
+                const four = () =>
+                    page.evaluate(() =>
+                        window.__ricGame.scene
+                            .getScene('world')
+                            .npcs.filter((n) => n.kind === 'bar' || n.def.personId.startsWith('albanese'))
+                            .map((n) => ({ id: n.def.personId, walking: !!n.walking, x: n.sprite.x, y: n.sprite.y }))
+                    );
+                let there = await four();
+                for (let n = 0; n < 150 && there.some((p) => p.walking); n++) {
+                    await sleep(200);
+                    there = await four();
+                }
+                check(there.length === 4 && there.every((p) => !p.walking), `the four did not arrive: ${JSON.stringify(there)}`);
+                const at = Object.fromEntries(there.map((p) => [p.id, p]));
+                for (const [girl, lad] of [['ros', 'albanese1'], ['giusy', 'albanese2']]) check(Math.hypot(at[girl].x - at[lad].x, at[girl].y - at[lad].y) <= 70, `${girl} and ${lad} do not stand together: ${JSON.stringify(there)}`);
+                note(`cortile: the lads walked over, all four arrived ${JSON.stringify(there.map((p) => `${p.id} ${Math.round(p.x)},${Math.round(p.y)}`))}`);
+            }
             // circe: talk to Giusy (friend2) first, then Ros; each plays only her own minigame, whatever the order
             const talks = def.friend2 ? [def.friend2, def.friend] : [def.friend];
             await teleport(talks[0].x - 22, talks[0].y);
@@ -336,10 +363,16 @@ try {
                     await sleep(120);
                 }
             }
-            // the Cortile: if the lads took Ros and Giusy to the bar, the exit stays shut until Ric fetches them with X
+            if (SCENES[i].id === 'cortile') {
+                // the talk with Lara brought the hooded man to her side
+                const gap = await page.evaluate(([x, y]) => { const m = window.__ricGame.scene.getScene('world').npcs.find((n) => n.def.personId === 'losco'); return Math.hypot(m.sprite.x - x, m.sprite.y - y); }, [def.friend.x, def.friend.y]);
+                check((await worldProp('loscoDone')) && gap <= 30, `the hooded man did not walk up to Lara (${Math.round(gap)} px away)`);
+                check((await worldProp('barState')) === 'away', 'Ros and Giusy came back before Ric fetched them');
+            }
+            // the Cortile: while Ros and Giusy are with the lads, the exit stays shut until Ric fetches them with X (from above: a lad stands beside each)
             for (let n = 0; n < 60 && (await page.evaluate(() => window.__ricGame.scene.getScene('world').barState)) === 'away'; n++) {
                 const girl = await page.evaluate(() => { const g = window.__ricGame.scene.getScene('world').npcs.find((x) => x.kind === 'bar' && !x.walking); return g ? { x: g.sprite.x, y: g.sprite.y } : null; });
-                if (girl) await teleport(girl.x - 22, girl.y);
+                if (girl) await teleport(girl.x, girl.y - 22);
                 await sleep(200);
                 await press('x');
                 await sleep(300);
@@ -393,7 +426,35 @@ try {
     check((await litPixels(context, page)) > 200, 'ending looks blank');
     note(`ending: party ${s.party}, results ${JSON.stringify(s.results)}, minigames ${JSON.stringify(how)}`);
 
-    // credits roll for ~42 s; the test skip ends them, then the restart key works (the scene's canRestart field says when)
+    // the credits speech: a line stays until X (longer than the old timer ever kept one), then X walks through to the finale
+    const ending = () =>
+        page.evaluate(() => {
+            const e = window.__ricGame.scene.getScene('ending');
+            return { ix: e.beatIx, total: e.beats.length, text: e.activeBeat?.text ?? '', laughs: e.laughs.length, phase: e.phase };
+        });
+    let c = await ending();
+    for (let n = 0; n < 100 && !c.text; n++) {
+        await sleep(100);
+        c = await ending();
+    }
+    check(c.ix === 0 && c.text, `the credits speech did not start: ${JSON.stringify(c)}`);
+    await sleep(8000);
+    check((await ending()).ix === 0, 'a credits line moved on without X');
+    const said = [];
+    for (let n = 0; n < 60 && c.ix < c.total; n++) {
+        said.push(c);
+        await press('x');
+        await sleep(200);
+        c = await ending();
+    }
+    check(c.ix === c.total && said.length === c.total, `X did not walk through the ${c.total} credits lines: ${JSON.stringify(c)}`);
+    const laugh = said.findIndex((x) => x.laughs > 0);
+    check(laugh > 0 && said[laugh - 1].text.endsWith('...le acciughe!') && said[laugh].laughs >= 7, `no room-wide laugh after the anchovies: ${JSON.stringify(said[laugh])}`);
+    for (let n = 0; n < 150 && (await ending()).phase !== 'finale'; n++) await sleep(200); // the column hurries to its end
+    check((await ending()).phase === 'finale', 'no finale after the last credits line');
+    note(`credits: ${c.total} lines advanced with X, the room laughed, then the finale`);
+
+    // the test skip shows the prompt at once, then the restart key works (the scene's canRestart field says when)
     for (let n = 0; n < 100; n++) {
         if (await page.evaluate(() => window.__ricGame.scene.getScene('ending').canRestart)) break;
         await test('skip');

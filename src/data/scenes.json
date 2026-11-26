@@ -10,8 +10,7 @@
     "walk": [],
     "friend": { "personId": "lollino", "facing": "left", "at": "lollino" },
     "extras": [
-      { "personId": "pinolo", "facing": "down", "intro": true, "at": "pinolo" },
-      { "personId": "sconosciuta", "facing": "left", "egg": "extra-1", "tint": "#9fb8ff", "at": "studente" }
+      { "personId": "pinolo", "facing": "down", "intro": true, "at": "pinolo" }
     ],
     "minigame": "simon",
     "bins": [{ "x": 656, "y": 412, "draw": false, "item": "appunti" }],
