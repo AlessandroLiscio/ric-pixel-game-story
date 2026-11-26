@@ -53,7 +53,7 @@ FACES = {
                  brow=1.4, eye=(10, 6.4), mouth="grin", squint=True, blush=True, acc=[],
                  top=("straps", (226, 196, 70), "ditsy-light")),
     "giuggiu": dict(skin="tan", hair="black", eyes="darkbrown", style="quiff", fw=20.5, chin=75, cw=5.0, brow=2.6,
-                    eye=(9.5, 5.4), mouth="smile", beard="short", acc=[], male=True,
+                    eye=(9.5, 5.4), mouth="smile", beard=None, acc=[], male=True,
                     top=("tee", (244, 244, 240), "logo")),
     "giusy": dict(skin="tan", hair="mahogany", eyes="darkbrown", style="longstraight", fw=19, chin=71, cw=2.6, brow=1.6,
                   eye=(10.5, 6.4), mouth="grin", squint=True, acc=["chain"], lashes=True, part=41,
