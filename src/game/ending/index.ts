@@ -61,6 +61,8 @@ export class EndingScene extends Phaser.Scene {
     private beatIx = 0;
     private activeBeat: Beat | null = null;
     private gagStart = Infinity;
+    private left = false; // the ones who go upstairs have left the room
+    private upstairsBusy = false; // they have reached the top of the stairs: the bed creaks
     private creakAcc = 0;
     private away: string[] = [];
     private talkers = new Map<string, { img: Phaser.GameObjects.Sprite; base: number }>();
@@ -83,6 +85,7 @@ export class EndingScene extends Phaser.Scene {
     private band!: Phaser.GameObjects.Image;
     private dim!: Phaser.GameObjects.Rectangle;
     private ricStand: Phaser.GameObjects.Sprite | null = null;
+    private catSprite: Phaser.GameObjects.Sprite | null = null;
     private canRestart = false;
     private leaving = false;
     private showEnd: (() => void) | null = null;
@@ -111,6 +114,9 @@ export class EndingScene extends Phaser.Scene {
         this.zzz = [];
         this.balloons = [];
         this.ricStand = null;
+        this.catSprite = null;
+        this.left = false;
+        this.upstairsBusy = false;
         this.canRestart = false;
         this.leaving = false;
         this.showEnd = null;
@@ -187,14 +193,13 @@ export class EndingScene extends Phaser.Scene {
         const slackline = results.slackline === true;
         const cat = results['cat-smoke'] === true;
 
-        // whoever is upstairs (Liscio and Lara, or Ric with the fringe girl) is not in the lineup: their seats stay empty
-        const here = (id: string): boolean => !this.away.includes(id);
-        const ricOnChair = slackline && here('ric');
+        // everyone is in the room for the whole night; the ones who go upstairs (Liscio and Lara, or Ric) leave when the gag starts (leave())
+        const ricOnChair = slackline;
 
         // the sofa, seen from behind, facing the TV: Liscio, Ric (Ros while Ric balances on the chair) and Lara
-        if (here('liscio')) this.person('liscio', SPOTS.sofaLeft, FACE.up);
-        if (here('ric')) this.person(slackline ? 'ros' : 'ric', SPOTS.sofaMid, FACE.up);
-        if (here('lara')) this.person('lara', SPOTS.sofaRight, FACE.up);
+        this.person('liscio', SPOTS.sofaLeft, FACE.up);
+        this.person(slackline ? 'ros' : 'ric', SPOTS.sofaMid, FACE.up);
+        this.person('lara', SPOTS.sofaRight, FACE.up);
 
         // the chairs of the dinner table: Giusy asleep on the left one (it faces east), the right one (it faces west) is Ric's stage when he won the slackline
         const { chairLeft, chairRight, chairRightStand } = SPOTS;
@@ -219,7 +224,8 @@ export class EndingScene extends Phaser.Scene {
         this.sleepy(g.x - 6, g.y - 14);
 
         if (cat) {
-            this.person('gatto', SPOTS.cat, FACE.down);
+            // curled up from behind (the rear row of the sheet shows the striped tail), the tail wagging until he dozes off with the gag
+            this.catSprite = this.person('gatto', SPOTS.cat, FACE.up);
             this.sleepy(SPOTS.cat.x + 8, SPOTS.cat.y - 28);
         }
     }
@@ -245,7 +251,7 @@ export class EndingScene extends Phaser.Scene {
             alpha: { start: 1, end: 0 },
             scale: { start: 1, end: 1.5 },
             tint: [0xff7ab8, 0xff9ad0, 0xff5a9a],
-            frequency: 1500
+            frequency: 420
         });
         this.puffs = this.add.particles(0, 0, 'ending-z', {
             x,
@@ -256,10 +262,31 @@ export class EndingScene extends Phaser.Scene {
             alpha: { start: 0.9, end: 0 },
             scale: { start: 0.8, end: 1.6 },
             tint: 0xffb8dc,
-            frequency: 2300
+            frequency: 700
         });
         this.hearts.setDepth(DEPTH.hearts);
         this.puffs.setDepth(DEPTH.hearts);
+        this.hearts.stop(); // nobody is upstairs yet: the emitters start with the gag (leave())
+        this.puffs.stop();
+    }
+
+    /** The gag starts: the ones who go upstairs get up, walk to the top of the stairs and are gone; then the bed starts creaking. */
+    private leave(): void {
+        for (const id of this.away) {
+            const who = this.talkers.get(id);
+            if (!who) continue;
+            this.talkers.delete(id);
+            this.breathers = this.breathers.filter((b) => b.img !== who.img);
+            if (who.img === this.ricStand) this.ricStand = null;
+            who.img.setRotation(0).setFrame(FACE.up);
+            this.tweens.add({ targets: who.img, x: UPSTAIRS.x, y: UPSTAIRS.y + 26, alpha: 0, duration: 1800, ease: 'Sine.easeIn' });
+        }
+        this.time.delayedCall(1800, () => {
+            if (this.phase !== 'credits') return; // a skip straight into the finale: no hearts over "Buon compleanno"
+            this.upstairsBusy = true; // real time, like the walk: a faster roll after the menu cannot start the creaks early
+            this.hearts.start();
+            this.puffs.start();
+        });
     }
 
     // ---- speech: the night scene of the divano room, one line at a time ----
@@ -304,17 +331,17 @@ export class EndingScene extends Phaser.Scene {
             this.activeBeat = now;
             this.showBeat(now);
         }
-        if (this.roll >= this.gagStart && this.hearts.frequency > 600) {
-            // the upstairs gag: the bed gets busier
-            this.hearts.setFrequency(420, 1);
-            this.puffs.setFrequency(700, 1);
+        if (this.roll >= this.gagStart && !this.left) {
+            this.left = true;
+            this.leave();
         }
     }
 
-    /** A bed creaking upstairs: two low blips, now and then, faster during the gag. */
+    /** A bed creaking upstairs: two low blips, only once someone has gone up there. */
     private creak(delta: number): void {
+        if (!this.upstairsBusy) return;
         this.creakAcc += delta;
-        if (this.creakAcc < (this.roll >= this.gagStart ? 720 : 3400)) return;
+        if (this.creakAcc < 720) return;
         this.creakAcc = 0;
         audio.tone(Phaser.Math.Between(88, 120), 70);
         this.time.delayedCall(110, () => audio.tone(Phaser.Math.Between(120, 150), 60));
@@ -391,7 +418,9 @@ export class EndingScene extends Phaser.Scene {
             this.ricStand.setRotation(Math.sin(t / 330) * 0.08 + Math.sin(t / 870) * 0.05);
             this.ricStand.setFrame(Math.sin(t / 470) > 0 ? STEP_L : STEP_R);
         }
+        if (this.catSprite) this.catSprite.setFrame(this.roll >= this.gagStart ? FACE.up : Math.sin(t / 380) > 0 ? STEP_L : STEP_R);
         for (const z of this.zzz) {
+            if (this.roll < this.gagStart) break; // they talk through the night and only doze off once the gag starts
             z.imgs.forEach((img, i) => {
                 const p = ((t + i * 1100) % 3300) / 3300;
                 img.setPosition(Math.round(z.x + p * 10 + Math.sin(p * 8) * 2), Math.round(z.y - p * 22));
@@ -400,7 +429,7 @@ export class EndingScene extends Phaser.Scene {
             });
         }
 
-        // whoever speaks hops a little (the ones upstairs are not in the room)
+        // whoever speaks hops a little (the ones gone upstairs are no longer in the room)
         if (this.activeBeat) {
             const who = this.talkers.get(this.activeBeat.speaker);
             if (who) who.img.y = who.base - (Math.floor(t / 130) % 2) * 2;

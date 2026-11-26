@@ -413,13 +413,13 @@
       { "speaker": "ric", "text": "In effetti sì. Ma non provarci." }
     ],
     "gatto": [
-      { "speaker": "narratore", "text": "Dietro la tenda si intravede una coda." },
+      { "speaker": "narratore", "text": "In fondo al divano, una palla di pelo arrotolata muove la coda." },
       { "speaker": "ric", "text": "Guardate! Il Gatto di Paz è venuto fin qui." },
       { "speaker": "giuggiu", "text": "Gatto di Paz c'ha più vita sociale de me. Etciù." },
       { "speaker": "gatto", "text": "Miao." }
     ],
     "ric-sedia": [
-      { "speaker": "narratore", "text": "Ric sale su una sedia, in equilibrio su un piede, le braccia aperte." },
+      { "speaker": "narratore", "text": "Ric è in piedi su una sedia, in equilibrio su un piede, le braccia aperte." },
       { "speaker": "liscio", "text": "EO! L'allievo s'allena pure de notte! Adè però scendi, che domani se parte presto." },
       { "speaker": "ric", "text": "Non parlatemi, sensei. Perdo la concentrazione." },
       { "speaker": "giusy", "text": "Scendi, o ti butto giù io. Te lo dico per... vabè." }
@@ -431,12 +431,12 @@
       { "speaker": "lollino", "text": "Domani. Sì, holtre a tesi, yoga e piatti." }
     ],
     "giusy-divano": [
-      { "speaker": "ric", "text": "Giusy, spostati: la mia serata comincia da quel cuscino." },
+      { "speaker": "ric", "text": "Giusy, spostati: la mia serata comincia da quella sedia." },
       { "speaker": "giusy", "text": "Eh no! Ho il posto da due ore. Mi hai già trascinata fuori dal bagno." },
-      { "speaker": "ric", "text": "Dài, solo cinque minuti sul divano." },
+      { "speaker": "ric", "text": "Dài, solo cinque minuti sulla sedia." },
       { "speaker": "giusy", "text": "Cinque minuti? Ti suona familiare?" },
-      { "speaker": "narratore", "text": "Ric tira, Giusy resiste. Il divano si sposta di dieci centimetri." },
-      { "speaker": "giusy", "text": "Il divano è mio. Prendi la sedia." }
+      { "speaker": "narratore", "text": "Ric tira, Giusy resiste. La sedia si sposta di dieci centimetri." },
+      { "speaker": "giusy", "text": "La sedia è mia. Prenditi il pavimento." }
     ],
     "fede": [
       { "speaker": "ric", "text": "Allora, Fede dov'è?" },
@@ -588,11 +588,11 @@
   "ending": {
     "fromUpstairs": "(da sopra)",
     "upstairs": [
-      { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Poi una risatina." },
+      { "speaker": "narratore", "text": "Liscio e Lara salgono di sopra. Poco dopo, uno scricchiolio ritmico. Poi una risatina." },
       { "speaker": "ric", "text": "Madonna quei due... certo che si sente sempre tutto... Chiudete almeno la porta, cazzo!" }
     ],
     "upstairsFrangetta": [
-      { "speaker": "narratore", "text": "Dal piano di sopra arriva uno scricchiolio ritmico. Ric non si vede da un pezzo, il porco." },
+      { "speaker": "narratore", "text": "Ric sparisce su per le scale: di sopra lo aspetta la tipa con la frangetta. Il porco." },
       { "speaker": "ros", "text": "Madonna quanto lo odio. Dovevo esserci io di sopra con quella tipa." }
     ]
   }

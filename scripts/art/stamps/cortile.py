@@ -466,8 +466,8 @@ LOGO_W = 150
 
 def wall_right():
     """x 13..20: the band corner. A balcony landing with people leaning on glass at the top left, under it the white painted logo
-    wall with the lighting truss, a skull mask and PA speakers; on the right the staircase climbs along a white wall under a dark red
-    handrail. (The stairs go up toward the landing, so the handrail runs from the landing down to the right.)"""
+    wall with the lighting truss, a skull mask and a PA speaker; on the right the flight of the floor stairs goes on straight up to
+    the balcony beside a dark red handrail, with the white wall on its right."""
     W = 8 * T
     c = Canvas(W, WALL_H)
     plaster_bg(c, 0, 0, W - 1, WALL_H - 1, "right")
@@ -494,40 +494,38 @@ def wall_right():
     for y in range(WALL_H - 16, WALL_H):
         for x in range(x0, lx1 + 1):
             c.set(x, y, mix(c.get(x, y), "#d8a070", .36 * (y - (WALL_H - 16)) / 16))
-    # the stair wall: white, under a handrail that runs from the landing down to the right
-    pts = [(lx1, 38), (W - 14, 100)]
-    def rail_y(x):
-        return int(round(pts[0][1] + (pts[1][1] - pts[0][1]) * (x - pts[0][0]) / (pts[1][0] - pts[0][0])))
-    for x in range(lx1 + 1, W):
-        ry = rail_y(x)
-        for y in range(ry + 6, WALL_H):
-            c.set(x, y, "#f2ead8")
-        for y in range(ry + 6, min(WALL_H, ry + 16)):      # the shade of the handrail on the white wall
-            c.set(x, y, mix(c.get(x, y), "#a8886a", .3 * (1 - (y - ry - 6) / 10)))
-        for y in range(WALL_H - 14, WALL_H):                # warm bounce near the floor
-            c.set(x, y, mix(c.get(x, y), "#d8a070", .3 * (y - (WALL_H - 14)) / 14))
-    for x in range(lx1 + 1, W):                             # the stringer: a dark wood band under the rail, parallel to it
-        ry = rail_y(x)
-        for y in range(ry + 15, ry + 18):
-            c.set(x, y, "#7a3a28" if y == ry + 15 else "#4e2218")
-    for x in range(lx1 + 1, W):
-        ry = rail_y(x)
-        c.vline(x, ry - 2, ry + 5, "#6a2418")        # the handrail: dark red wood, lit on top, a shadow line under it
-        c.set(x, ry - 2, "#3a1410")
-        c.set(x, ry - 1, "#b05a40")
-        c.set(x, ry, "#a04a34")
-        c.set(x, ry + 1, "#8a3a2a")
-        c.set(x, ry + 5, "#3a1410")
-    for x in range(lx1 + 14, W - 14, 11):                   # small brackets that carry the rail
-        ry = rail_y(x)
-        c.vline(x, ry + 6, ry + 12, "#5a2418")
-    nx = W - 18
-    c.rect(nx, 92, nx + 6, WALL_H - 7, "#5a1e16")           # newel post
-    c.vline(nx, 92, WALL_H - 7, "#b05a40")
-    c.vline(nx + 6, 92, WALL_H - 7, "#3a1410")
-    c.rect(nx - 1, 88, nx + 7, 92, "#3a1410")
-    c.hline(nx - 1, nx + 7, 88, "#b05a40")
-    c.ell(nx + 3, 86, 3, 2.4, "#6a2418")
+    # the top of the staircase: the flight on the floor (stamp `cortile_stairs`, map x 18 to 20, wall x 160 to 255) goes on climbing
+    # straight north up the wall picture and arrives on the balcony, whose floor is the top of the beam (y 59); the dark red handrail
+    # on its left rises with it and meets the corner post of the balcony railing, the white wall stays on its right
+    sx0, sx1 = (18 - 13) * T, W - 1                         # the flight's columns, the same as the floor stamp's
+    top = 59
+    wood_t, wood_r = hx("#b07a48"), hx("#5a1e24")
+    steps = 8
+    for i in range(steps):                                  # from the floor (wall bottom) up to the balcony, each step a little higher
+        y1 = WALL_H - 1 - i * (WALL_H - top) // steps
+        y0 = WALL_H - 1 - (i + 1) * (WALL_H - top) // steps + 1
+        k = .5 - .25 * i / (steps - 1)                      # carries on the floor flight's shading: darker toward the landing
+        tread = mix(hx("#2a1418"), wood_t, k)
+        mid = y0 + (y1 - y0) * 5 // 9
+        c.rect(sx0 + 7, y0, sx1 - 7, mid, tread)
+        c.hline(sx0 + 7, sx1 - 7, y0, light(tread, .3))
+        c.rect(sx0 + 7, mid + 1, sx1 - 7, y1, mix(hx("#1c0e12"), wood_r, k))
+        c.hline(sx0 + 7, sx1 - 7, y1, hx("#1a0c10"))
+    c.vgrad(sx1 - 5, 6, sx1, WALL_H - 1, hx("#c8baa6"), hx("#efe6d4"))   # the white wall on the right of the flight
+    c.vline(sx1 - 6, 6, WALL_H - 1, hx("#5a3a2a"))
+    c.rect(sx0, 34, sx0 + 4, WALL_H - 1, hx("#7a2a30"))     # the handrail on the left, up to the balcony
+    c.vline(sx0, 34, WALL_H - 1, hx("#c0606a"))
+    c.vline(sx0 + 1, 34, WALL_H - 1, hx("#a04048"))
+    c.vline(sx0 + 4, 34, WALL_H - 1, hx("#3a1018"))
+    c.rect(sx0 + 5, 34, sx0 + 6, WALL_H - 1, hx("#1a0c10"))
+    for y in range(44, WALL_H, 24):                         # a post every few steps
+        c.rect(sx0, y, sx0 + 6, y + 3, hx("#a04048"))
+        c.hline(sx0, sx0 + 6, y, hx("#d8808a"))
+    c.rect(lx1, 30, sx0 - 1, 33, RAIL)                      # the balcony railing turns the corner and runs to the top of the handrail
+    c.rect(lx1 + 1, 34, sx0 - 1, 70, hx("#2a1620"))         # the side of the landing between the logo wall and the flight
+    for y in range(WALL_H - 14, WALL_H):                    # warm bounce near the floor
+        for x in range(sx0 + 7, sx1 - 6):
+            c.set(x, y, mix(c.get(x, y), "#d8a070", .18 * (y - (WALL_H - 14)) / 14))
     # the lettering of the logo, redrawn: "il cortile" large, "café" smaller, and the red squiggle
     ink = "#241e2c"
     c.text(31, 91, "il cortile", "#d8cdb4", 2, font=LOWER)
@@ -544,9 +542,8 @@ def wall_right():
     truss(c, 12, lx1 - 30, 62, [(30, hx("#ff59d6")), (58, hx("#ffd27a")), (88, hx("#59a0ff")), (112, hx("#ff9a5a"))])
     skull_mask(c, 73, 72)
     fade_down(c, 0, lx1, 71, 84, a0=.3)
-    pa_speaker(c, lx1 - 19, 66, 16, 22)
-    pa_speaker(c, W - 44, 50)
-    skirting(c, 0, W - 1)
+    pa_speaker(c, lx1 - 19, 66, 16, 22)                     # the PA that hung over the stairs now stands on the stage (rooms/cortile.py)
+    skirting(c, 0, lx1)
     cornice(c, 0, W - 1)
     return c
 
@@ -830,9 +827,7 @@ def stairs():
         c.rect(0, y, 6, y + 4, hx("#a04048"))
         c.hline(0, 6, y, hx("#d8808a"))
         c.hline(0, 6, y + 4, hx("#3a1018"))
-    for y in range(0, 20):                              # the top of the flight fades into the dark of the upper floor
-        c.hline(7, W - 8, y, (16, 8, 20, int(110 * (1 - y / 20.0))))
-    return c
+    return c                                            # the flight goes on up the back wall picture to the balcony (wall_right)
 
 
 def tv_front(w=3):
