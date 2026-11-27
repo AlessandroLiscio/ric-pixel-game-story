@@ -428,6 +428,16 @@ try {
     check((await litPixels(context, page)) > 200, 'ending looks blank');
     note(`ending: party ${s.party}, results ${JSON.stringify(s.results)}, minigames ${JSON.stringify(how)}`);
 
+    // Esc over the night room: the menu must be drawn above it, not only take the keys (it is registered before the ending scenes)
+    await press('Escape');
+    await until((x) => x.scene === 'menu', 'the Esc menu over the ending');
+    await sleep(300);
+    const order = await page.evaluate(() => window.__ricGame.scene.getScenes(false).map((x) => x.scene.key));
+    check(order.indexOf('menu') > order.indexOf('ending'), `the menu is drawn under the night room: ${order}`);
+    await press('Escape');
+    await until((x) => x.scene === 'ending', 'back to the ending after the menu');
+    await sleep(400);
+
     // the speech of the ending and of the plane: a line stays until X (nothing moves it on by itself), then X walks through all of them
     const speech = (key) =>
         page.evaluate((k) => {

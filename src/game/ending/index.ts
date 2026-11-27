@@ -386,6 +386,7 @@ export class EndingScene extends Phaser.Scene {
             this.menuClosedAt = performance.now();
         });
         this.scene.launch('menu', { from: 'ending' });
+        this.scene.bringToTop('menu'); // the menu is registered before this scene, so it would be drawn under the room
         this.scene.pause();
     }
 

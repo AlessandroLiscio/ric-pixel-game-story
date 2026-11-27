@@ -30,6 +30,6 @@ The scene has public fields that the end-to-end test reads: `phase` (`plane`, `f
 
 ## Menu and test skip
 
-Esc or C opens `MenuScene` over either scene (`scene.launch('menu', { from })` with the key of the scene, then `scene.pause()`, the same way `WorldScene.openMenu` does), which pauses the scene with its timers and particles; closing the menu resumes it. The music does not pause. In the skydive the menu works in the finale too.
+Esc or C opens `MenuScene` over either scene (`scene.launch('menu', { from })` with the key of the scene, `scene.bringToTop('menu')`, then `scene.pause()`), which pauses the scene with its timers and particles; closing the menu resumes it. `WorldScene.openMenu` needs no `bringToTop`, but the menu is registered before the two ending scenes and would be drawn under them without it. The music does not pause. In the skydive the menu works in the finale too.
 
 Test builds only, through the `test-skip` game event (what `window.__ricTest.skip()` emits): in the night room it goes straight to the hand-over to `skydive`; in the skydive, during the plane it jumps to the jump (all lines read, phase `fall`), during the fall or the landing it goes straight to the finale, and in the finale one more skip shows the restart prompt at once. Nothing is added to `window`.
