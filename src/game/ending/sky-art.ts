@@ -251,18 +251,15 @@ export function streakTexture(scene: Phaser.Scene): string {
     });
 }
 
-/** The day sky (320 x 180): flat bands of blue, paler toward the horizon, with two checkered rows between one band and the next. */
+/** The day sky (320 x 180): 30 flat bands of blue, paler toward the horizon, in steps too small to read as lines. */
 export function skyTexture(scene: Phaser.Scene): string {
-    const bands = ['#3f78cc', '#4a86d6', '#5896de', '#68a6e4', '#7ab6ea', '#8ec6f0', '#a4d4f4', '#bce2f8', '#d2ecf8'];
+    const top = Phaser.Display.Color.HexStringToColor('#3f78cc');
+    const horizon = Phaser.Display.Color.HexStringToColor('#d2ecf8');
     return texture(scene, 'sky-gradient', 320, 180, (ctx) => {
-        bands.forEach((color, i) => {
-            rect(ctx, color, 0, i * 20, 320, 20);
-            if (i === 0) return;
-            for (let x = 0; x < 320; x += 2) {
-                rect(ctx, color, x, i * 20 - 1, 1, 1);
-                rect(ctx, bands[i - 1], x + 1, i * 20, 1, 1);
-            }
-        });
+        for (let i = 0; i < 30; i++) {
+            const { r, g, b } = Phaser.Display.Color.Interpolate.ColorWithColor(top, horizon, 29, i);
+            rect(ctx, `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`, 0, i * 6, 320, 6);
+        }
     });
 }
 

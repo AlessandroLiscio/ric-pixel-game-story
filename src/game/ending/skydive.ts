@@ -358,6 +358,7 @@ export class SkydiveScene extends Phaser.Scene {
         this.phase = 'land';
         this.windTarget = WIND.ground;
         this.tweens.add({ targets: this.ground, y: GROUND_Y, duration: 3400, ease: 'Sine.easeOut' });
+        this.tweens.add({ targets: this.band, alpha: 0, duration: 700 }); // nothing left to read: the whole skyline shows
         this.jumpers.forEach((j, i) => {
             this.tweens.add({ targets: j.at, x: j.spot.x, y: j.landY, sway: 0, duration: 3500 + i * 350, ease: 'Sine.easeInOut', onComplete: () => this.touchdown(j) });
         });
@@ -383,7 +384,6 @@ export class SkydiveScene extends Phaser.Scene {
         this.streaks.killAll();
         this.windTarget = WIND.ground;
         this.plane.setVisible(false);
-        this.band.setAlpha(1);
         this.ground.setY(GROUND_Y);
         for (const j of this.jumpers) {
             this.dropBubble(j);
