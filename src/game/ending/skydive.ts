@@ -525,7 +525,7 @@ export class SkydiveScene extends Phaser.Scene {
         });
 
         const theEnd = this.add.text(FINALE_CX, 126, DIALOGUE.ui.theEnd ?? LABELS.theEnd, { ...pixelStyle(32, '#ffffff'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
-        const prompt = this.add.text(FINALE_CX, 168, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
+        const prompt = this.add.text(FINALE_CX, 152, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
         const show = (): void => {
             this.tweens.killTweensOf([theEnd, prompt]);
             theEnd.setAlpha(1);
