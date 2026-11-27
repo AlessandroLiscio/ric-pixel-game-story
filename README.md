@@ -1,6 +1,6 @@
 # ric-pixel-game-story
 
-A pixel-art story game of about 20 minutes, written in Italian, for a friend's 30th birthday. It is a short walk through five scenes, each with a friend, a small minigame, a litter bin with an item to use and an RPG Maker style dialogue box, ending in a credits roll at Casa Circe while the night's last talk goes on, one line per press of X; easter eggs show a small achievement popup. It runs in the browser from a GitHub Pages link and also from an offline zip that works by double-clicking `index.html`.
+A pixel-art story game of about 20 minutes, written in Italian, for a friend's 30th birthday. It is a short walk through five scenes, each with a friend, a small minigame, a litter bin with an item to use and an RPG Maker style dialogue box, ending in a credits roll at Casa Circe while the night's last talk goes on, one line per press of X. It runs in the browser from a GitHub Pages link and also from an offline zip that works by double-clicking `index.html`.
 
 The engine is [Phaser](https://phaser.io) 4.2.1 on the official Vite + TypeScript template, on a 1280x720 canvas (scenes keep 640x360 coordinates under a camera zoom of 2; the window zoom steps by 0.5, press F for fullscreen). All music and sound effects are generated in code on one shared `AudioContext`, under one quiet looping ambient bed per scene (recorded loops, see Credits and licences); the pixel font is Pixel Operator (CC0).
 

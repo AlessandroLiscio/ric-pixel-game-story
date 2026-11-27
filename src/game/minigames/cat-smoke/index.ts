@@ -53,10 +53,11 @@ const FOLLOW_MS = 3600; // how long the cat roams before the fake-out
 const GIUGGIU_SCALE = 3;
 const GIUGGIU_FEET_Y = 344;
 const GIUGGIU_EDGE = 24; // his x from the screen edge: at the very right, below the right sofa, his opaque pixels just inside the screen
-const MAX_CLOUDS = 45;
+const EFFECT_CHANCE = 0.15; // per trickle tick, an extra smoke effect somewhere in the room
+const MAX_CLOUDS = 90;
 const PUFF_EVERY_MS = 1000;
-const PUFF_CLOUDS = 6;
-const TRICKLE_MS = 240;
+const PUFF_CLOUDS = 10;
+const TRICKLE_MS = 160;
 const COUNTDOWN = 3;
 const KEY_SOFA: Record<string, number> = { ArrowLeft: 0, KeyA: 0, ArrowUp: 1, KeyW: 1, ArrowRight: 2, KeyD: 2 };
 const FACE_ROW: Record<Face, number> = { down: 0, left: 1, right: 2, up: 3 };
@@ -383,7 +384,7 @@ export default class CatSmokeMinigame extends Phaser.Scene {
             callback: () => {
                 if (!this.emitting) return;
                 this.spawnCloud(this.mouth.x, this.mouth.y, false); // the trickle between two puffs
-                if (Math.random() < 0.1) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
+                if (Math.random() < EFFECT_CHANCE) catSmokeCloud(this, Phaser.Math.Between(60, GAME_WIDTH - 60), Phaser.Math.Between(120, GAME_HEIGHT - 50));
                 if (this.targetChance > 0 && Math.random() < this.targetChance) this.spawnCloud(this.cat.x + Phaser.Math.Between(-18, 18), this.cat.y - 30 + Phaser.Math.Between(-12, 12), false, true);
             }
         });

@@ -115,8 +115,8 @@ try {
             }
             how[id] = 'real';
         } else {
-            // mash: X as fast as possible (about 12 a second, the win needs about 7.1); d20: X for its 5 s window (about 8 a second, or the
-            // 40 that end it early); any result is valid, but the landed value must be the one the presses give
+            // mash: X as fast as possible (about 12 a second, the win needs about 7.6); d20: X for its 5 s window (about 8 a second, or the
+            // 60 that end it early); any result is valid, but the landed value must be the one the presses give
             const gap = id === 'mash' ? 70 : 120;
             let seen = null;
             while (await running()) {
@@ -125,7 +125,7 @@ try {
                 await sleep(gap);
                 if (id === 'd20') seen = (await page.evaluate((sc) => { const s = window.__ricGame.scene.getScene(sc); return s ? { presses: s.presses, roll: s.roll, fumo: s.fumo } : null; }, scene)) ?? seen;
             }
-            if (id === 'd20') check(seen && seen.presses > 0 && seen.fumo === true && seen.roll === Math.min(20, Math.ceil(Math.min(seen.presses, 40) / 2) + 2), `d20: ${JSON.stringify(seen)} is not min(20, ceil(presses / 2) + 2) with the hash`);
+            if (id === 'd20') check(seen && seen.presses > 0 && seen.fumo === true && seen.roll === Math.min(20, Math.round(Math.min(seen.presses, 60) / 3) + 2), `d20: ${JSON.stringify(seen)} is not min(20, round(presses / 3) + 2) with the hash`);
             how[id] = 'real';
         }
         await until((x) => x.scene === 'world', `back to the world after ${id}`);
