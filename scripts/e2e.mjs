@@ -232,7 +232,7 @@ try {
         const real = i === 0 || finale;
 
         if (finale) {
-            // a last scene with no minigame (divano): the finale plays by itself; close every page with X only, no test skip
+            // a last scene with no minigame (none in today's list): it plays by itself; close every page with X only, no test skip
             for (let n = 0; n < 900; n++) {
                 s = await state();
                 if (s.scene === 'ending') break;
