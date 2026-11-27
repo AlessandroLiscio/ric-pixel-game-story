@@ -7,13 +7,12 @@ import { CONFIRM_CODES } from '../ui/DialogBox';
 import { DIALOGUE, lines, pixelStyle } from '../ui/text';
 import { bandTexture, particleTextures, seeded } from './art';
 import { SpeechBanner } from './banner';
-import { finaleFx } from './fx';
+import { ENDING_FX, finaleFx } from './fx';
 import { LABELS } from './labels';
 import { BAND_CX, BAND_TEXT_W, BAND_X, DEPTH, GAME_HEIGHT, GAME_WIDTH, SPEECH } from './layout';
 import { LEAD_IN_MS } from './script';
 import * as art from './sky-art';
 
-const FINALE_CX = 494;
 const CONFETTI = [0xff5a6e, 0xffd34a, 0x6ee08a, 0x6ab4ff, 0xff8ae0];
 const SCROLL_MS = 45000; // the credits column has gone by in this long
 const HURRY = 4; // how much faster the column runs while a confirm key is held
@@ -106,7 +105,6 @@ export class SkydiveScene extends Phaser.Scene {
     private band!: Phaser.GameObjects.Image;
     private dim!: Phaser.GameObjects.Rectangle;
     private credits: CreditLine[] = [];
-    private creditsTop = GAME_HEIGHT + 8;
     /** Time of the credits column in ms: it has gone by at SCROLL_MS. */
     private roll = 0;
     private maxScroll = 1;
@@ -217,7 +215,6 @@ export class SkydiveScene extends Phaser.Scene {
     private buildPlane(): void {
         const ox = -art.PLANE.w / 2;
         const oy = -art.PLANE.h / 2;
-        art.planeTexture(this, true);
         this.planeBody = this.add.image(ox, oy, art.planeTexture(this, false)).setOrigin(0);
         const heads = SEATS.map((id, i) => {
             const w = art.PLANE.windows[i];
@@ -404,7 +401,7 @@ export class SkydiveScene extends Phaser.Scene {
         const { title, lines: all } = DIALOGUE.credits;
         const entries = all.filter((l) => !/compleanno/i.test(l) || l.includes(' ... '));
         const look = { align: 'center', wordWrap: { width: BAND_TEXT_W }, lineSpacing: 2, stroke: '#05071a', strokeThickness: 3 } as const;
-        let y = this.creditsTop;
+        let y = GAME_HEIGHT + 8;
         const put = (text: string, color: string, gap: number): void => {
             const obj = this.add.text(BAND_CX, y, text, { ...pixelStyle(16, color), ...look }).setOrigin(0.5, 0).setDepth(DEPTH.credits);
             this.credits.push({ obj, y });
@@ -476,15 +473,15 @@ export class SkydiveScene extends Phaser.Scene {
         this.tweens.add({ targets: this.dim, alpha: 0.35, duration: 1000 }); // lighter than at night: the towers stay readable
 
         const shadow = { stroke: '#05071a', strokeThickness: 5 };
-        const title = this.add.text(FINALE_CX, 74, LABELS.birthday, { ...pixelStyle(32, '#ffe27a'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setScale(0.2).setAlpha(0);
+        const title = this.add.text(ENDING_FX.finale.x, ENDING_FX.finale.y, LABELS.birthday, { ...pixelStyle(32, '#ffe27a'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setScale(0.2).setAlpha(0);
         this.tweens.add({ targets: title, scale: 1, alpha: 1, duration: 800, ease: 'Back.Out', delay: 400 });
-        this.tweens.add({ targets: title, y: 70, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: 1400 });
+        this.tweens.add({ targets: title, y: ENDING_FX.finale.y - 4, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: 1400 });
 
         // confetti burst from the title, then a light rain, and sparkles that keep twinkling around the text
         this.time.delayedCall(600, () => {
             audio.sfx('win');
             CONFETTI.forEach((tint) => {
-                const burst = this.add.particles(FINALE_CX, 74, 'ending-dot', {
+                const burst = this.add.particles(ENDING_FX.finale.x, ENDING_FX.finale.y, 'ending-dot', {
                     speed: { min: 90, max: 300 },
                     angle: { min: 0, max: 360 },
                     gravityY: 260,
@@ -512,8 +509,8 @@ export class SkydiveScene extends Phaser.Scene {
             });
             this.add
                 .particles(0, 0, 'ending-star', {
-                    x: { min: FINALE_CX - 150, max: FINALE_CX + 150 },
-                    y: { min: 56, max: 92 },
+                    x: { min: ENDING_FX.finale.x - 150, max: ENDING_FX.finale.x + 150 },
+                    y: { min: ENDING_FX.finale.y - 18, max: ENDING_FX.finale.y + 18 },
                     lifespan: 900,
                     scale: { start: 1.4, end: 0.4 },
                     alpha: { start: 1, end: 0 },
@@ -524,8 +521,8 @@ export class SkydiveScene extends Phaser.Scene {
                 .setDepth(DEPTH.particles);
         });
 
-        const theEnd = this.add.text(FINALE_CX, 126, DIALOGUE.ui.theEnd ?? LABELS.theEnd, { ...pixelStyle(32, '#ffffff'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
-        const prompt = this.add.text(FINALE_CX, 152, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
+        const theEnd = this.add.text(ENDING_FX.finale.x, 126, DIALOGUE.ui.theEnd ?? LABELS.theEnd, { ...pixelStyle(32, '#ffffff'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
+        const prompt = this.add.text(ENDING_FX.finale.x, 152, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
         const show = (): void => {
             this.tweens.killTweensOf([theEnd, prompt]);
             theEnd.setAlpha(1);
