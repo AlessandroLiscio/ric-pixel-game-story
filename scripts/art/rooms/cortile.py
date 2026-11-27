@@ -72,9 +72,9 @@ def build():
         m.stamp("bar_stool", 8, y)
     m.stamp("cortile_pillar", 8, 3)
     # behind the bar, under the mezzanine: two small tables for the staff and friends, a plant, crates and barrels against the walls
-    m.stamp("table_round", 4, 12)
-    m.stamp("chair_e", 3, 12)
-    m.stamp("chair_w", 5, 12)
+    m.stamp("table_round", 4, 13)          # a row below the barista (6, 11), so no chair crowds him
+    m.stamp("chair_e", 3, 13)
+    m.stamp("chair_w", 5, 13)
     m.stamp("table_round_red", 4, 8)
     m.stamp("chair_e", 3, 8)
     m.stamp("chair_w", 5, 8)
@@ -101,10 +101,10 @@ def build():
 
     # the staircase against the right wall, beside the stage, and three big round tables with their chairs below it
     m.stamp("cortile_stairs", 18, 5)
-    for y in (9, 12, 14):
+    for y in (9, 11, 13):                   # close together: rows 15 and 16 stay free for the talking group in the corner
         m.stamp("cortile_table_big", 19, y)
-    for (x, y, f) in ((18, 9, "e"), (18, 10, "e"), (19, 11, "n"), (20, 11, "s"), (18, 12, "e"), (18, 13, "e"), (18, 14, "e"), (18, 15, "e")):
-        m.stamp("chair_" + f, x, y)
+    for y in range(9, 15):
+        m.stamp("chair_e", 18, y)
 
     # the chandelier hangs above everyone
     m.stamp("cortile_chandelier", 10, 9)
@@ -122,9 +122,10 @@ def build():
     m.point("carolina", 16, 12)
     m.point("trig_bar", 9, 12, 5, 2)  # a few steps in from the door: crossing this zone sends Ros and Giusy to the bar (x, y, w, h in tiles)
     m.point("obj_bar", 7, 8, 1, 8)  # the counter: 1 tile wide, rows 8 to 15
-    # four spots side by side along the bottom wall, right of the door, where the two lads and the girls end up together
-    for i, name in enumerate(("wall_albanese1", "wall_ros", "wall_giusy", "wall_albanese2")):
-        m.point(name, 14 + i, 16)
+    # the bottom right corner, where the two lads and the girls end up talking: one couple above the other, each face to face,
+    # the girls on the open side so Ric can reach them
+    for name, x, y in (("wall_ros", 19, 15), ("wall_albanese1", 20, 15), ("wall_giusy", 19, 16), ("wall_albanese2", 20, 16)):
+        m.point(name, x, y)
 
     # lights, in pixels: pendant lamps under the beam, the pillar lamp, the TVs and the projector, the truss spots on the band, the
     # chandelier, the bar and its screens, the table candles, the street at the door
@@ -140,9 +141,9 @@ def build():
         m.light(13 * T + lx, 32 + 84, tone, 12, "pulse", 900 + lx * 7, pool=0)
         m.light(13 * T + lx + 6, 6 * T + 12, tone, 0, "steady", 0, pool=78, power=.62)
     m.light(11 * T, 10 * T + 10, "#ffcf72", 40, "flicker", 2400, pool=128, power=.85)
-    for ty in (9, 12, 14):
+    for ty in (9, 11, 13):
         m.light(20 * T + 10, ty * T + 14, "#ffb060", 0, "steady", 0, pool=56, power=.5)     # the candle on each big table
-    m.light(4 * T + 16, 12 * T + 6, "#ffb060", 0, "steady", 0, pool=56, power=.5)           # the candle at the staff table
+    m.light(4 * T + 16, 13 * T + 6,"#ffb060", 0, "steady", 0, pool=56, power=.5)           # the candle at the staff table
     m.light(13 * T, 12 * T, "#ffc890", 0, "steady", 0, pool=110, power=.32)                 # the warm bounce of the hall
     m.light(7 * T + 16, 9 * T + 8, "#ffb060", 0, "steady", 0, pool=96, power=.6)            # the bar
     m.light(7 * T + 16, 13 * T, "#ffb060", 0, "steady", 0, pool=90, power=.55)
@@ -161,7 +162,7 @@ def build():
         (16, 9, 11, "left", 3000), (17, 11, 11, "up", 2600), (18, 14, 11, "up", 2900), (19, 17, 11, "right", 2500),
         (20, 15, 12, "up", 2800), (12, 9, 13, "left", 2500), (3, 11, 13, "up", 2700), (8, 14, 13, "up", 2400),
         (9, 16, 13, "up", 3000), (4, 10, 14, "up", 2600), (7, 15, 14, "right", 2900),
-        (11, 3, 10, "right", 2700), (14, 5, 14, "up", 2500)]:  # the last two are behind the bar
+        (11, 3, 10, "right", 2700), (14, 3, 15, "up", 2500)]:  # the last two are behind the bar
         m.person("crowd-%d" % n, x, y, face, per)
     # a few who dance: the two arm poses swap on the beat
     for (n, x, y, face, per) in [(4, 13, 10, "up", 420), (6, 16, 11, "up", 460), (2, 10, 12, "up", 440)]:
