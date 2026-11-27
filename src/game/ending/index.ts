@@ -94,6 +94,7 @@ export class EndingScene extends Phaser.Scene {
 
         this.cameras.main.fadeIn(700, 0, 0, 0);
         audio.playTrack('circe');
+        audio.playAmbience('circe'); // indoors: the house's clock bed takes over from the Cortile's street
         particleTextures(this);
 
         this.buildRoom();
