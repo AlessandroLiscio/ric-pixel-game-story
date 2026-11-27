@@ -13,7 +13,7 @@
       { "personId": "pinolo", "facing": "down", "intro": true, "at": "pinolo" }
     ],
     "minigame": "simon",
-    "bins": [{ "x": 656, "y": 412, "draw": false, "item": "appunti" }],
+    "bins": [{ "x": 656, "y": 156, "draw": false, "item": "appunti" }],
     "ambient": []
   },
   {
@@ -93,7 +93,7 @@
       { "personId": "albanese2", "facing": "left", "egg": "albanese", "at": "albanese2" }
     ],
     "minigame": "rhythm",
-    "bins": [{ "x": 656, "y": 538, "item": "soldi" }],
+    "bins": [{ "x": 172, "y": 538, "item": "soldi" }],
     "ambient": []
   }
 ]

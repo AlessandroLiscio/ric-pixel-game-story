@@ -36,7 +36,7 @@ def build():
         m.block(x0, FIRST_ROW, x1, LAST_ROW)
     m.blocked[FIRST_ROW][3] = 0
     m.stamp("universita_seat_lollino", 3, FIRST_ROW)
-    m.stamp("universita_bins", W - 2, H - 2)
+    m.stamp("universita_bins", W - 2, 4)       # the top right corner, between the front wall and the right wall
 
     # Ric comes in through the left exit door and walks right along the front aisle: Lollino sits two tiles on, in the first seat of
     # the front row, Prof. Pinolo stands on the stage by the screen, the exit is the matching door of the right wall at the end of
