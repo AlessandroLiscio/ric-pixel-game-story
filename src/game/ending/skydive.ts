@@ -10,11 +10,11 @@ import { SpeechBanner } from './banner';
 import { finaleFx } from './fx';
 import { LABELS } from './labels';
 import { BAND_CX, BAND_TEXT_W, BAND_X, DEPTH, GAME_HEIGHT, GAME_WIDTH, SPEECH } from './layout';
+import { LEAD_IN_MS } from './script';
 import * as art from './sky-art';
 
 const FINALE_CX = 494;
 const CONFETTI = [0xff5a6e, 0xffd34a, 0x6ee08a, 0x6ab4ff, 0xff8ae0];
-const LEAD_IN_MS = 2500; // the plane flies in before the first line
 const SCROLL_MS = 45000; // the credits column has gone by in this long
 const HURRY = 4; // how much faster the column runs while a confirm key is held
 const CHUTE_OPEN_MS = 4700; // from the jump to the first canopy: about 3 s of free fall after the last one is out

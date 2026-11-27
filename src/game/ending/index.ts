@@ -1,13 +1,12 @@
 import Phaser from 'phaser';
 import { audio } from '../audio';
-import { person } from '../flow/data';
 import { getRun } from '../flow/RunState';
 import { MAPS, TileWorld } from '../flow/tileMap';
 import { fadeToScene } from '../transitions';
-import { CONFIRM_CODES, pressArrow } from '../ui/DialogBox';
-import { panelTexture } from '../ui/panel';
+import { CONFIRM_CODES } from '../ui/DialogBox';
 import { pixelStyle } from '../ui/text';
 import { balloonTexture, blanketTexture, glowTexture, particleTextures, pillowTexture, scanTexture } from './art';
+import { SpeechBanner } from './banner';
 import { startTvFx } from './fx';
 import { LABELS } from './labels';
 import { BALLOONS, DEPTH, SCREEN, SPEECH, SPOTS, UPSTAIRS, type Spot } from './layout';
@@ -24,7 +23,6 @@ interface Breather {
     base: number;
     phase: number;
 }
-const SHADOW = { offsetX: 1, offsetY: 1, color: '#0a1040', blur: 0, stroke: false, fill: true };
 interface Zzz {
     imgs: Phaser.GameObjects.Image[];
     x: number;
@@ -53,11 +51,7 @@ export class EndingScene extends Phaser.Scene {
     private creakAcc = 0;
     private away: string[] = [];
     private talkers = new Map<string, { img: Phaser.GameObjects.Sprite; base: number }>();
-    private speech!: Phaser.GameObjects.Container;
-    private speechPanel!: Phaser.GameObjects.Image;
-    private speechFace!: Phaser.GameObjects.Image;
-    private speechName!: Phaser.GameObjects.Text;
-    private speechBody!: Phaser.GameObjects.Text;
+    private banner!: SpeechBanner;
     private hearts!: Phaser.GameObjects.Particles.ParticleEmitter;
     private puffs!: Phaser.GameObjects.Particles.ParticleEmitter;
     private menuClosedAt = 0;
@@ -106,7 +100,7 @@ export class EndingScene extends Phaser.Scene {
         this.buildParty();
         this.buildLight();
         this.buildUpstairs();
-        this.buildSpeech();
+        this.banner = new SpeechBanner(this, SPEECH, DEPTH.speech);
         startTvFx(this);
 
         this.input.keyboard!.on('keydown', this.onKey, this);
@@ -238,42 +232,9 @@ export class EndingScene extends Phaser.Scene {
 
     // ---- speech: the night scene of the divano room, one line at a time ----
 
-    private buildSpeech(): void {
-        const style = { ...pixelStyle(16), shadow: SHADOW, lineSpacing: 2 };
-        this.speechPanel = this.add.image(0, 0, '__DEFAULT').setOrigin(0);
-        this.speechFace = this.add.image(0, 0, '__DEFAULT').setOrigin(0).setScale(SPEECH.portrait / 96);
-        this.speechName = this.add.text(0, 0, '', { ...style, color: '#ffe27a' });
-        this.speechBody = this.add.text(0, 0, '', style);
-        const arrow = pressArrow(this, SPEECH.x + SPEECH.w / 2, SPEECH.bottom - 7, 5);
-        this.speech = this.add.container(0, 0, [this.speechPanel, this.speechFace, this.speechName, this.speechBody, arrow]).setDepth(DEPTH.speech).setAlpha(0);
-    }
-
-    /** Shows `b` in the banner (or hides it for null): portrait and name of the speaker, or the plain narrator text. */
-    private showBeat(b: Beat | null): void {
-        this.tweens.killTweensOf(this.speech);
-        if (!b) {
-            this.tweens.add({ targets: this.speech, alpha: 0, duration: 120 });
-            return;
-        }
-        const face = person(b.speaker)?.portrait;
-        const hasFace = !!face && this.textures.exists(face);
-        const textX = SPEECH.x + (hasFace ? SPEECH.portrait + 14 : 10);
-        const bodyY = b.name ? 24 : 8;
-        this.speechBody.setWordWrapWidth(SPEECH.x + SPEECH.w - 8 - textX).setText(b.text).setColor(b.name ? '#ffffff' : '#d6e4ff');
-        const h = Math.max(hasFace ? SPEECH.portrait + 12 : 0, bodyY + Math.ceil(this.speechBody.height) + 8);
-        const top = SPEECH.bottom - h;
-        this.speechPanel.setTexture(panelTexture(this, `ending-panel-${SPEECH.w}x${h}`, SPEECH.w, h)).setPosition(SPEECH.x, top);
-        this.speechFace.setVisible(hasFace).setPosition(SPEECH.x + 6, top + 6);
-        if (hasFace) this.speechFace.setTexture(face);
-        this.speechName.setText(b.name).setPosition(textX, top + 6);
-        this.speechBody.setPosition(textX, top + bodyY);
-        this.speech.setAlpha(0);
-        this.tweens.add({ targets: this.speech, alpha: 1, duration: 120 });
-    }
-
     /** Puts line `beatIx` on screen (nothing once all are read); the first line of the gag sends its people upstairs. */
     private speak(): void {
-        this.showBeat(this.activeBeat);
+        this.banner.show(this.activeBeat);
         this.laugh(!!this.activeBeat?.laugh);
         if (this.activeBeat?.upstairs && !this.left) {
             this.left = true;

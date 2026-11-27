@@ -14,9 +14,7 @@ export interface Beat {
     laugh: boolean;
 }
 
-/** The credits column (in the skydive scene) scrolls by in this long. */
-export const SCROLL_MS = 45000;
-/** The quiet moment before the first line. */
+/** The quiet moment before the first line, in the night room and in the plane. */
 export const LEAD_IN_MS = 2500;
 /** Who goes upstairs when the gag starts (they are in the room for the whole night until then): Liscio and Lara, or Ric (the fringe girl waits up there) when he got her number. */
 export const awayOf = (flags: RunState['flags'] | undefined): string[] => (flags?.numeroFrangetta ? ['ric'] : ['liscio', 'lara']);
