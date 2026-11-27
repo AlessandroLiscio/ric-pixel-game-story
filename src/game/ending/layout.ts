@@ -3,7 +3,7 @@ import { MAPS, TILE } from '../flow/tileMap';
 
 export { GAME_HEIGHT, GAME_WIDTH };
 
-// The credits play in the real tile room: src/data/maps/divano.json (scripts/art/rooms/divano.py), drawn from the top left corner of
+// The ending plays in the real tile room: src/data/maps/divano.json (scripts/art/rooms/divano.py), drawn from the top left corner of
 // the screen, so a map pixel is a screen pixel. Everything below is read from the map's named points, so moving the TV or the sofa in
 // the room script moves the ending with it.
 const map = MAPS.divano;
@@ -52,10 +52,10 @@ export const BALLOONS = { x: 296, y: 42 };
 /** The top of the staircase on the TV wall (the dark landing at the left end of the steps): the hearts and puffs of the upstairs gag leave from here. */
 export const UPSTAIRS = { x: 230, y: 62 };
 
-/** The speech banner of the credits: along the bottom of the room, left of the credits column; it grows upward with the number of rows. */
-export const SPEECH = { x: 6, w: 394, bottom: GAME_HEIGHT - 6, portrait: 48 };
+/** The speech banner: along the whole bottom of the screen; it grows upward with the number of rows. */
+export const SPEECH = { x: 6, w: GAME_WIDTH - 12, bottom: GAME_HEIGHT - 6, portrait: 48 };
 
-// The credits column on the right of the screen.
+// The credits column on the right of the screen (it rolls in the skydive scene).
 export const BAND_X = 424;
 export const BAND_CX = 534;
 export const BAND_TEXT_W = 190;

@@ -1,14 +1,15 @@
-// npm run test:e2e-nolog: the end-to-end test. Prints `PASS e2e: <scenes> scenes, 6 minigames, no console errors` (the scene count is read from
-// src/data/scenes.json) or one FAIL block; the full
+// npm run test:e2e-nolog: the end-to-end test. Prints `PASS e2e: <scenes> scenes, 6 minigames, ending and skydive, no console errors` (the
+// scene count is read from src/data/scenes.json) or one FAIL block; the full
 // step log is logs/e2e/steps.log (build logs beside it). Two single-file offline builds, both opened through file://:
-//   logs/e2e/dist       VITE_TEST_BUILD=1 (test hooks): title, every scene, all 6 minigames, the ending, the replay from the title.
+//   logs/e2e/dist       VITE_TEST_BUILD=1 (test hooks): title, every scene, all 6 minigames, the ending, the skydive, the replay from the title.
 //   logs/e2e/dist-prod  production: the title renders, the game starts, and no test hook ships.
 // Real input: scene 1 (universita) is played with key presses only (arrows, X), and so is the last scene when it has no minigame (the
 // finale plays by itself); simon (the pinhole camera quiz: arrows to the right answer, X), mash and d20 (X for its 5 s window) are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
 // At the Cortile Ric fetches Ros and Giusy where they end up, in the bottom right corner: he is put just above each one's live position.
-// The Cortile lads and the hooded man must walk where the story puts them, and the credits speech must wait for X.
+// The Cortile lads and the hooded man must walk where the story puts them, and the speech of the ending and of the plane must wait for X.
+// The skydive's fall, credits and landing are cut short with the test skip.
 // Also covered: Shift runs, the Esc menu (opens, pauses the world, controls and diary, quit to the title resets the run), a litter bin
 // (the first one gives the portal gun), the portal (scene 2 is left through a wall) and the edge exit (giardini has no door). A last step plays
 // cat-smoke with real keys and picks the right sofa the moment the cat hides (regression: that pick used to be dropped and lose the round).
@@ -427,42 +428,63 @@ try {
     check((await litPixels(context, page)) > 200, 'ending looks blank');
     note(`ending: party ${s.party}, results ${JSON.stringify(s.results)}, minigames ${JSON.stringify(how)}`);
 
-    // the credits speech: a line stays until X (longer than the old timer ever kept one), then X walks through to the finale
-    const ending = () =>
-        page.evaluate(() => {
-            const e = window.__ricGame.scene.getScene('ending');
-            return { ix: e.beatIx, total: e.beats.length, text: e.activeBeat?.text ?? '', laughs: e.laughs.length, phase: e.phase };
-        });
-    let c = await ending();
-    for (let n = 0; n < 100 && !c.text; n++) {
-        await sleep(100);
-        c = await ending();
-    }
-    check(c.ix === 0 && c.text, `the credits speech did not start: ${JSON.stringify(c)}`);
-    await sleep(8000);
-    check((await ending()).ix === 0, 'a credits line moved on without X');
-    const said = [];
-    for (let n = 0; n < 60 && c.ix < c.total; n++) {
-        said.push(c);
-        await press('x');
-        await sleep(200);
-        c = await ending();
-    }
-    check(c.ix === c.total && said.length === c.total, `X did not walk through the ${c.total} credits lines: ${JSON.stringify(c)}`);
+    // the speech of the ending and of the plane: a line stays until X (nothing moves it on by itself), then X walks through all of them
+    const speech = (key) =>
+        page.evaluate((k) => {
+            const e = window.__ricGame.scene.getScene(k);
+            return { ix: e.beatIx, total: e.beats?.length ?? 0, text: e.beats?.[e.beatIx]?.text ?? '', laughs: e.laughs?.length ?? 0, phase: e.phase };
+        }, key);
+    /** Returns what each line of the scene `key` showed. */
+    const readAll = async (key) => {
+        let c = await speech(key);
+        for (let n = 0; n < 100 && !c.text; n++) {
+            await sleep(100);
+            c = await speech(key);
+        }
+        check(c.ix === 0 && c.text, `the ${key} speech did not start: ${JSON.stringify(c)}`);
+        await sleep(8000);
+        check((await speech(key)).ix === 0, `a ${key} line moved on without X`);
+        const said = [];
+        for (let n = 0; n < 60 && c.ix < c.total; n++) {
+            said.push(c);
+            await press('x');
+            await sleep(200);
+            c = await speech(key);
+        }
+        check(c.ix === c.total && said.length === c.total, `X did not walk through the ${c.total} ${key} lines: ${JSON.stringify(c)}`);
+        return said;
+    };
+    const said = await readAll('ending');
     const laugh = said.findIndex((x) => x.laughs > 0);
     check(laugh > 0 && said[laugh - 1].text.endsWith('... le acciughe!') && said[laugh].laughs >= 7, `no room-wide laugh after the anchovies: ${JSON.stringify(said[laugh])}`);
-    for (let n = 0; n < 150 && (await ending()).phase !== 'finale'; n++) await sleep(200); // the column hurries to its end
-    check((await ending()).phase === 'finale', 'no finale after the last credits line');
-    note(`credits: ${c.total} lines advanced with X, the room laughed, then the finale`);
+    await until((x) => x.scene === 'skydive', 'the skydive after the last ending line', 15000);
+    note(`ending: ${said.length} lines advanced with X, the room laughed, then the skydive`);
+
+    // ---- skydive: the plane, the jump, then (by the test skip) the finale ----
+    await sleep(1500); // the transition opens over the sky
+    check((await litPixels(context, page)) > 200, 'skydive looks blank');
+    await checkHd('skydive');
+    const plane = await readAll('skydive');
+    check(plane.every((x) => x.phase === 'plane'), `a plane line showed outside the plane phase: ${JSON.stringify(plane.map((x) => x.phase))}`);
+    const sky = (field) => page.evaluate((k) => window.__ricGame.scene.getScene('skydive')[k], field);
+    const reach = async (phase, label) => {
+        for (let n = 0; n < 150 && (await sky('phase')) !== phase; n++) await sleep(100);
+        check((await sky('phase')) === phase, `${label}: phase is "${await sky('phase')}"`);
+    };
+    await reach('fall', 'no jump after the last plane line');
+    await test('skip'); // the credits and the landing take about a minute
+    await reach('finale', 'no finale after the skip in the fall');
+    check((await litPixels(context, page)) > 200, 'skydive finale looks blank');
+    note(`skydive: ${plane.length} plane lines advanced with X, the jump, then the finale`);
 
     // the test skip shows the prompt at once, then the restart key works (the scene's canRestart field says when)
     for (let n = 0; n < 100; n++) {
-        if (await page.evaluate(() => window.__ricGame.scene.getScene('ending').canRestart)) break;
+        if (await sky('canRestart')) break;
         await test('skip');
         await sleep(300);
     }
-    check(await page.evaluate(() => window.__ricGame.scene.getScene('ending').canRestart), 'ending never offered the restart');
-    await press('Enter');
+    check(await sky('canRestart'), 'the skydive never offered the restart');
+    await press('x');
     s = await until((x) => x.scene === 'title', 'title after the ending');
     check(s.sceneIndex === 0 && s.party.length === 0 && Object.keys(s.results).length === 0, `run not reset by the replay: ${JSON.stringify(s)}`);
     check((await litPixels(context, page)) > 200, 'title after the ending looks blank');
@@ -543,4 +565,4 @@ try {
 }
 writeFileSync(logFile, `${steps.join('\n')}\n`);
 await browser?.close();
-console.log(`PASS e2e: ${SCENES.length} scenes, ${MINIGAME_IDS.length} minigames, no console errors`);
+console.log(`PASS e2e: ${SCENES.length} scenes, ${MINIGAME_IDS.length} minigames, ending and skydive, no console errors`);

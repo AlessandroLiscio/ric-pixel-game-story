@@ -15,7 +15,7 @@ const WRAP_FULL = BOX_W - 16 - 16;
 const WRAP_SAFETY = 6; // px kept free on every line, for the shadow and for a font that rounds differently
 const PERSONS = ['ric', 'lara', 'liscio', 'ros', 'lollino', 'fede', 'giuggiu', 'giusy', 'pinolo', 'gatto', 'sconosciuta', 'alessandro', 'rosanna', 'roberto', 'armando', 'carolina', 'papa', 'mamma', 'frangetta', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'albanese1', 'albanese2', 'losco', 'narratore'];
 const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile'];
-// the old night scene stays in the file: its lines move to the credits (they are not played in the world any more)
+// the old night scene stays in the file: its lines move to the ending (they are not played in the world any more)
 const CREDITS_SCENE = 'divano';
 const SCENE_KEYS = ['arrival', 'meet', 'minigameIntro', 'win', 'lose', 'join'];
 const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
@@ -146,7 +146,7 @@ try {
   process.exit(1);
 }
 
-sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'objects', 'credits', 'ending', 'titleScreen']);
+sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'objects', 'credits', 'ending', 'skydive', 'titleScreen']);
 
 // objects: X next to an obj_<id> point of a room map (src/game/flow/objects.ts) plays objects.<sceneId>.<id>
 for (const [sid, objs] of Object.entries(data.objects ?? {})) {
@@ -251,17 +251,18 @@ for (const [path, raw, speaker] of strings) {
   for (const [n, re] of LOWER_NAMES) if (re.test(text)) err(path, `lowercase "${n}": names start with a capital, the cat is "Gatto di Paz"`);
   if (BAD_CAT.test(text)) err(path, 'the cat is "Gatto di Paz", never "Gatto" alone');
   if (/fettuccia/i.test(text)) err(path, 'say "slack", never "fettuccia"');
-  if (!path.startsWith('credits') && !path.startsWith('titleScreen') && BIRTHDAY.test(text)) err(path, 'no birthday reference inside the story');
+  // the credits, the title screen and the skydive (the birthday present) sit outside the story
+  if (!['credits', 'titleScreen', 'skydive'].some((k) => path.startsWith(k)) && BIRTHDAY.test(text)) err(path, 'no birthday reference inside the story');
 }
 // bins: each binTaken entry is one "già preso" variant, picked at random; portalNotYet is one fixed line
 if ((data.easterEggs?.binTaken ?? []).length < 3) err('easterEggs.binTaken', 'needs at least 3 variants');
 const notYet = data.easterEggs?.portalNotYet ?? [];
 if (notYet.length !== 1 || notYet[0].text.replace(/\n/g, ' ') !== "Meh, non abbiamo mica finito qui. C'è ancora da fare.") err('easterEggs.portalNotYet', 'must be exactly one line: "Meh, non abbiamo mica finito qui. C\'è ancora da fare." (a row break instead of the space)');
 
-// the lines spoken during the credits (src/game/ending/script.ts): the banner is narrower than the dialogue box, so a line stays under 110 characters
+// the lines spoken in the speech banner of the ending (src/game/ending/script.ts) and of the skydive: a line stays under 110 characters
 const bannerFits = (where, list) =>
   (list ?? []).forEach((l, i) => {
-    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`${where}[${i}]`, 'more than 110 characters: the credits banner shows at most 3 rows');
+    if (typeof l?.text === 'string' && len(l.text.replace(/\n/g, ' ')) > 110) err(`${where}[${i}]`, 'more than 110 characters: too long for the speech banner');
   });
 for (const k of ['arrival', 'meet', 'join']) bannerFits(`scenes.${CREDITS_SCENE}.${k}`, data.scenes?.[CREDITS_SCENE]?.[k]);
 // the TV exchange: the documentary's punchline, then the laugh (the one line marked `laugh`, the one the whole room laughs at)
@@ -280,6 +281,11 @@ for (const k of ['upstairs', 'upstairsFrangetta']) {
   checkLines(`ending.${k}`, data.ending?.[k]);
   bannerFits(`ending.${k}`, data.ending?.[k]);
 }
+
+// skydive: the lines in the plane, before the jump
+sameKeys('skydive', data.skydive ?? {}, ['plane']);
+checkLines('skydive.plane', data.skydive?.plane);
+bannerFits('skydive.plane', data.skydive?.plane);
 
 // credits
 checkText('credits.title', data.credits?.title, 1, MAX_CHARS);
