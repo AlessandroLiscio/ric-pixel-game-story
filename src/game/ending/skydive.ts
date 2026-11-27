@@ -321,7 +321,7 @@ export class SkydiveScene extends Phaser.Scene {
         this.dropBubble(j);
         j.mode = 'chute';
         j.diver.setVisible(false);
-        j.body.setVisible(true);
+        j.body.setTexture(art.hangTexture(this, j.spot.id)).setVisible(true);
         j.chute.setVisible(true).setScale(0.15, 0.35);
         this.tweens.add({ targets: j.chute, scaleX: 1, scaleY: 1, duration: 420, ease: 'Back.easeOut' });
         this.tweens.add({ targets: j.at, x: j.spot.x, y: j.spot.hangY, duration: 1200, ease: 'Back.easeOut' });
@@ -368,6 +368,7 @@ export class SkydiveScene extends Phaser.Scene {
     private touchdown(j: Jumper): void {
         j.mode = 'down';
         j.rig.setPosition(j.at.x, j.at.y).setRotation(0);
+        j.body.setTexture(`char-${j.spot.id}`, art.STAND_FRAME); // the arms come down
         this.tweens.add({ targets: j.chute, y: 52, scaleX: 0.8, scaleY: 0.2, alpha: 0, duration: 500, ease: 'Sine.easeIn' });
         j.heap.setVisible(true).setAlpha(0).setScale(art.SKY_SCALE, art.SKY_SCALE * 2);
         this.tweens.add({ targets: j.heap, alpha: 1, scaleY: art.SKY_SCALE, duration: 400, delay: 250 });
@@ -391,7 +392,7 @@ export class SkydiveScene extends Phaser.Scene {
             j.rig.setPosition(j.spot.x, j.landY).setRotation(0).setVisible(true);
             j.diver.setVisible(false);
             j.chute.setVisible(false);
-            j.body.setVisible(true);
+            j.body.setTexture(`char-${j.spot.id}`, art.STAND_FRAME).setVisible(true);
             j.heap.setVisible(true).setAlpha(1).setScale(art.SKY_SCALE);
         }
     }

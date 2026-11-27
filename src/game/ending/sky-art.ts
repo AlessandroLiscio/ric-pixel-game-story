@@ -8,11 +8,12 @@ const LINE = '#1c2236';
 
 type Ctx = CanvasRenderingContext2D;
 
-/** The three who jump. `top` and `shoulder` are the rows of the standing frame of their `char-<id>` sheet where the head starts and the shoulders are. */
+/** The three who jump. `top` and `shoulder` are the rows of the standing frame of their `char-<id>` sheet where the head starts and the shoulders are;
+ *  `arms` are the first and last row of the arms that hang at their sides in it, and half the width of the body between them. */
 export const JUMPERS = {
-    liscio: { top: 1, shoulder: 15, skin: '#dba577', shirt: ['#a6aab3', '#c9cdd6', '#767a89'], shorts: '#b79d6b', shoe: '#f4f1ea', dress: false },
-    ric: { top: 0, shoulder: 14, skin: '#dba577', shirt: ['#8c2a3a', '#b3424c', '#5e1b2e'], shorts: '#b79d6b', shoe: '#3b3f4c', dress: false },
-    lara: { top: 3, shoulder: 18, skin: '#f4cba8', shirt: ['#f4f1ea', '#ffffff', '#cbbfb4'], shorts: '#f4f1ea', shoe: '#e7dcc0', dress: true }
+    liscio: { top: 1, shoulder: 15, arms: [18, 23, 5], skin: '#dba577', shirt: ['#a6aab3', '#c9cdd6', '#767a89'], shorts: '#b79d6b', shoe: '#f4f1ea', dress: false },
+    ric: { top: 0, shoulder: 14, arms: [18, 22, 6], skin: '#dba577', shirt: ['#8c2a3a', '#b3424c', '#5e1b2e'], shorts: '#b79d6b', shoe: '#3b3f4c', dress: false },
+    lara: { top: 3, shoulder: 18, arms: [22, 24, 5], skin: '#f4cba8', shirt: ['#f4f1ea', '#ffffff', '#cbbfb4'], shorts: '#f4f1ea', shoe: '#e7dcc0', dress: true }
 } as const;
 export type JumperId = keyof typeof JUMPERS;
 
@@ -30,8 +31,9 @@ export const PLANE = {
     prop: { x: 141, y: 34 }
 } as const;
 
-/** The size of a canopy with its lines, and the row where the lines meet the jumper's shoulders. */
-export const CHUTE = { w: 54, h: 43, shoulderY: 42 } as const;
+/** The size of a canopy with its lines, the row of the jumper's shoulders under it, and where the raised hands hold the lines: `handX` to each
+ *  side of the middle, `handUp` rows above the shoulders. */
+export const CHUTE = { w: 54, h: 43, shoulderY: 42, handX: 12, handUp: 7 } as const;
 /** The landscape: it covers the screen width and its lower edge sits on the lower edge of the screen. */
 export const GROUND = { w: 320, h: 130 } as const;
 export const CLOUD_SHAPES = 3;
@@ -86,6 +88,31 @@ export function headTexture(scene: Phaser.Scene, id: JumperId): string {
     return texture(scene, `sky-head-${id}`, HEAD.w, HEAD.h + 1, (ctx) => drawHead(scene, ctx, id, 0, 1));
 }
 
+/** Under the canopy (40 x 32): the standing frame, its hanging arms cut away and two arms raised to the lines instead. */
+export function hangTexture(scene: Phaser.Scene, id: JumperId): string {
+    const p = JUMPERS[id];
+    return texture(scene, `sky-hang-${id}`, 40, 32, (ctx) => {
+        const layer = (): Ctx => Object.assign(document.createElement('canvas'), { width: 40, height: 32 }).getContext('2d')!;
+        const arms = layer();
+        const [first, last, half] = p.arms;
+        const hand = p.shoulder - CHUTE.handUp;
+        for (const side of [-1, 1]) {
+            const at = (dx: number) => (side < 0 ? 20 - dx : 19 + dx); // the column `dx` out from the middle
+            line(arms, p.dress ? p.skin : p.shirt[0], at(half) - 1, p.shoulder + 1, at(11) - 1, p.shoulder - 1, 3);
+            line(arms, p.skin, at(11) - 1, p.shoulder - 2, at(CHUTE.handX) - 1, hand + 1, 3);
+            disc(arms, p.skin, at(CHUTE.handX), hand, 2);
+        }
+        outline(arms);
+        const body = layer();
+        body.drawImage(sheet(scene, id), 32, 0, 32, 32, 4, 0, 32, 32);
+        body.clearRect(0, first, 20 - half, last - first + 1);
+        body.clearRect(20 + half, first, 20 - half, last - first + 1);
+        for (const x of [19 - half, 20 + half]) rect(body, LINE, x, first, 1, last - first + 1);
+        ctx.drawImage(arms.canvas, 0, 0);
+        ctx.drawImage(body.canvas, 0, 0);
+    });
+}
+
 /** Belly down in free fall, seen from below: arms and legs spread, the head of the sheet on top. */
 export function diverTexture(scene: Phaser.Scene, id: JumperId): string {
     const p = JUMPERS[id];
@@ -115,14 +142,14 @@ const DIGITS = [
     ['01110', '10001', '10001', '10001', '10001', '10001', '01110']
 ];
 
-/** An open canopy in the colour of the shirt, seen from the front, with its suspension lines down to the shoulders. Ric's says "30". */
+/** An open canopy in the colour of the shirt, seen from the front, with its suspension lines down to the raised hands. Ric's says "30". */
 export function chuteTexture(scene: Phaser.Scene, id: JumperId): string {
     const [base, light, dark] = JUMPERS[id].shirt;
     return texture(scene, `sky-chute-${id}`, CHUTE.w, CHUTE.h, (ctx) => {
         const cx = CHUTE.w / 2;
         const half = (y: number) => 25.5 * Math.sqrt(1 - ((20 - y) / 20.5) ** 2);
         // the lines first, so the fabric covers their upper ends
-        for (const [x, side] of [[2, -1], [12, -1], [21, -1], [33, 1], [42, 1], [52, 1]]) line(ctx, '#3a3f58', x, 18, cx + side * 7, CHUTE.shoulderY);
+        for (const [x, side] of [[2, -1], [12, -1], [21, -1], [33, 1], [42, 1], [52, 1]]) line(ctx, '#3a3f58', x, 18, cx + side * CHUTE.handX, CHUTE.shoulderY - CHUTE.handUp);
         const cloth = document.createElement('canvas');
         cloth.width = CHUTE.w;
         cloth.height = CHUTE.h;
@@ -284,15 +311,17 @@ export function cloudTexture(scene: Phaser.Scene, shape: number): string {
     });
 }
 
-/** One of the Due Torri: a brick shaft from `base` up `h` rows whose top is `lean` px to the side of its foot, `w` px wide. */
+/** The brick of the far towers, greyed and paled by the air like the hills behind them: edge, wall, lit side, shaded side. */
+const FAR_BRICK = { edge: '#6c5866', wall: '#a8706a', light: '#bf8a7e', shade: '#8c5e62' };
+
+/** One of the Due Torri, far away: a brick shaft from `base` up `h` rows, `w` px wide, whose top is `lean` px to the side of its foot. */
 function tower(ctx: Ctx, x: number, base: number, h: number, w: number, lean: number): number {
     for (let i = 0; i <= h; i++) {
         const left = x + Math.round((lean * i) / h);
-        rect(ctx, '#3c1c20', left - 1, base - i, w + 2, 1);
-        rect(ctx, '#b4583e', left, base - i, w, 1);
-        rect(ctx, '#d2795a', left, base - i, 2, 1);
-        rect(ctx, '#863a30', left + w - 3, base - i, 3, 1);
-        if (i % 9 === 5 && i < h - 3) rect(ctx, '#3c1c20', left + Math.floor(w / 2) - 1, base - i, 1, 2); // the little windows
+        rect(ctx, FAR_BRICK.edge, left - 1, base - i, w + 2, 1);
+        rect(ctx, FAR_BRICK.wall, left, base - i, w, 1);
+        rect(ctx, FAR_BRICK.light, left, base - i, 1, 1);
+        rect(ctx, FAR_BRICK.shade, left + w - 1, base - i, 1, 1);
     }
     return x + lean;
 }
@@ -306,15 +335,16 @@ export function groundTexture(scene: Phaser.Scene): string {
         const rnd = seeded(30);
         const W = GROUND.w;
         // far hills, then nearer ones
-        const farHill = (x: number) => 64 - 17 * Math.exp(-(((x - 34) / 34) ** 2)) - 7 * Math.exp(-(((x - 205) / 50) ** 2)) + 2 * Math.sin(x / 17);
+        const SAN_LUCA = 262; // on the right, where none of the three comes down in front of it
+        const farHill = (x: number) => 64 - 17 * Math.exp(-(((x - SAN_LUCA) / 34) ** 2)) - 7 * Math.exp(-(((x - 70) / 50) ** 2)) + 2 * Math.sin(x / 17);
         const nearHill = (x: number) => 73 + 3 * Math.sin(x / 29 + 2) + 1.5 * Math.sin(x / 11);
         // San Luca on its hill: the ochre sanctuary and its dome
-        const sl = Math.round(farHill(34));
-        rect(ctx, '#d8a878', 23, sl - 4, 22, 6);
-        rect(ctx, '#e8c090', 29, sl - 8, 10, 6);
-        rows(ctx, '#7fb0a8', sl - 14, sl - 9, (y) => [34 - (y - (sl - 15)) * 0.9, 34 + (y - (sl - 15)) * 0.9]);
-        rect(ctx, '#e8c090', 33, sl - 17, 2, 3);
-        rect(ctx, '#d8a878', 46, sl - 7, 3, 9);
+        const sl = Math.round(farHill(SAN_LUCA));
+        rect(ctx, '#d8a878', SAN_LUCA - 11, sl - 4, 22, 6);
+        rect(ctx, '#e8c090', SAN_LUCA - 5, sl - 8, 10, 6);
+        rows(ctx, '#7fb0a8', sl - 14, sl - 9, (y) => [SAN_LUCA - (y - (sl - 15)) * 0.9, SAN_LUCA + (y - (sl - 15)) * 0.9]);
+        rect(ctx, '#e8c090', SAN_LUCA - 1, sl - 17, 2, 3);
+        rect(ctx, '#d8a878', SAN_LUCA + 12, sl - 7, 3, 9);
         for (let x = 0; x < W; x++) {
             const a = Math.round(farHill(x));
             rect(ctx, '#7ea6b8', x, a, 1, 90 - a);
@@ -337,17 +367,15 @@ export function groundTexture(scene: Phaser.Scene): string {
             }
         };
         houses(80, 4);
-        // the Due Torri: Asinelli with its crown and lantern, Garisenda cut short and leaning away
-        const asinelli = tower(ctx, 96, 82, 66, 8, 2);
-        rect(ctx, '#3c1c20', asinelli - 2, 12, 12, 6);
-        rect(ctx, '#c4684a', asinelli - 1, 13, 10, 4);
-        for (let i = 0; i < 10; i += 3) rect(ctx, '#3c1c20', asinelli + i - 1, 12, 1, 2);
-        rect(ctx, '#3c1c20', asinelli + 1, 7, 6, 6);
-        rect(ctx, '#b4583e', asinelli + 2, 8, 4, 4);
-        rect(ctx, '#3c1c20', asinelli + 4, 1, 1, 7);
-        const garisenda = tower(ctx, 112, 82, 38, 10, 9);
-        rect(ctx, '#3c1c20', garisenda - 1, 43, 12, 2);
-        rect(ctx, '#d2795a', garisenda, 44, 10, 1);
+        // the Due Torri among the far roofs: the tall thin Asinelli with its crown, small top and spike, the Garisenda cut short and leaning away
+        const asinelli = tower(ctx, 126, 80, 24, 3, 0);
+        rect(ctx, FAR_BRICK.edge, asinelli - 2, 55, 7, 3); // the crown, a little wider than the shaft
+        rect(ctx, FAR_BRICK.light, asinelli - 1, 56, 5, 1);
+        rect(ctx, FAR_BRICK.edge, asinelli, 52, 3, 3); // the small top
+        rect(ctx, FAR_BRICK.wall, asinelli + 1, 53, 1, 2);
+        rect(ctx, FAR_BRICK.edge, asinelli + 1, 49, 1, 3);
+        const garisenda = tower(ctx, 135, 80, 17, 4, 4);
+        rect(ctx, FAR_BRICK.edge, garisenda - 1, 62, 6, 1);
         houses(87, 3);
         // the fields: bands that get taller toward the viewer, with furrows that run to the horizon
         const bands = [['#5e9a48', 86, 3], ['#c8bc58', 89, 3], ['#6cac4c', 92, 5], ['#559040', 97, 6], ['#74b650', 103, 10], ['#66a846', 113, 17]] as const;
