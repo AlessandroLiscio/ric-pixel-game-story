@@ -4,7 +4,7 @@ along the front behind a concrete curb, a red-brown park bench with a graffiti s
 perforated litter bin on a pole, a green round-globe lamp post, a pale gravel footpath that leads to a gate in a wooden post-and-rail
 fence, the far treeline with a villa with an orange roof, the pond with its fountain and the back path with tiny walkers, and the
 slackline: a green webbing strapped around two trunks, a green tree strap with a silver ratchet, the coiled tail on the grass, the orange
-towel spread open below it, a dark green tarp with two people lying on it, bikes lying on the grass, backpacks, shoes, a blue bottle and
+towel spread open below it, a dark green tarp with two people lying on it, backpacks, shoes, a blue bottle and
 an orange frisbee, and a small dog on a red leash for the dog walker.
 
 Every name starts with `giardini_`: the registry refuses anything else from a room module. Big pictures are one stamp each so the lines
@@ -714,37 +714,6 @@ def tarp():
     return c
 
 
-def bike(variant):
-    """A bike lying on the grass, seen from above and a little in front: two wheels, a frame, handlebars, a saddle."""
-    c = Canvas(2 * T, T)
-    col_f = ["#9ae04a", "#1c1c24", "#c8423f"][variant % 3]
-    col_hi = light(hx(col_f), .35)
-    c.ell(33, 24, 28, 3.4, (24, 56, 40, 70))
-    for (cx, cy, rx, ry) in ((13, 17, 11, 8.5), (51, 17, 11, 8.5)):
-        c.ell(cx, cy, rx, ry, "#1c1c24")
-        c.ell(cx, cy, rx - 1.4, ry - 1.2, (0, 0, 0, 0))
-        for yy in range(int(cy - ry), int(cy + ry) + 1):
-            for xx in range(int(cx - rx), int(cx + rx) + 1):
-                d = ((xx + .5 - cx) / (rx - 1.4)) ** 2 + ((yy + .5 - cy) / (ry - 1.2)) ** 2
-                if d < 1:
-                    c.px[xx, yy] = (0, 0, 0, 0)
-        c.hline(int(cx - rx + 2), int(cx + rx - 2), int(cy), "#8a8a96")
-        c.vline(int(cx), int(cy - ry + 2), int(cy + ry - 2), "#8a8a96")
-        c.disc(cx, cy, 1.3, "#c8ccd4")
-        c.set(cx - rx + 1, cy - 1, "#6a6a74")
-    c.line(13, 17, 28, 11, col_f)
-    c.line(28, 11, 51, 17, col_f)
-    c.line(28, 11, 30, 19, col_f)
-    c.line(30, 19, 13, 17, col_f)
-    c.line(30, 19, 51, 17, col_f)
-    c.line(14, 16, 28, 10, col_hi)
-    c.hline(24, 31, 8, "#2a2a32")                      # saddle
-    c.hline(26, 33, 9, "#1c1c24")
-    c.line(50, 17, 56, 7, "#2a2a32")                    # handlebars
-    c.hline(52, 59, 7, "#2a2a32")
-    return c
-
-
 def scooter():
     """An electric scooter parked on its stand, side view, 2 x 2 tiles: a black deck, a big front wheel and a small rear one with its
     mudguard, a tall stem with a handlebar and grips, a battery box with a green light."""
@@ -949,8 +918,6 @@ def define(reg):
     reg.stamp("giardini_towel", towel(5, 3), "walls")
     reg.stamp("giardini_tarp", tarp(), "walls")
     reg.stamp("giardini_webbing", webbing_tail(), "walls")
-    reg.stamp("giardini_bike_a", bike(0), "walls", mask=["##"])
-    reg.stamp("giardini_bike_b", bike(1), "walls", mask=["##"])
     reg.stamp("giardini_scooter", scooter(), "walls", mask=["##", "##"])
     reg.stamp("giardini_gear_a", gear(0), "walls", mask=["#"])
     reg.stamp("giardini_gear_b", gear(1), "walls", mask=["#"])

@@ -68,7 +68,7 @@ class Registry:
         """layer: objects (sorted with characters by their bottom row), walls or below (baked under everyone), above (over everyone).
         above_rows: how many top rows go to the `above` layer (tree crowns), those cells never block.
         mask: one string per row, '#' blocks and '.' does not (default: every cell blocks in layer objects; a walls stamp blocks only where its mask says, so a
-        standing object baked under the characters, such as a bike, takes a mask)."""
+        standing object baked under the characters, such as a scooter, takes a mask)."""
         w, h = canvas.w // T, canvas.h // T
         assert canvas.w % T == 0 and canvas.h % T == 0, name
         if self.scope:
