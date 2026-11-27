@@ -3,7 +3,7 @@ import type { RunState } from '../flow/RunState';
 import type { Line } from '../flow/sceneTypes';
 import { lines, t } from '../ui/text';
 
-/** One spoken line of the credits, shown until the player moves on. */
+/** One spoken line of the ending, shown until the player moves on. */
 export interface Beat {
     speaker: string;
     name: string;
@@ -14,7 +14,7 @@ export interface Beat {
     laugh: boolean;
 }
 
-/** The credits column scrolls by in this long; once the last line has been read it hurries (see EndingScene). */
+/** The credits column (in the skydive scene) scrolls by in this long. */
 export const SCROLL_MS = 45000;
 /** The quiet moment before the first line. */
 export const LEAD_IN_MS = 2500;
@@ -22,7 +22,7 @@ export const LEAD_IN_MS = 2500;
 export const awayOf = (flags: RunState['flags'] | undefined): string[] => (flags?.numeroFrangetta ? ['ric'] : ['liscio', 'lara']);
 
 /**
- * The night scene of the divano room, played as speech during the credits: its three groups of lines, then the upstairs gag, which starts
+ * The night scene of the divano room, played as speech in the ending: its three groups of lines, then the upstairs gag, which starts
  * when the ones who go upstairs leave the room, so everyone who speaks before it is there to be seen. No minigame result changes it.
  */
 export function buildBeats(run: Pick<RunState, 'flags'>): Beat[] {

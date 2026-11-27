@@ -1,22 +1,20 @@
 import Phaser from 'phaser';
 import { audio } from '../audio';
-import { BIRTHDAY_STEP } from '../audio/music/credits';
 import { person } from '../flow/data';
-import { getRun, resetRun } from '../flow/RunState';
+import { getRun } from '../flow/RunState';
 import { MAPS, TileWorld } from '../flow/tileMap';
+import { fadeToScene } from '../transitions';
 import { CONFIRM_CODES, pressArrow } from '../ui/DialogBox';
 import { panelTexture } from '../ui/panel';
-import { DIALOGUE, pixelStyle } from '../ui/text';
-import { balloonTexture, bandTexture, blanketTexture, glowTexture, particleTextures, pillowTexture, scanTexture } from './art';
-import { finaleFx, startTvFx } from './fx';
+import { pixelStyle } from '../ui/text';
+import { balloonTexture, blanketTexture, glowTexture, particleTextures, pillowTexture, scanTexture } from './art';
+import { startTvFx } from './fx';
 import { LABELS } from './labels';
-import { BALLOONS, BAND_CX, BAND_TEXT_W, BAND_X, DEPTH, GAME_HEIGHT, GAME_WIDTH, SCREEN, SPEECH, SPOTS, UPSTAIRS, type Spot } from './layout';
-import { awayOf, type Beat, buildBeats, LEAD_IN_MS, SCROLL_MS } from './script';
+import { BALLOONS, DEPTH, SCREEN, SPEECH, SPOTS, UPSTAIRS, type Spot } from './layout';
+import { awayOf, type Beat, buildBeats, LEAD_IN_MS } from './script';
 import { FishTv } from './tv';
 
-const FINALE_CX = 494;
-const CONFETTI = [0xff5a6e, 0xffd34a, 0x6ee08a, 0x6ab4ff, 0xff8ae0];
-const HURRY = 5; // how much faster the credits column runs once the last line has been read
+const LINGER_MS = 1500; // how long the hearts run after the last line, before the sky
 
 /** Frames of a character sheet (3 columns, rows down, left, right, up): the standing frame of each facing. */
 const FACE = { down: 1, left: 4, right: 7, up: 10 } as const;
@@ -32,18 +30,13 @@ interface Zzz {
     x: number;
     y: number;
 }
-interface CreditLine {
-    obj: Phaser.GameObjects.Text;
-    y: number;
-}
-type Phase = 'credits' | 'finale';
 
 /**
  * The `ending` scene: Casa Circe late at night, the real tile room of the divano scene (src/data/maps/divano.json) as the backdrop.
  * The TV plays a fish documentary, and the whole party is asleep or half asleep on the sofa (seen from behind, facing the TV), the
- * chairs of the dinner table and the floor. The credits roll over a dark column on the right while the night scene of the divano room is
- * spoken in a banner along the bottom of the room (script.ts), one line per press of X like any dialogue; once the last line is read and
- * the column has gone by, "Buon compleanno Ric!" and the way back to the title. Esc or C opens the menu over a paused roll.
+ * chairs of the dinner table and the floor. The night scene of the divano room is spoken in a banner along the bottom of the room
+ * (script.ts), one line per press of X like any dialogue; once the last line is read and the hearts have run a moment, the game goes on
+ * to the `skydive` scene. Esc or C opens the menu over the paused room.
  */
 export class EndingScene extends Phaser.Scene {
     private tv!: FishTv;
@@ -51,9 +44,6 @@ export class EndingScene extends Phaser.Scene {
     private tvAcc = 0;
     private flickerAcc = 0;
     private flicker = 1;
-    private phase: Phase = 'credits';
-    /** Time of the credits column in ms: it has gone by at SCROLL_MS. */
-    private roll = 0;
     private beats: Beat[] = [];
     /** The line on screen (`activeBeat`); -1 before the first one, `beats.length` once all are read. */
     private beatIx = -1;
@@ -71,20 +61,12 @@ export class EndingScene extends Phaser.Scene {
     private hearts!: Phaser.GameObjects.Particles.ParticleEmitter;
     private puffs!: Phaser.GameObjects.Particles.ParticleEmitter;
     private menuClosedAt = 0;
-    private scroll = 0;
-    private maxScroll = 1;
-    private credits: CreditLine[] = [];
-    private creditsTop = GAME_HEIGHT + 8;
     private breathers: Breather[] = [];
     private zzz: Zzz[] = [];
     private balloons: { img: Phaser.GameObjects.Image; base: number; phase: number }[] = [];
     private glow!: Phaser.GameObjects.Image;
-    private band!: Phaser.GameObjects.Image;
-    private dim!: Phaser.GameObjects.Rectangle;
-    private canRestart = false;
+    private linger = 0; // time the hearts have run since the last line was read
     private leaving = false;
-    private showEnd: (() => void) | null = null;
-    private rain: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
     constructor() {
         super('ending');
@@ -99,31 +81,25 @@ export class EndingScene extends Phaser.Scene {
         this.tvAcc = 0;
         this.flickerAcc = 0;
         this.flicker = 1;
-        this.phase = 'credits';
-        this.scroll = 0;
-        this.roll = 0;
         this.beatIx = -1;
         this.laughs = [];
         this.creakAcc = 0;
         this.menuClosedAt = 0;
         this.talkers = new Map();
-        this.credits = [];
         this.breathers = [];
         this.zzz = [];
         this.balloons = [];
         this.left = false;
         this.upstairsBusy = false;
-        this.canRestart = false;
+        this.linger = 0;
         this.leaving = false;
-        this.showEnd = null;
-        this.rain = [];
 
         const run = getRun(this.game);
         this.away = awayOf(run.flags);
         this.beats = buildBeats(run);
 
         this.cameras.main.fadeIn(700, 0, 0, 0);
-        audio.playTrack('credits');
+        audio.playTrack('circe');
         particleTextures(this);
 
         this.buildRoom();
@@ -131,14 +107,13 @@ export class EndingScene extends Phaser.Scene {
         this.buildLight();
         this.buildUpstairs();
         this.buildSpeech();
-        this.buildCredits();
         startTvFx(this);
 
         this.input.keyboard!.on('keydown', this.onKey, this);
-        this.game.events.on('test-skip', this.onSkip, this); // emitted by test builds only
+        this.game.events.on('test-skip', this.handOver, this); // emitted by test builds only
         this.events.once('shutdown', () => {
             this.input.keyboard?.off('keydown', this.onKey, this);
-            this.game.events.off('test-skip', this.onSkip, this);
+            this.game.events.off('test-skip', this.handOver, this);
         });
     }
 
@@ -210,7 +185,6 @@ export class EndingScene extends Phaser.Scene {
     private buildLight(): void {
         // the TV throws a soft flickering light on the room, over the night overlay of the map (which already holds its steady pools)
         this.glow = this.add.image(SCREEN.x + SCREEN.w / 2, SCREEN.y + SCREEN.h / 2, glowTexture(this)).setDepth(DEPTH.tvGlow).setBlendMode(Phaser.BlendModes.ADD);
-        this.dim = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x05071a, 1).setOrigin(0).setDepth(DEPTH.dim).setAlpha(0);
     }
 
     // ---- upstairs: the bed is never shown, only what drifts down from the top of the stairs ----
@@ -256,8 +230,7 @@ export class EndingScene extends Phaser.Scene {
             this.tweens.add({ targets: who.img, x: UPSTAIRS.x, y: UPSTAIRS.y + 26, alpha: 0, duration: 1800, ease: 'Sine.easeIn' });
         }
         this.time.delayedCall(1800, () => {
-            if (this.phase !== 'credits') return; // a skip straight into the finale: no hearts over "Buon compleanno"
-            this.upstairsBusy = true; // real time, like the walk: a faster roll after the menu cannot start the creaks early
+            this.upstairsBusy = true; // real time, like the walk
             this.hearts.start();
             this.puffs.start();
         });
@@ -336,35 +309,6 @@ export class EndingScene extends Phaser.Scene {
         this.time.delayedCall(110, () => audio.tone(Phaser.Math.Between(120, 150), 60));
     }
 
-    // ---- credits ----
-
-    private buildCredits(): void {
-        this.band = this.add.image(BAND_X - 24, 0, bandTexture(this)).setOrigin(0).setDepth(DEPTH.band);
-        const { title, lines } = DIALOGUE.credits;
-        const entries = lines.filter((l) => !/compleanno/i.test(l) || l.includes(' ... '));
-        const look = { align: 'center', wordWrap: { width: BAND_TEXT_W }, lineSpacing: 2, stroke: '#05071a', strokeThickness: 3 } as const;
-        let y = this.creditsTop;
-        const put = (text: string, color: string, gap: number): void => {
-            const obj = this.add.text(BAND_CX, y, text, { ...pixelStyle(16, color), ...look }).setOrigin(0.5, 0).setDepth(DEPTH.credits);
-            this.credits.push({ obj, y });
-            y += obj.height + gap;
-        };
-        put(title, '#ffe27a', 26);
-        let plainBefore = false;
-        for (const line of entries) {
-            const [name, role] = line.split(' ... ');
-            if (role !== undefined) {
-                put(name, '#ffe27a', 1);
-                put(role, '#cfe0ff', 15);
-            } else {
-                if (!plainBefore) y += 8;
-                plainBefore = true;
-                put(line, '#ffffff', 15);
-            }
-        }
-        this.maxScroll = y; // y is now below the last line: scrolled by that much, the last line has left the top of the screen
-    }
-
     // ---- loop ----
 
     update(_time: number, rawDelta: number): void {
@@ -409,111 +353,26 @@ export class EndingScene extends Phaser.Scene {
             }
         }
 
-        if (this.phase === 'credits') this.rollCredits(delta);
-    }
-
-    private rollCredits(delta: number): void {
-        const read = this.beatIx >= this.beats.length;
-        this.roll += delta * (read ? HURRY : 1);
-        if (!read) this.roll = Math.min(this.roll, SCROLL_MS); // the column has gone by: it waits for the lines
-        if (this.beatIx < 0 && this.roll >= LEAD_IN_MS) {
+        // the first line comes after a quiet moment
+        if (this.beatIx < 0 && t >= LEAD_IN_MS) {
             this.beatIx = 0;
             this.speak();
         }
         this.creak(delta);
-        const scroll = (this.maxScroll * this.roll) / SCROLL_MS;
-        if (scroll !== this.scroll) {
-            this.scroll = scroll;
-            for (const line of this.credits) {
-                const y = Math.round(line.y - scroll);
-                line.obj.setY(y);
-                const mid = y + line.obj.height / 2;
-                line.obj.setAlpha(Phaser.Math.Clamp(mid / 40, 0, 1) * Phaser.Math.Clamp((GAME_HEIGHT - mid) / 24, 0, 1));
-            }
+        // all read: the hearts get their moment (counted only once they run, after the walk upstairs), then the sky
+        if (this.upstairsBusy && this.beatIx >= this.beats.length) {
+            this.linger += delta;
+            if (this.linger >= LINGER_MS) this.handOver();
         }
-        if (read && this.scroll >= this.maxScroll) this.startFinale();
     }
 
-    // ---- finale ----
+    // ---- on to the sky ----
 
-    private startFinale(): void {
-        this.phase = 'finale';
-        this.beatIx = this.beats.length; // nobody speaks any more (a test skip lands here mid-speech)
-        this.showBeat(null);
-        this.laugh(false);
-        this.hearts.stop();
-        this.puffs.stop();
-        audio.playTrack('credits', BIRTHDAY_STEP); // the player sets the pace of the lines, so the music jumps to meet the title
-        finaleFx(this);
-        this.tweens.add({ targets: this.band, alpha: 0.45, duration: 700 });
-        for (const line of this.credits) line.obj.destroy();
-        this.tweens.add({ targets: this.dim, alpha: 0.5, duration: 1000 });
-
-        const shadow = { stroke: '#05071a', strokeThickness: 5 };
-        const title = this.add.text(FINALE_CX, 74, LABELS.birthday, { ...pixelStyle(32, '#ffe27a'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setScale(0.2).setAlpha(0);
-        this.tweens.add({ targets: title, scale: 1, alpha: 1, duration: 800, ease: 'Back.Out', delay: 400 });
-        this.tweens.add({ targets: title, y: 70, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut', delay: 1400 });
-
-        // confetti burst from the title, then a light rain, and sparkles that keep twinkling around the text
-        this.time.delayedCall(600, () => {
-            audio.sfx('win');
-            CONFETTI.forEach((tint) => {
-                const burst = this.add.particles(FINALE_CX, 74, 'ending-dot', {
-                    speed: { min: 90, max: 300 },
-                    angle: { min: 0, max: 360 },
-                    gravityY: 260,
-                    lifespan: { min: 1400, max: 2600 },
-                    scale: { start: 1.6, end: 1 },
-                    alpha: { start: 1, end: 0.2 },
-                    rotate: { min: 0, max: 360 },
-                    tint,
-                    emitting: false
-                });
-                burst.setDepth(DEPTH.particles).explode(14);
-                const rain = this.add.particles(0, 0, 'ending-dot', {
-                    x: { min: 0, max: GAME_WIDTH },
-                    y: -6,
-                    speedY: { min: 50, max: 110 },
-                    speedX: { min: -25, max: 25 },
-                    lifespan: 4200,
-                    scale: { min: 1, max: 1.6 },
-                    rotate: { min: 0, max: 360 },
-                    frequency: 380,
-                    maxAliveParticles: 24,
-                    tint
-                });
-                rain.setDepth(DEPTH.particles);
-                this.rain.push(rain);
-            });
-            this.add
-                .particles(0, 0, 'ending-star', {
-                    x: { min: FINALE_CX - 150, max: FINALE_CX + 150 },
-                    y: { min: 56, max: 92 },
-                    lifespan: 900,
-                    scale: { start: 1.4, end: 0.4 },
-                    alpha: { start: 1, end: 0 },
-                    frequency: 110,
-                    blendMode: 'ADD',
-                    tint: 0xfff2a8
-                })
-                .setDepth(DEPTH.particles);
-        });
-
-        const theEnd = this.add.text(FINALE_CX, 126, DIALOGUE.ui.theEnd ?? LABELS.theEnd, { ...pixelStyle(32, '#ffffff'), ...shadow }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
-        const prompt = this.add.text(FINALE_CX, 168, LABELS.restart, { ...pixelStyle(16, '#ffffff'), stroke: '#05071a', strokeThickness: 3 }).setOrigin(0.5).setDepth(DEPTH.finaleText).setAlpha(0);
-        const show = (): void => {
-            this.tweens.killTweensOf([theEnd, prompt]);
-            theEnd.setAlpha(1);
-            prompt.setAlpha(1);
-            this.tweens.add({ targets: prompt, alpha: 0.2, duration: 560, yoyo: true, repeat: -1 });
-            this.canRestart = true;
-        };
-        this.showEnd = show;
-        this.time.delayedCall(3200, () => this.tweens.add({ targets: theEnd, alpha: 1, duration: 600 }));
-        this.time.delayedCall(5200, () => {
-            if (this.canRestart) return;
-            this.tweens.add({ targets: prompt, alpha: 1, duration: 500, onComplete: show });
-        });
+    /** Fades to the `skydive` scene, once; keys do nothing from here on. Test builds also call it on the 'test-skip' event. */
+    private handOver(): void {
+        if (this.leaving) return;
+        this.leaving = true;
+        fadeToScene(this, 'skydive');
     }
 
     // ---- input ----
@@ -527,33 +386,17 @@ export class EndingScene extends Phaser.Scene {
             this.menuClosedAt = performance.now();
         });
         this.scene.launch('menu', { from: 'ending' });
+        this.scene.bringToTop('menu'); // the menu is registered before this scene, so it would be drawn under the room
         this.scene.pause();
     }
 
     private onKey(e: KeyboardEvent): void {
         if (e.repeat || this.leaving || performance.now() - this.menuClosedAt < 250) return;
         if (e.code === 'Escape' || e.code === 'KeyC') return this.openMenu();
-        if (!CONFIRM_CODES.includes(e.code)) return;
-        if (this.phase === 'credits') {
-            if (!this.activeBeat) return;
-            audio.sfx('confirm');
-            this.beatIx++;
-            return this.speak();
-        }
-        if (!this.canRestart) return;
-        this.leaving = true;
+        if (!CONFIRM_CODES.includes(e.code) || !this.activeBeat) return;
         audio.sfx('confirm');
-        audio.stopTrack();
-        audio.stopAmbience();
-        resetRun(this.game);
-        this.cameras.main.fadeOut(500, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('title'));
-    }
-
-    /** Test builds only (the 'test-skip' event): the first skip ends the roll, the next shows the prompt at once. */
-    private onSkip(): void {
-        if (this.phase === 'credits') this.startFinale();
-        else if (!this.canRestart) this.showEnd?.();
+        this.beatIx++;
+        this.speak();
     }
 }
 
