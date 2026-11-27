@@ -100,35 +100,6 @@ sprite("giuggiu_sofa_navy", { w: 126, h: 62, selout: "1" }, (c) => {
   c.rect(104, 58, 9, 3, "3") // the hem hanging in front
 })
 
-// The low black lacquer table: a glossy top with the window reflected in it, a front edge, short legs, a magazine, a remote and a mug.
-sprite("giuggiu_table_black", { w: 126, h: 62, selout: "1" }, (c) => {
-  c.rect(8, 44, 4, 10, "Z") // the legs
-  c.rect(114, 44, 4, 10, "Z")
-  c.rect(0, 16, 122, 27, "j") // the top, seen from above
-  c.hline(1, 16, 120, "l") // its lit rim
-  c.vline(0, 17, 25, "l")
-  c.hline(1, 42, 120, "i")
-  c.rect(0, 43, 122, 5, "i") // the front edge
-  c.hline(0, 43, 122, "l")
-  for (let k = 0; k < 12; k++) { // the sheen of the window, a pale diagonal band two pixels wide
-    c.px(54 + k * 2, 38 - k * 2, "l")
-    c.px(55 + k * 2, 38 - k * 2, "l")
-    c.px(54 + k * 2, 37 - k * 2, "l")
-  }
-  c.px(58, 34, "m")
-  c.px(70, 26, "m")
-  c.rect(8, 22, 8, 15, "S") // a magazine
-  c.rect(9, 23, 6, 5, "3")
-  c.hline(8, 36, 8, "E")
-  c.vline(15, 23, 14, "E")
-  c.rect(88, 24, 13, 5, "Z") // the remote control
-  c.px(90, 26, "4")
-  c.px(93, 26, "D")
-  c.px(96, 26, "D")
-  puff(c, 82, 32, 9, 9, "CDEF", 3, 1, 3) // a mug seen from above
-  c.rect(84, 34, 5, 5, "z")
-})
-
 // The old tube TV on its low wooden stand, seen from behind: tapering housing, vents, bezel at the sides, a cable down the stand.
 sprite("giuggiu_tv", { w: 94, h: 62, selout: "1" }, (c) => {
   c.rect(10, 44, 4, 16, "z") // stand legs

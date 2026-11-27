@@ -923,7 +923,6 @@ def define(reg):
     reg.stamp("giuggiu_sofa_burgundy", pxl_object("giuggiu_sofa_burgundy", (56, 66, 6, 58, 70, 0)), "objects", mask=["##"] * 4)   # drawn with pxl, scripts/art/pxl/objects.px.js
     reg.stamp("giuggiu_sofa_navy", pxl_object("giuggiu_sofa_navy", (64, 61, 60, 2.8, 70)), "objects", mask=["####", "####"])
     reg.stamp("giuggiu_sofa_east", sofa_east(3, NAVY, navy_cover), "walls", mask=["##", ".#", "##"])   # the cat's seat (the middle row, left cell) stays walkable
-    reg.stamp("giuggiu_table_black", pxl_object("giuggiu_table_black", (66, 55, 58, 3, 74)), "objects", mask=["####", "####"])
     reg.stamp("giuggiu_tv", pxl_object("giuggiu_tv", (48, 61, 44, 2.8, 74)), "objects", mask=["###", "###"])
     reg.stamp("giuggiu_pouf", beanbag(), "objects")
     reg.stamp("giuggiu_chandelier", chandelier(), "above")

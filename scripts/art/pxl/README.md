@@ -4,7 +4,7 @@ Pixel art drawn with pxl, the skill vendored in `.claude/skills/pxl` (provenance
 
 ## Objects
 
-`objects.px.js` draws eight key room objects (and the carbonara pickup below): `giuggiu_sofa_burgundy`, `giuggiu_sofa_navy`, `giuggiu_table_black`, `giuggiu_tv`, `circe_sofa_back`, `giardini_bench_wood`, `giardini_lamp` and `cortile_table_big`. Each sprite is its stamp's size minus 2 px on both axes, and `selout` adds the outline, so the built PNG has exactly the size of the stamp (a multiple of 32): collision and masks stay as they were. The palette is set explicitly (the game's own ramps, no pico8) at the top of the file, lit from the top left like the tiles. To change an object, edit the sprite and run, from the repository root:
+`objects.px.js` draws seven key room objects (and the carbonara pickup below): `giuggiu_sofa_burgundy`, `giuggiu_sofa_navy`, `giuggiu_tv`, `circe_sofa_back`, `giardini_bench_wood`, `giardini_lamp` and `cortile_table_big`. Each sprite is its stamp's size minus 2 px on both axes, and `selout` adds the outline, so the built PNG has exactly the size of the stamp (a multiple of 32): collision and masks stay as they were. The palette is set explicitly (the game's own ramps, no pico8) at the top of the file, lit from the top left like the tiles. To change an object, edit the sprite and run, from the repository root:
 
 ```powershell
 node .claude\skills\pxl\bin\pxl.js build scripts\art\pxl\objects.px.js --out scripts\art\pxl\out --no-preview

@@ -21,7 +21,7 @@ const SCENE_KEYS = ['arrival', 'meet', 'minigameIntro', 'win', 'lose', 'join'];
 const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
 const SCENE_EXTRA_KEYS = { circe: ['minigameIntro2', 'win2', 'lose2'] };
 const MINIGAMES = ['simon', 'cat-smoke', 'slackline', 'd20', 'mash', 'rhythm'];
-const EGGS = ['fede', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'loscoApproach', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
+const EGGS = ['fede', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-roberto', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'loscoApproach', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
 const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look','drinkPeroni', 'askNumber'];
 const MENU_KEYS = ['title', 'diary', 'jump', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'jumpTitle', 'jumpHint', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 

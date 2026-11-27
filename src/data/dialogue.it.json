@@ -337,9 +337,6 @@
       ]
     },
     "giuggiu": {
-      "table": [
-        { "speaker": "narratore", "text": "Il posacenere straborda di drummini spenti." }
-      ],
       "tv": [
         { "speaker": "narratore", "text": "In TV: episodio #104 di Daily Dose of Internet. Un tizio viene schiaffeggiato da una carpa." },
         { "speaker": "giuggiu", "text": "L'ho visto ieri su Reddit. Er tizio poi s'è sposato co' la carpa. Giuro." }
@@ -519,6 +516,11 @@
       { "speaker": "papa", "text": "Senti un po', figliolo: non è che ti avanza un'altra cannetta?" },
       { "speaker": "mamma", "text": "L'ultima se l'è fumata tutta tuo padre. Io due tiri contati." },
       { "speaker": "ric", "text": "(I miei. Mi stanno scroccando. I miei.)" }
+    ],
+    "extra-roberto": [
+      { "speaker": "roberto", "text": "Oh, trimone!" },
+      { "speaker": "ric", "text": "Robbè! Trimò, che bello vederti. Vieni dopo al Cortile? Suoniamo." },
+      { "speaker": "roberto", "text": "Ok se mi dai un passaggio, Riccardin dal ciuffo." }
     ]
   },
   "credits": {

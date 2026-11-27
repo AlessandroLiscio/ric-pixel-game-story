@@ -4,9 +4,9 @@
 A big old flat in the afternoon (16:20): dark herringbone parquet, pale lilac cream walls, the big window on the back wall with its half
 lowered shutters, the crystal chandelier and the red paper lantern in front of it, the glass table with its chairs under it. Down the
 left wall: the walnut armoire, the iron and brass table, the cream sofa, the tall small window with the red pouf in front of it, the long
-burgundy sofa. Three sofas make a triangle round the low black table (the navy one with the cat against the right wall, the long burgundy
-one on the left, the one with the grey cushion in the middle, back to the dining table), with the TV on its table at the bottom wall
-facing them. The entrance is the door in the right wall, below the navy sofa. Day mood: warm and a little dim, with sun from the windows.
+burgundy sofa. Three sofas make a triangle round an open floor (the navy one with the cat against the right wall, the long burgundy
+one on the left, the one with the grey cushion in the middle, back to the dining table; the plan's low black table is left out, the
+owner's call), with the TV on its table at the bottom wall facing them. The entrance is the door in the right wall, below the navy sofa. Day mood: warm and a little dim, with sun from the windows.
 """
 import random
 
@@ -74,10 +74,8 @@ def build():
     m.stamp("giuggiu_chair_black", 13, 5)
     m.stamp("giuggiu_chair_black", 13, 6)
 
-    # the sofa triangle round the low black table: the middle sofa faces the TV, the burgundy one (left wall) and the navy one (right
-    # wall) face each other across the table
+    # the sofa triangle: the middle sofa faces the TV, the burgundy one (left wall) and the navy one (right wall) face each other
     m.stamp("giuggiu_sofa_navy", 8, 9)
-    m.stamp("giuggiu_table_black", 8, 12)
     m.stamp("giuggiu_sofa_east", 18, 10)
 
     # the TV on its table against the bottom wall, a plant beside it, the doormat inside the entrance
@@ -96,7 +94,6 @@ def build():
     m.point("gatto", 18, 11)
     # the things the player can look at or use (x, y, w, h in tiles, the footprint of each object)
     m.point("obj_plates", 9, 5, 4, 2)                            # the glass table: the three carbonara plates and their steam stand on it
-    m.point("obj_table", 8, 12, 4, 2)                            # the low black table
     m.point("obj_tv", 9, 15, 3, 2)
     m.point("obj_window", 8, 1, 6, 3)                            # the big window
     m.point("obj_puf", 2, 10, 1, 1)

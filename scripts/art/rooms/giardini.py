@@ -3,8 +3,8 @@
 Bright afternoon, no mood. A wide lawn under big old trees with dappled shade. The grey road (Viale Bottonelli) runs along the front
 behind a concrete curb, with a red-brown graffiti bench on a patch of brick pavers at the left; a gravel footpath climbs from the road to
 a gate in the wooden fence at the back right, toward the pond. The slackline is strapped between two trunks across the middle, the orange
-towel lies spread open below it, a few people sit around with bikes and rucksacks on the grass. Ric comes in on the road from the left
-and leaves along it to the right.
+towel lies spread open below it, a few people sit around with rucksacks on the grass (no bicycles, the owner's call). Ric comes in on
+the road from the left and leaves along it to the right.
 """
 import random
 
@@ -59,8 +59,6 @@ def build():
     m.stamp("giardini_webbing", 2, LINE_Y + 1)
     m.stamp("giardini_towel", 9, 9)
     m.stamp("giardini_tarp", 11, 5)
-    m.stamp("giardini_bike_a", 14, 6)
-    m.stamp("giardini_bike_b", 6, 12)
     m.stamp("giardini_gear_a", 8, 10)
     m.stamp("giardini_gear_b", 14, 10)
     m.stamp("giardini_gear_c", 24, 11)
@@ -94,6 +92,7 @@ def build():
     m.point("rosanna", 16, 10)  # Rosanna, the Erasmus-trip organiser (an extra), on the grass above the path
     m.point("papa", 3, 11)      # Ric's parents, by the graffiti bench
     m.point("mamma", 4, 11)
+    m.point("roberto", 14, 9)   # Roberto (an extra), right of the towel, just below the slackline
 
     # a few people on the grass
     for (n, x, y, face, per) in [(5, 4, 10, "up", 2600), (9, 13, 12, "right", 2900), (12, 14, 12, "left", 2400),

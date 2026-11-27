@@ -30,7 +30,7 @@ const PRESETS = {
   tween: ['flicker', 'sway', 'pulse'],
   sprite: ['heads-bob']
 };
-const EXTRA_EGGS = ['extra-3','extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'losco'];
+const EXTRA_EGGS = ['extra-3','extra-rosanna', 'extra-genitori', 'extra-roberto', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'losco'];
 const SHARED_EGGS = { 'extra-genitori': 2 }; // eggs said by more than one extra: how many
 
 const errors = [];
