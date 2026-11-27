@@ -50,7 +50,8 @@
       { "personId": "frangetta", "facing": "left", "egg": "frangetta", "at": "frangetta" },
       { "personId": "rosanna", "facing": "down", "egg": "extra-rosanna", "at": "rosanna" },
       { "personId": "papa", "facing": "right", "egg": "extra-genitori", "at": "papa" },
-      { "personId": "mamma", "facing": "left", "egg": "extra-genitori", "at": "mamma" }
+      { "personId": "mamma", "facing": "left", "egg": "extra-genitori", "at": "mamma" },
+      { "personId": "roberto", "facing": "left", "egg": "extra-roberto", "at": "roberto" }
     ],
     "minigame": "slackline",
     "exit": "edge",

@@ -94,6 +94,7 @@ def build():
     m.point("rosanna", 16, 10)  # Rosanna, the Erasmus-trip organiser (an extra), on the grass above the path
     m.point("papa", 3, 11)      # Ric's parents, by the graffiti bench
     m.point("mamma", 4, 11)
+    m.point("roberto", 14, 9)   # Roberto (an extra), right of the towel, just below the slackline
 
     # a few people on the grass
     for (n, x, y, face, per) in [(5, 4, 10, "up", 2600), (9, 13, 12, "right", 2900), (12, 14, 12, "left", 2400),

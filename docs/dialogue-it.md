@@ -23,6 +23,8 @@ No minigame result changes the ending: the upstairs gag (`ending.upstairs`, or `
 
 `extra-3` is my own invention: the barista Alessandro, who offers Ric a drink at the cortile. The two earlier inventions (a student in the lecture hall and a dog walker) are gone. Swap its lines freely, keeping the id (the validator expects it).
 
+`extra-roberto` is Roberto at the Giardini Margherita: 3 Lines, `roberto` greets Ric with "Oh, trimone!", `ric` invites him to play at the Cortile later and `roberto` accepts if Ric gives him a lift.
+
 ## Assumptions
 
 - Working title: `Ric 30: Un Venerdì a Bologna`. Subtitle and press text as briefed.
