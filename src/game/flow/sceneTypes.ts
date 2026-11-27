@@ -65,7 +65,7 @@ export interface Line {
     pause?: number;
     /** In a scene's `meet`: the happening that follows this line (`losco`: the hooded man walks up to Lara). */
     event?: 'losco';
-    /** The line the whole room laughs at during the credits (one in `scenes.divano`). */
+    /** The line the whole room laughs at in the ending (one in `scenes.divano`). */
     laugh?: boolean;
 }
 

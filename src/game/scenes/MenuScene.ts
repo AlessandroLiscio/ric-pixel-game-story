@@ -17,7 +17,8 @@ const SHADOW = { offsetX: 1, offsetY: 1, color: '#0a1040', blur: 0, stroke: fals
 /**
  * The Esc menu, a RPG Maker style window over the paused world scene: Diario, Comandi, Esci al menu principale, Indietro.
  * Arrows and X choose, Esc or Z go back (and close the menu from the main window). The world scene starts it with
- * `scene.launch('menu')` and pauses itself; closing resumes the world.
+ * `scene.launch('menu')` and pauses itself; closing resumes the world. The `ending` and `skydive` scenes do the same and pass
+ * their key as `from`.
  */
 export class MenuScene extends Phaser.Scene {
     private mode: Mode = 'main';
@@ -26,7 +27,7 @@ export class MenuScene extends Phaser.Scene {
     private ui?: Phaser.GameObjects.Container;
     private leaving = false;
     private openedAt = 0;
-    /** The scene that launched the menu and is paused under it: closing the menu resumes it (the world, or the ending's credits). */
+    /** The scene that launched the menu and is paused under it: closing the menu resumes it (the world, the night room or the skydive). */
     private from = 'world';
 
     constructor() {

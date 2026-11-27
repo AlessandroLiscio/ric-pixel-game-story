@@ -18,7 +18,7 @@ const TRANSITIONS: { id: string; cover: number; speed: number; palette?: string[
     { id: 'transitions/pixel-dissolve', cover: 1.0, speed: 1.4 },
     { id: 'transitions/blinds', cover: 0.9, speed: 1.4 }
 ];
-const ENDING = 2; // the star iris closes on the credits
+const ENDING = 2; // the star iris opens on the ending
 
 /** Warm night blue, so the cover is not a dead black. */
 const COVER_COLOR = '#0a0a1a';

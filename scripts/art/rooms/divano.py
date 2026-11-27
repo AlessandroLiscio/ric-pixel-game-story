@@ -7,7 +7,7 @@ lights and the TV on its low cabinet, the white shelves, the curtained glass doo
 map, the long dinner table turned north to south on the left, and the navy sofa on the south wall facing the TV. The only light is the
 TV, the fairy lights, the standing lamp and the tree. The ending (src/game/ending) draws this map as its backdrop: the TV screen sits at
 `tv`, and the party sits on the sofa with its back to us, on the chairs of the table, on the rug and on the floor, at the points `seat_*`.
-The credits column covers everything right of x 400, so the TV, the sofa and the table are all on the left of it.
+The TV, the sofa and the table are all left of x 400.
 """
 import random
 
@@ -88,7 +88,7 @@ def build():
     m.point("seat_chair_r", 7, 8)                       # the clear chair at the east side of the table (faces west)
     m.point("seat_pouf", 12, 7)                         # the pink pouf, in front of the TV
     m.point("seat_floor", 10, 8)                         # on the rug in front of the coffee table
-    m.point("bed", 18, 4, 3, 4)                         # the sofa bed under the world map (out of sight of the credits)
+    m.point("bed", 18, 4, 3, 4)                         # the sofa bed under the world map (nobody sits there)
     m.point("window", 16, 2, 2, 3)                      # the curtained glass door onto the night: the ambient code puts a moon glow and fireflies behind it
 
     # lights, in pixels: the TV is the main one, then the fairy lights, the standing lamp, the tree
