@@ -3,8 +3,8 @@
 // step log is logs/e2e/steps.log (build logs beside it). Two single-file offline builds, both opened through file://:
 //   logs/e2e/dist       VITE_TEST_BUILD=1 (test hooks): title, every scene, all 6 minigames, the ending, the skydive, the replay from the title.
 //   logs/e2e/dist-prod  production: the title renders, the game starts, and no test hook ships.
-// Real input: scene 1 (universita) is played with key presses only (arrows, X), and so is the last scene when it has no minigame (the
-// finale plays by itself); simon (the pinhole camera quiz: arrows to the right answer, X), mash and d20 (X for its 5 s window) are
+// Real input: scene 1 (universita) is played with key presses only (arrows, X), and so is the last scene when it has no minigame (it
+// plays by itself); simon (the pinhole camera quiz: arrows to the right answer, X), mash and d20 (X for its 5 s window) are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
 // At the Cortile Ric fetches Ros and Giusy where they end up, in the bottom right corner: he is put just above each one's live position.

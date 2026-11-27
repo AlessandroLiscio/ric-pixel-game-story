@@ -14,7 +14,7 @@ const eggs = new Set(Object.keys(read('src/data/dialogue.it.json').easterEggs));
 
 const W = 640;
 const H = 360;
-// five playable scenes: the old night scene (divano) is only the credits backdrop now (src/data/maps/divano.json, not listed here)
+// five playable scenes: the old night scene (divano) is only the night room of the ending now (src/data/maps/divano.json, not listed here)
 const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile'];
 const FRIENDS = { universita: 'lollino', giuggiu: 'giuggiu', giardini: 'liscio', circe: 'ros', cortile: 'lara' };
 const MINIGAMES = { universita: 'simon', giuggiu: 'cat-smoke', giardini: 'slackline', circe: 'd20', cortile: 'rhythm' };

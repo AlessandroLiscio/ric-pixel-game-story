@@ -9,7 +9,7 @@ export const ENDING_FX = {
     tv: { x: SCREEN.x, y: SCREEN.y, w: SCREEN.w, h: SCREEN.h },
     /** Where "Buon compleanno Ric!" stands: the fireworks burst around it. */
     finale: { x: 494, y: 74 },
-    /** Depths: over the documentary and under its scanlines, and over the room and the credits column but under the finale texts. */
+    /** Depths: over the documentary and under its scanlines, and over the sky and the credits column but under the finale texts. */
     depth: { tv: DEPTH.tvPicture + 0.5, finale: DEPTH.finaleFx }
 };
 
