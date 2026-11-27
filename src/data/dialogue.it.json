@@ -555,5 +555,17 @@
       { "speaker": "narratore", "text": "Ric sparisce su per le scale: di sopra lo aspetta la tipa con la frangetta. Il porco." },
       { "speaker": "ros", "text": "Madonna quanto lo odio. Dovevo esserci io di sopra con quella tipa." }
     ]
+  },
+  "skydive": {
+    "plane": [
+      { "speaker": "narratore", "text": "Qualche tempo dopo, sopra le nuvole." },
+      { "speaker": "lara", "text": "RIIIC! SORPRESAAA! BUON COMPLEANNO!!! Il nostro regalo è qui: ci lanciamo col PARACADUTE!" },
+      { "speaker": "lara", "text": "Tutti e tre insieme! È la cosa più mega-stupenda-fantastica-pazzesca delle nostre vite!" },
+      { "speaker": "ric", "text": "Meh. Io pensavo a una cena. Una torta. Un buono Amazon. Non a buttarmi da un aereo." },
+      { "speaker": "liscio", "text": "Dajela tutta Ric! Trent'anni si festeggiano una volta sola. Come sulla slack: basta non guardare giù!" },
+      { "speaker": "ric", "text": "Vi odio. Vi odio tantissimo. ...Cioè, no. Ma un po' sì." },
+      { "speaker": "ric", "text": "Madonna santa. Grazie, uagnù. Se muoio, dite alle mie gatte che gli ho voluto bene." },
+      { "speaker": "ric", "text": "Meh... sciamanin!" }
+    ]
   }
 }

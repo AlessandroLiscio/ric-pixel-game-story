@@ -5,9 +5,9 @@ import { BootScene } from './BootScene';
 import { EndingStub } from './EndingStub';
 import { WorldScene } from './WorldScene';
 
-// W4 adds src/game/ending/index.ts exporting its scene classes (`ending`, `credits`), as default or named exports.
-// Until then a stub `ending` scene stands in.
-const endingModules = import.meta.glob<Record<string, unknown>>('../ending/index.ts', { eager: true });
+// src/game/ending/index.ts (`ending`) and skydive.ts (`skydive`) export their scene classes, as default or named exports.
+// Without them a stub `ending` scene stands in.
+const endingModules = import.meta.glob<Record<string, unknown>>(['../ending/index.ts', '../ending/skydive.ts'], { eager: true });
 
 const isSceneClass = (v: unknown): v is Phaser.Types.Scenes.SceneType => typeof v === 'function' && v.prototype instanceof Phaser.Scene;
 
