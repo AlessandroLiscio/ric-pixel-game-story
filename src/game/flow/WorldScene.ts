@@ -10,7 +10,6 @@ import { Party } from '../party/Party';
 import { idleLife } from '../party/idle';
 import { ensureCharAnims, idleKey, walkKey, type Dir } from '../party/anims';
 import { fadeToScene } from '../transitions';
-import { showAchievement } from '../ui/Achievement';
 import { askChoice } from '../ui/Choice';
 import { DialogBox } from '../ui/DialogBox';
 import { lines, pixelStyle, t } from '../ui/text';
@@ -18,7 +17,7 @@ import { SCENES, person } from './data';
 import { BIN_BLOCK, BIN_RANGE, addBin, openPortal } from './props';
 import { ACTIVE_MINIGAME_KEY, getRun, type RunState } from './RunState';
 import type { BinDef, Facing, Line, NpcDef, Point, Rect, SceneDef } from './sceneTypes';
-import { BIN_ITEMS, EGG_ACHIEVEMENT, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
+import { BIN_ITEMS, eggAfterMinigame, isSceneDone, joinersOf, minigamesOf } from './story';
 import { MAPS, TILE, TileWorld, resolveMapScene, feetOf } from './tileMap';
 import { dozeOnPuf, objectNear, roomObjects, toggleLamp, type RoomObject } from './objects';
 
@@ -344,17 +343,7 @@ export class WorldScene extends Phaser.Scene {
         if (npc.kind === 'bar') return this.barGirls();
         if (npc.def.personId === 'frangetta') return this.frangetta(npc);
         if (npc.def.personId === 'losco') return this.losco();
-        return this.sayEgg(npc.def.egg!); // an egg without an entry in EGG_ACHIEVEMENT (the dog girl) shows no popup
-    }
-
-    /** The first time an egg triggers in a run its popup shows (the `achievements` table of dialogue.it.json). */
-    private award(id: string | undefined): void {
-        if (id) showAchievement(this, id);
-    }
-
-    private async sayEgg(egg: string): Promise<void> {
-        this.award(EGG_ACHIEVEMENT[egg]);
-        await this.say(lines(`easterEggs.${egg}`));
+        return this.say(lines(`easterEggs.${npc.def.egg!}`));
     }
 
     private async talkToFriend(friend?: Npc): Promise<void> {
@@ -396,7 +385,7 @@ export class WorldScene extends Phaser.Scene {
         }
         if (!games.every((id) => id in run.results)) return; // the other friend's part is still to play
         const egg = eggAfterMinigame(def);
-        if (egg) await this.sayEgg(egg);
+        if (egg) await this.say(lines(`easterEggs.${egg}`));
         await this.say(L('join'));
         await this.join(friend!);
     }
@@ -516,7 +505,6 @@ export class WorldScene extends Phaser.Scene {
             toggleLamp(this, this.tw, o);
             audio.sfx('confirm');
         } else if (o.id === 'puf') {
-            this.award('puf');
             await dozeOnPuf(this, this.ric, o);
         }
         const said = lines(`objects.${this.def.id}.${o.id}`);
@@ -533,14 +521,13 @@ export class WorldScene extends Phaser.Scene {
     private async checkBin(): Promise<void> {
         this.busy = true;
         const item = this.nearestBin()?.item;
-        const info = item ? BIN_ITEMS[item] : undefined;
-        if (!item || !info || this.hasItem(item)) {
+        const found = item ? BIN_ITEMS[item] : undefined;
+        if (!item || !found || this.hasItem(item)) {
             await this.say([Phaser.Utils.Array.GetRandom(lines('easterEggs.binTaken'))]);
         } else {
             if (item === 'portalGun') this.run.portalGun = true;
             else this.run.flags[item] = true;
-            this.award(info.achievement);
-            await this.say(lines(`easterEggs.${info.lines}`));
+            await this.say(lines(`easterEggs.${found}`));
             if (item === 'peroni') await this.drinkPeroni();
         }
         this.busy = this.leaving;
@@ -585,7 +572,6 @@ export class WorldScene extends Phaser.Scene {
         const wall = this.wallAhead();
         if (!wall) return void audio.sfx('cancel');
         this.busy = true;
-        this.award('portal');
         this.portalWalk = true;
         const face = this.facing;
         // the oval stands on the wall face above the contact line; on a wall seen from above it lies on the wall top
@@ -629,7 +615,6 @@ export class WorldScene extends Phaser.Scene {
         const { run } = this;
         if (run.flags.numeroFrangetta) return this.say(lines('easterEggs.frangettaAgain'));
         if (run.flags.peroniBevuta) {
-            this.award('rutto');
             await this.say(lines('easterEggs.frangettaBurp'));
             this.cameras.main.shake(260, 0.006);
             this.npcs = this.npcs.filter((n) => n !== npc);
@@ -639,7 +624,6 @@ export class WorldScene extends Phaser.Scene {
         await this.say(lines('easterEggs.frangetta'));
         if (await askChoice(this, t('ui.askNumber'))) {
             run.flags.numeroFrangetta = true;
-            this.award('numero');
             await this.say(lines('easterEggs.frangettaNumber'));
         } else {
             await this.say(lines('easterEggs.frangettaNo'));
@@ -660,7 +644,6 @@ export class WorldScene extends Phaser.Scene {
             man.walking = false;
             this.face(lara, man.sprite);
         }
-        this.award('losco');
         await this.say(lines('easterEggs.losco'));
     }
 
@@ -672,7 +655,7 @@ export class WorldScene extends Phaser.Scene {
 
     // ---- the Cortile lads: Ros and Giusy leave the train, Ric fetches them ----
 
-    /** A few steps in, two Albanian lads walk over to Ros and Giusy; then all four go to the bottom wall and stand close together. */
+    /** A few steps in, two Albanian lads walk over to Ros and Giusy; then all four go to the bottom right corner and stand close together. */
     private async albanesiApproach(): Promise<void> {
         this.busy = true;
         this.barState = 'away';
@@ -719,7 +702,6 @@ export class WorldScene extends Phaser.Scene {
         if (run.flags.soldi && !run.flags.soldiUsati) {
             await this.say(lines('easterEggs.barSoldi'));
             run.flags.soldiUsati = true;
-            this.award('albanesi');
             for (const lad of this.npcs.filter((n) => n.def.personId.startsWith('albanese'))) {
                 this.npcs = this.npcs.filter((n) => n !== lad);
                 void this.walkOff(lad.sprite);

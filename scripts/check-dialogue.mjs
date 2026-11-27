@@ -13,7 +13,6 @@ const BOX_W = 640;
 const WRAP_PORTRAIT = BOX_W - (6 + 96 + 8) - 14;
 const WRAP_FULL = BOX_W - 16 - 16;
 const WRAP_SAFETY = 6; // px kept free on every line, for the shadow and for a font that rounds differently
-const TOAST_NAME_W = 164; // px: the name line of the achievement popup (ui/Achievement.ts)
 const PERSONS = ['ric', 'lara', 'liscio', 'ros', 'lollino', 'fede', 'giuggiu', 'giusy', 'pinolo', 'gatto', 'sconosciuta', 'alessandro', 'rosanna', 'roberto', 'armando', 'carolina', 'papa', 'mamma', 'frangetta', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'albanese1', 'albanese2', 'losco', 'narratore'];
 const SCENES = ['universita', 'giuggiu', 'giardini', 'circe', 'cortile'];
 // the old night scene stays in the file: its lines move to the credits (they are not played in the world any more)
@@ -23,8 +22,7 @@ const EMPTY_OK = { divano: ['minigameIntro', 'win', 'lose'] };
 const SCENE_EXTRA_KEYS = { circe: ['minigameIntro2', 'win2', 'lose2'] };
 const MINIGAMES = ['simon', 'cat-smoke', 'slackline', 'd20', 'mash', 'rhythm'];
 const EGGS = ['fede', 'extra-3', 'extra-rosanna', 'extra-genitori', 'extra-armando', 'extra-carolina', 'slackgirl1', 'slackgirl2', 'slackgirl3', 'frangetta', 'frangettaNumber', 'frangettaNo', 'frangettaAgain', 'frangettaBurp', 'loscoApproach', 'losco', 'albanese', 'albanesi', 'barBusy', 'barSoldi', 'barSoldiAfter', 'barFetch', 'fumoRos', 'portalFound', 'portalNotYet', 'portalGirls', 'appuntiFound', 'peroniFound', 'peroniDrink', 'peroniKeep', 'fumoFound', 'soldiFound', 'binTaken'];
-const ACHIEVEMENTS = ['appunti', 'portalGun', 'portal', 'peroni', 'fumo', 'soldi', 'rosanna', 'genitori', 'barista', 'armando', 'carolina', 'slackgirls', 'numero', 'rutto', 'losco', 'albanesi', 'fede', 'puf'];
-const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look', 'achievement', 'drinkPeroni', 'askNumber'];
+const UI_KEYS = ['start', 'continue', 'pressX', 'win', 'lose', 'fullscreen', 'mute', 'exit', 'run', 'menu', 'look','drinkPeroni', 'askNumber'];
 const MENU_KEYS = ['title', 'diary', 'jump', 'controls', 'quit', 'back', 'sure', 'sureNote', 'yes', 'no', 'diaryTitle', 'jumpTitle', 'jumpHint', 'controlsTitle', 'done', 'todo', 'pageHint', 'backHint'];
 
 const EVENTS = ['losco']; // happenings a line of `meet` can set off (WorldScene.talkToFriend)
@@ -148,7 +146,7 @@ try {
   process.exit(1);
 }
 
-sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'achievements', 'objects', 'credits', 'ending', 'titleScreen']);
+sameKeys('root', data, ['ui', 'menu', 'controls', 'diary', 'scenes', 'minigames', 'easterEggs', 'objects', 'credits', 'ending', 'titleScreen']);
 
 // objects: X next to an obj_<id> point of a room map (src/game/flow/objects.ts) plays objects.<sceneId>.<id>
 for (const [sid, objs] of Object.entries(data.objects ?? {})) {
@@ -257,12 +255,6 @@ for (const [path, raw, speaker] of strings) {
 }
 // bins: each binTaken entry is one "già preso" variant, picked at random; portalNotYet is one fixed line
 if ((data.easterEggs?.binTaken ?? []).length < 3) err('easterEggs.binTaken', 'needs at least 3 variants');
-// achievements: one table of egg names for the popup, each short enough for its line
-sameKeys('achievements', data.achievements ?? {}, ACHIEVEMENTS);
-for (const [k, name] of Object.entries(data.achievements ?? {})) {
-  if (typeof name !== 'string' || name.trim() === '') err(`achievements.${k}`, 'name missing');
-  else if (textWidth(name) > TOAST_NAME_W) err(`achievements.${k}`, `"${name}" is ${Math.round(textWidth(name))} px wide, max ${TOAST_NAME_W} for the popup`);
-}
 const notYet = data.easterEggs?.portalNotYet ?? [];
 if (notYet.length !== 1 || notYet[0].text.replace(/\n/g, ' ') !== "Meh, non abbiamo mica finito qui. C'è ancora da fare.") err('easterEggs.portalNotYet', 'must be exactly one line: "Meh, non abbiamo mica finito qui. C\'è ancora da fare." (a row break instead of the space)');
 

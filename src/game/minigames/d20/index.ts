@@ -12,7 +12,7 @@ import { LABELS } from './labels';
 const ID = 'd20';
 const TARGET = 10; // success when the result is greater than this
 const WINDOW_MS = 5000; // the time to press X
-const MAX_PRESSES = 40; // presses beyond this are not counted: the 40th ends the window and rolls at once
+const MAX_PRESSES = 60; // presses beyond this are not counted: the 60th ends the window and rolls at once
 const FUMO_BONUS = 2; // added to the result when the run flag `fumo` is set (Ric found the hash)
 const MAX_ROLL = 20;
 const TUMBLE_MS = 1500;
@@ -22,10 +22,10 @@ const R = 64;
 const BAR_W = 160;
 const OUTLINE = { stroke: '#0a1040', strokeThickness: 3 };
 
-/** The result of the presses: every 2 count 1, rounded up, at most 40 of them count (so 20 at most); the hash adds 2; never over 20. */
-export const resultOf = (presses: number, fumo: boolean): number => Math.min(MAX_ROLL, Math.ceil(Math.min(presses, MAX_PRESSES) / 2) + (fumo ? FUMO_BONUS : 0));
+/** The result of the presses: MAX_PRESSES of them (60, none past that count) map onto 20, rounded; the hash adds 2; never over 20. */
+export const resultOf = (presses: number, fumo: boolean): number => Math.min(MAX_ROLL, Math.round((Math.min(presses, MAX_PRESSES) * MAX_ROLL) / MAX_PRESSES) + (fumo ? FUMO_BONUS : 0));
 
-/** Scene circe, part a (wisdom): press X as often as possible in 5 seconds (40 count at most, every 2 presses are 1 on the d20, the hash adds
+/** Scene circe, part a (wisdom): press X as often as possible in 5 seconds (60 count at most, 3 presses are about 1 on the d20, the hash adds
  *  2), then the d20 tumbles and lands on that result; more than 10 wins. */
 export default class D20Minigame extends Phaser.Scene {
     static KEY = `minigame-${ID}`;
@@ -109,7 +109,7 @@ export default class D20Minigame extends Phaser.Scene {
         if (this.leftMs <= 0) this.startRoll();
     }
 
-    /** Every real key down of X counts (a held key counts once); the 40th ends the window. */
+    /** Every real key down of X counts (a held key counts once); the 60th ends the window. */
     private onKey(e: KeyboardEvent): void {
         if (e.repeat || e.code !== 'KeyX' || !this.counting) return;
         this.presses = Math.min(MAX_PRESSES, this.presses + 1);

@@ -56,7 +56,6 @@ export default class QuizMinigame extends Phaser.Scene {
     private ask!: Phaser.GameObjects.Text;
     private foot!: Phaser.GameObjects.Text;
     private results: boolean[] = [];
-    private rowOf: number[] = []; // row -> index in the question's answers (0 is the right one)
     private onAnswer: (() => void) | null = null;
 
     constructor() {
@@ -159,11 +158,12 @@ export default class QuizMinigame extends Phaser.Scene {
         const q = QUESTIONS[this.qi];
         this.head.setText(`${LABELS.question} ${this.qi + 1}/${QUESTIONS.length}`);
         this.ask.setText(q.ask);
-        this.rowOf = Phaser.Utils.Array.Shuffle([0, 1, 2, 3]);
-        this.correct = this.rowOf.indexOf(0);
+        const [right, ...rows] = q.answers;
+        rows.splice(q.row, 0, right);
+        this.correct = q.row;
         this.sel = 0;
-        this.rowOf.forEach((a, i) => {
-            this.rowText[i].setText(q.answers[a]);
+        rows.forEach((answer, i) => {
+            this.rowText[i].setText(answer);
             this.rowGfx[i].setAlpha(1);
         });
         this.foot.setText(LABELS.keys).setColor('#cfe0ff');

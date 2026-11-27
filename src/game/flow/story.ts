@@ -26,24 +26,11 @@ export const isSceneDone = (def: SceneDef, run: RunState): boolean => !!def.frie
 /** Every earlier minigame counted as won (the scene jump of the Esc menu and the debug keys). */
 export const resultsBefore = (index: number): Record<string, boolean> => Object.fromEntries(SCENES.slice(0, index).flatMap(minigamesOf).map((id) => [id, true]));
 
-/** Easter egg (an `easterEggs` key played when Ric talks to an extra) -> the `achievements` id of its popup. */
-export const EGG_ACHIEVEMENT: Record<string, string> = {
-    'extra-rosanna': 'rosanna',
-    'extra-genitori': 'genitori',
-    'extra-3': 'barista',
-    'extra-armando': 'armando',
-    'extra-carolina': 'carolina',
-    // slackgirl1, the dog girl, is no easter egg: no popup
-    slackgirl2: 'slackgirls',
-    slackgirl3: 'slackgirls',
-    fede: 'fede'
-};
-
-/** What each bin item gives: the lines (`easterEggs` key) and the `achievements` id. */
-export const BIN_ITEMS: Record<string, { lines: string; achievement: string }> = {
-    appunti: { lines: 'appuntiFound', achievement: 'appunti' },
-    portalGun: { lines: 'portalFound', achievement: 'portalGun' },
-    peroni: { lines: 'peroniFound', achievement: 'peroni' },
-    fumo: { lines: 'fumoFound', achievement: 'fumo' },
-    soldi: { lines: 'soldiFound', achievement: 'soldi' }
+/** What each bin item gives: the lines (an `easterEggs` key). */
+export const BIN_ITEMS: Record<string, string> = {
+    appunti: 'appuntiFound',
+    portalGun: 'portalFound',
+    peroni: 'peroniFound',
+    fumo: 'fumoFound',
+    soldi: 'soldiFound'
 };

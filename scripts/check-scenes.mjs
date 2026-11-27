@@ -21,7 +21,7 @@ const MINIGAMES = { universita: 'simon', giuggiu: 'cat-smoke', giardini: 'slackl
 // what each room's bin holds (BinDef.item), found once per run
 const BIN_ITEMS = { universita: 'appunti', giuggiu: 'portalGun', giardini: 'peroni', circe: 'fumo', cortile: 'soldi' };
 // map points a scene's story needs, on free tiles Ric can reach: the Cortile bar scene, the plates on Giuggiu's table
-// the wall_* points are where the two couples end up, along the bottom wall
+// the wall_* points are where the two couples end up, in the bottom right corner
 const STORY_POINTS = { cortile: ['albanese1', 'albanese2', 'wall_ros', 'wall_giusy', 'wall_albanese1', 'wall_albanese2'], giuggiu: ['obj_plates', 'obj_tv'] };
 const STORY_ZONES = { cortile: ['trig_bar'] }; // rectangles in tiles (x, y, w, h) that must hold a free tile
 const FACINGS = ['down', 'left', 'right', 'up'];

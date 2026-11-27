@@ -24,6 +24,8 @@ export const MIN_SAME_LANE_GAP = 0.26;
 export const MAX_SIMULTANEOUS = 2;
 /** Only lead notes that start on a beat (step % 4 = 0) become chart notes; the eighths between them are melody the player does not hit. */
 export const BEATS_ONLY = true;
+/** Offbeat eighths of the rhythm track that are chart notes too (steps of A and B, before the bass solo): bar * 16 + step in the bar. */
+export const EXTRA_STEPS = new Set([34, 58, 66, 90, 102, 118, 130, 138, 150]);
 
 const SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
@@ -55,7 +57,7 @@ export function buildChartInfo(track: Track): Chart {
         const pc = pitchClass(name);
         if (pc === null) continue;
         const solo = Number(/(-?\d)$/.exec(name as string)?.[1]) <= SOLO_MAX_OCTAVE;
-        if (BEATS_ONLY && s % (solo ? 2 : 4) !== 0) {
+        if (BEATS_ONLY && s % (solo ? 2 : 4) !== 0 && !EXTRA_STEPS.has(s)) {
             skippedOffbeat++;
             continue;
         }

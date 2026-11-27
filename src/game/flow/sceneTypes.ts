@@ -98,8 +98,6 @@ export interface Dialogue {
     scenes: Record<string, SceneLines>;
     minigames: Record<string, MinigameTexts>;
     easterEggs: Record<string, Line[]>;
-    /** Easter egg id -> the name shown in the popup (ui/Achievement.ts), the one table of egg names. */
-    achievements: Record<string, string>;
     credits: { title: string; lines: string[] };
     titleScreen: { title: string; subtitle: string; press: string };
 }

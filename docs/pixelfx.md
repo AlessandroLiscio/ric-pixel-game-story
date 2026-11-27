@@ -17,7 +17,7 @@ Options of `fx.play` (all in `FxOptions`): `x`, `y` (the effect's origin, see `m
 
 Scene changes (`src/game/transitions/index.ts`): `fadeToScene` closes a pixelfx wipe over the old scene (320x180 effects shown at 2x), starts the next scene when the screen is fully covered and opens the same wipe in the new scene, with the door sound; the wipe depends on the scene index (iris, diamond wipe, star iris, pixel dissolve, blinds) and the ending always gets the star iris. The black camera fade is the fallback if the effect cannot play.
 
-World (`src/game/fx/moments.ts`, called from `WorldScene`): a minigame result plays `ui/confetti` and `ui/achievement` (Italian title) on a win, `spawn/poof` in grey smoke and `explosions/cartoon-pow` on a loss; a friend joining plays two `pickups/collect-burst` rings (holy and heal palettes) over the follower.
+World (`src/game/fx/moments.ts`, called from `WorldScene`): a minigame result plays `ui/confetti` on a win, `spawn/poof` in grey smoke and `explosions/cartoon-pow` on a loss; a friend joining plays two `pickups/collect-burst` rings (holy and heal palettes) over the follower.
 
 Rooms (`src/game/ambient/index.ts`): the lights of the tile map drive the effects, read at runtime from `map.lights`, so a rebuilt or new room gets them with no change. A group of two or more `pulse` lights (stage spots) throws `weather/god-rays` beams with dust, in the translucent `beams` palette. Smoke puffs (`spawn/poof`, grey) follow the trellone holders listed in `JOINTS` (giuggiu in the giuggiu scene, ros in circe) and end when that person leaves. `flicker` and `steady` lights get nothing, because the map already flickers them.
 
