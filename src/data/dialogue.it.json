@@ -337,9 +337,6 @@
       ]
     },
     "giuggiu": {
-      "table": [
-        { "speaker": "narratore", "text": "Il posacenere straborda di drummini spenti." }
-      ],
       "tv": [
         { "speaker": "narratore", "text": "In TV: episodio #104 di Daily Dose of Internet. Un tizio viene schiaffeggiato da una carpa." },
         { "speaker": "giuggiu", "text": "L'ho visto ieri su Reddit. Er tizio poi s'è sposato co' la carpa. Giuro." }
