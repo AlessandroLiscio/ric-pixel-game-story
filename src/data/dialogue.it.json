@@ -13,11 +13,10 @@
     "exit": "Esci dalla stanza",
     "run": "Shift: corri",
     "menu": "Esc o C: menu",
-    "look": "X: controlla",
+    "look": "X: interagisci",
     "loading": "Caricamento...",
     "joined": "si unisce al gruppo!",
     "theEnd": "Fine",
-    "achievement": "Easter egg sbloccato",
     "drinkPeroni": "Bevi la Peroni?",
     "askNumber": "Chiedi il numero?"
   },
@@ -46,7 +45,7 @@
       "Frecce o WASD: cammina",
       "Shift: corri",
       "X, Invio o Spazio: parla e conferma",
-      "X vicino a cestini e oggetti: guarda",
+      "X vicino a cestini e oggetti: interagisci",
       "Z: testo veloce, indietro nei menu",
       "Esc o C: menu (anche nei titoli di coda)",
       "M: audio sì/no",
@@ -184,16 +183,18 @@
         { "speaker": "ric", "text": "Giusy, andiamo al Cortile, non al Festival di Cannes." }
       ],
       "minigameIntro": [
-        { "speaker": "ros", "text": "Prima di uscire mi faccio questo. Solo una persona davvero saggia potrebbe fermarmi." },
-        { "speaker": "ric", "text": "Ros, ascoltami. Tu sei una donna libera. Liberati anche di quel cannone." }
+        { "speaker": "ros", "text": "Prima di uscire mi faccio questo. Dammi un buon motivo per non farlo." },
+        { "speaker": "ric", "text": "Dammi un attimo che ci penso." }
       ],
       "win": [
-        { "speaker": "ros", "text": "...Uffa. Hai ragione. Lo metto via. Me lo fumo dopo il concerto." },
+        { "speaker": "ric", "text": "Hai mai notato che anche nel mondo degli spacciatori sono sempre tutti uomini?" },
+        { "speaker": "ros", "text": "...Cazzo. Hai ragione. Il patriarcato da me non vede un euro. La metto via." },
         { "speaker": "ric", "text": "Visto? Quando parlo seriamente faccio paura. Pure a me." }
       ],
       "lose": [
-        { "speaker": "ros", "text": "Bel discorso. Mi hai quasi convinta. Quasi. Accendo, grazie." },
-        { "speaker": "ric", "text": "Meh. Avevo tutto: argomenti, carisma, la faccia. Mancava la fortuna." }
+        { "speaker": "ric", "text": "Ma lo sai che il fumo distrugge un sacco di vite? Polmoni, memoria, soldi..." },
+        { "speaker": "ros", "text": "Vabè Ric... ma a me... che cazzo me ne frega?" },
+        { "speaker": "ric", "text": "Meh. Ci ho provato. Almeno passamela." }
       ],
       "minigameIntro2": [
         { "speaker": "ric", "text": "Giusy, esci da quel bagno o ti tiro fuori io!" },
@@ -226,8 +227,7 @@
         { "speaker": "lara", "text": "Siamo tutti qui! Tutti insieme! E stasera suoniamo! Non ci credo ancora!" },
         { "speaker": "ros", "text": "Aspetta... ma quello al bancone è Davide Gallo?" },
         { "speaker": "ric", "text": "E anche oggi è stato nominato." },
-        { "speaker": "ros", "text": "Ah no. Però mi sembrava proprio lui, giuro!" },
-        { "speaker": "ros", "text": "Vabè, tanto stasera qualcuno mi scopo. Davide Gallo o non Davide Gallo.", "event": "losco" },
+        { "speaker": "ros", "text": "Ah no. Però mi sembrava proprio lui, giuro!", "event": "losco" },
         { "speaker": "lara", "text": "Ric, sul palco fammi un sorriso ogni tanto! È il sogno che si avvera!" },
         { "speaker": "ric", "text": "(Lara. Una sorella. Anzi, un fratello: Lara ha il cazzo.)" }
       ],
@@ -266,7 +266,7 @@
       "win": [],
       "lose": [],
       "join": [
-        { "speaker": "ric", "text": "Grazie a tutti, trimoni. Questo venerdì è stato uno dei migliori di sempre." },
+        { "speaker": "ric", "text": "Grazie a tutti, uagnù. Questo venerdì è stato uno dei migliori di sempre." },
         { "speaker": "narratore", "text": "Mentre il documentario va avanti, scorrono i titoli di coda..." }
       ]
     }
@@ -292,8 +292,8 @@
     },
     "d20": {
       "title": "Tiro di Saggezza",
-      "instructions": "5 secondi: premi X più che puoi (max 40).\nOgni 2 colpi +1 sul d20: serve più di 10.",
-      "winText": "Ros ci ripensa: saggezza pura.",
+      "instructions": "5 secondi: premi X più che puoi (max 60).\nOgni 3 colpi +1 sul d20: serve più di 10.",
+      "winText": "Ros ci ripensa e la mette via.",
       "loseText": "Niente da fare: Ros accende."
     },
     "mash": {
@@ -345,6 +345,7 @@
         { "speaker": "giuggiu", "text": "L'ho visto ieri su Reddit. Er tizio poi s'è sposato co' la carpa. Giuro." }
       ],
       "cat": [
+        { "speaker": "gatto", "text": "Miao. (Traduzione: che ti guardi?)" },
         { "speaker": "giuggiu", "text": "Etciù! ...Bello eh, ma porcoggiuda sti peli stanno ovunque..." }
       ],
       "window": [
@@ -402,7 +403,7 @@
     "fumoRos": [
       { "speaker": "ric", "text": "Ros, guarda cosa ho qui. Se adesso non ti fai un'altra canna, te lo regalo." },
       { "speaker": "ros", "text": "...Aspetta. Davvero? Fammi vedere. Ok, mi hai già mezza convinta." },
-      { "speaker": "ric", "text": "Un momento di saggezza, e poi è tuo. Affare fatto?" }
+      { "speaker": "ros", "text": "Però voglio sentire un buon motivo, eh." }
     ],
     "soldiFound": [
       { "speaker": "narratore", "text": "Tra i fazzoletti c'è una banconota piegata in quattro: venti euro." },
@@ -481,7 +482,7 @@
       { "speaker": "ric", "text": "Più che amico... trasportatore ufficiale." }
     ],
     "albanesi": [
-      { "speaker": "narratore", "text": "I due ragazzi albanesi si avvicinano a Giusy e Ros. Poco dopo i quattro sono appiccicati contro il muro." },
+      { "speaker": "narratore", "text": "Due ragazzi albanesi si avvicinano a Giusy e Ros. Poco dopo i quattro si mettono a parlare in un angolo." },
       { "speaker": "ric", "text": "Eh vabè, le abbiamo già perse..." }
     ],
     "barBusy": [
@@ -519,26 +520,6 @@
       { "speaker": "mamma", "text": "L'ultima se l'è fumata tutta tuo padre. Io due tiri contati." },
       { "speaker": "ric", "text": "(I miei. Mi stanno scroccando. I miei.)" }
     ]
-  },
-  "achievements": {
-    "appunti": "Gli appunti dello studente",
-    "portalGun": "Portal gun",
-    "portal": "Wubba lubba dub dub",
-    "peroni": "Peroni nel cestino",
-    "fumo": "Il tocco nella pellicola",
-    "soldi": "Venti euro",
-    "rosanna": "Erasmus in Estonia",
-    "genitori": "Mamma e papà",
-    "barista": "Il barista Alessandro",
-    "armando": "Armando e il pesto",
-    "carolina": "Carolina e Flavia",
-    "slackgirls": "Un posto sulla slack",
-    "numero": "Stinderina con frangetta",
-    "rutto": "Il rutto della Peroni",
-    "losco": "Lo sconosciuto del cocco",
-    "albanesi": "Albanesi in fuga",
-    "fede": "Fede ha paccato",
-    "puf": "Pisolino sul puf"
   },
   "credits": {
     "title": "Un compleanno da trent'anni",

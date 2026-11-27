@@ -17,7 +17,7 @@ const GOOD = 0.12;
 const EARLY = 0.26; // a press this close to a note, but outside GOOD, counts that note as missed (no double penalty)
 // Tuned with a scripted player on the old 91-note chart and checked by hand on the 77-note chart of the 36 s song (see docs/music.md). Round 4:
 // the song lost its second A (14 bars, 28 s, about 61 notes) and a miss costs 2.5 instead of 1.25 (a wrong key too). Now a perfect run still ends
-// near 93, a player who hits about 8 notes in 10 holds 50 (8 * 0.6 - 2 * 2.5 is about 0 per 10 notes), one who hits 7 in 10 loses about 3 points
+// near 93 (round 6 added 9 offbeat notes before the solo, 70 notes in all: a perfect run now reaches about 99), a player who hits about 8 notes in 10 holds 50 (8 * 0.6 - 2 * 2.5 is about 0 per 10 notes), one who hits 7 in 10 loses about 3 points
 // per 10 notes and finishes near 30, and one who presses nothing loses at the 20th note, about 14 seconds into the song.
 const GAIN = { perfect: 0.7, good: 0.5, miss: -2.5 };
 const START_APPROVAL = 50;

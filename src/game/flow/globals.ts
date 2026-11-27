@@ -12,7 +12,6 @@ export interface RicState {
     party: string[];
     portalGun: boolean;
     flags: RunState['flags'];
-    achievements: string[];
 }
 
 declare global {
@@ -44,8 +43,7 @@ export function installFlowGlobals(game: Phaser.Game): void {
             results: { ...run.results },
             party: [...run.party],
             portalGun: run.portalGun,
-            flags: { ...run.flags },
-            achievements: [...run.achievements]
+            flags: { ...run.flags }
         };
     };
 

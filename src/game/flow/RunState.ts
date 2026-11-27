@@ -15,15 +15,13 @@ export interface RunState {
      * girl's number), `soldiUsati` (the 20 EUR bought the drinks).
      */
     flags: Record<string, boolean>;
-    /** Ids of `achievements` in dialogue.it.json already shown as a popup in this run. */
-    achievements: string[];
 }
 
 export const RUN_KEY = 'run';
 /** game.registry key holding the id of the minigame being played (undefined otherwise); the debug listeners use it. */
 export const ACTIVE_MINIGAME_KEY = 'activeMinigame';
 
-const fresh = (): RunState => ({ sceneIndex: 0, results: {}, party: [], portalGun: false, flags: {}, achievements: [] });
+const fresh = (): RunState => ({ sceneIndex: 0, results: {}, party: [], portalGun: false, flags: {} });
 
 export function getRun(game: Phaser.Game): RunState {
     let run = game.registry.get(RUN_KEY) as RunState | undefined;
