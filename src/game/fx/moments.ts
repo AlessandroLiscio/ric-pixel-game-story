@@ -3,13 +3,11 @@ import type Phaser from 'phaser';
 import { GAME_WIDTH } from '../config';
 import { fx } from './PixelFx';
 
-/** A minigame ends: confetti and a medal plate on a win (the plate text is Italian), a grey poof and a cartoon bang on a loss. Screen space, over everything. */
+/** A minigame ends: confetti on a win, a grey poof and a cartoon bang on a loss. Screen space, over everything. */
 export function resultFx(scene: Phaser.Scene, won: boolean): void {
     const cx = GAME_WIDTH / 2;
     if (won) {
-        fx.play(scene, 'ui/confetti', { x: cx, y: 345, scale: 2, world: false, depth: 960 });
-        fx.play(scene, 'ui/achievement', { x: cx, y: 64, scale: 2, world: false, depth: 960, title: 'BRAVO!', text: 'SUPERATA' });
-    } else {
+        fx.play(scene, 'ui/confetti', { x: cx, y: 345, scale: 2, world: false, depth: 960 });    } else {
         fx.play(scene, 'spawn/poof', { x: cx, y: 190, scale: 3, world: false, depth: 960, palette: 'greySmoke' });
         fx.play(scene, 'explosions/cartoon-pow', { x: cx, y: 110, scale: 1, world: false, depth: 960, text: 'OPS!' });
     }

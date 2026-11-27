@@ -7,7 +7,7 @@
 // finale plays by itself); simon (the pinhole camera quiz: arrows to the right answer, X), mash and d20 (X for its 5 s window) are
 // played with real key presses in every scene; the other scenes teleport next to the friend and close dialogue with the test skip;
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
-// At the Cortile Ric fetches Ros and Giusy where they end up, by the bottom wall: he is put just above each one's live position.
+// At the Cortile Ric fetches Ros and Giusy where they end up, in the bottom right corner: he is put just above each one's live position.
 // The Cortile lads and the hooded man must walk where the story puts them, and the credits speech must wait for X.
 // Also covered: Shift runs, the Esc menu (opens, pauses the world, controls and diary, quit to the title resets the run), a litter bin
 // (the first one gives the portal gun), the portal (scene 2 is left through a wall) and the edge exit (giardini has no door). A last step plays
@@ -380,7 +380,7 @@ try {
                 await test('skip');
                 await sleep(300);
             }
-            if (SCENES[i].id === 'cortile') note('cortile: Ros and Giusy fetched from the bottom wall before the exit');
+            if (SCENES[i].id === 'cortile') note('cortile: Ros and Giusy fetched from the bottom right corner before the exit');
             for (let n = 0; n < 20; n++) {
                 // the join banners come first; the exit only opens after them
                 await sleep(500);

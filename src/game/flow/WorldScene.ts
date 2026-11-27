@@ -655,7 +655,7 @@ export class WorldScene extends Phaser.Scene {
 
     // ---- the Cortile lads: Ros and Giusy leave the train, Ric fetches them ----
 
-    /** A few steps in, two Albanian lads walk over to Ros and Giusy; then all four go to the bottom wall and stand close together. */
+    /** A few steps in, two Albanian lads walk over to Ros and Giusy; then all four go to the bottom right corner and stand close together. */
     private async albanesiApproach(): Promise<void> {
         this.busy = true;
         this.barState = 'away';

@@ -6,7 +6,6 @@ import * as diamondWipe from '../../vendor/pixelfx/fx/transitions/diamond-wipe.j
 import * as iris from '../../vendor/pixelfx/fx/transitions/iris.js';
 import * as pixelDissolve from '../../vendor/pixelfx/fx/transitions/pixel-dissolve.js';
 import * as starIris from '../../vendor/pixelfx/fx/transitions/star-iris.js';
-import * as achievement from '../../vendor/pixelfx/fx/ui/achievement.js';
 import * as comboCounter from '../../vendor/pixelfx/fx/ui/combo-counter.js';
 import * as confetti from '../../vendor/pixelfx/fx/ui/confetti.js';
 import * as critNumber from '../../vendor/pixelfx/fx/ui/crit-number.js';
@@ -41,7 +40,6 @@ export const EFFECTS: Record<string, FxModule> = {
     'transitions/iris': iris,
     'transitions/pixel-dissolve': pixelDissolve,
     'transitions/star-iris': starIris,
-    'ui/achievement': achievement,
     'ui/combo-counter': comboCounter,
     'ui/confetti': confetti,
     'ui/crit-number': critNumber,
