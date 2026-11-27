@@ -9,7 +9,8 @@
 // slackline, cat-smoke (lost on purpose) and rhythm are forced through window.__ricTest, so both a win and a lose path are covered.
 // At the Cortile Ric fetches Ros and Giusy where they end up, in the bottom right corner: he is put just above each one's live position.
 // The Cortile lads and the hooded man must walk where the story puts them, and the speech of the ending and of the plane must wait for X.
-// The skydive's fall, credits and landing are cut short with the test skip.
+// The skydive plays to its end with no test skip: X held down hurries the credits, then the landing and the finale follow on their own.
+// The one skip there is in the finale, to show the restart prompt early. The Esc menu is also opened over the plane.
 // Also covered: Shift runs, the Esc menu (opens, pauses the world, controls and diary, quit to the title resets the run), a litter bin
 // (the first one gives the portal gun), the portal (scene 2 is left through a wall) and the edge exit (giardini has no door). A last step plays
 // cat-smoke with real keys and picks the right sofa the moment the cat hides (regression: that pick used to be dropped and lose the round).
@@ -470,30 +471,43 @@ try {
     await until((x) => x.scene === 'skydive', 'the skydive after the last ending line', 15000);
     note(`ending: ${said.length} lines advanced with X, the room laughed, then the skydive`);
 
-    // ---- skydive: the plane, the jump, then (by the test skip) the finale ----
+    // ---- skydive: the plane, the jump, the fall with the credits, the landing and the finale ----
     await sleep(1500); // the transition opens over the sky
     check((await litPixels(context, page)) > 200, 'skydive looks blank');
     await checkHd('skydive');
+    // Esc over the sky. The check over the night room left 'menu' above both ending scenes, so put it back below first, as for a player
+    // who never opened it at night
+    await page.evaluate(() => window.__ricGame.scene.sendToBack('menu'));
+    await press('Escape');
+    await until((x) => x.scene === 'menu', 'the Esc menu over the skydive');
+    await sleep(300);
+    const skyOrder = await page.evaluate(() => window.__ricGame.scene.getScenes(false).map((x) => x.scene.key));
+    check(skyOrder.indexOf('menu') > skyOrder.indexOf('skydive'), `the menu is drawn under the sky: ${skyOrder}`);
+    check(await page.evaluate(() => window.__ricGame.scene.isPaused('skydive')), 'the skydive is not paused behind the menu');
+    await press('Escape');
+    await until((x) => x.scene === 'skydive', 'back to the skydive after the menu');
+    await sleep(400);
     const plane = await readAll('skydive');
     check(plane.every((x) => x.phase === 'plane'), `a plane line showed outside the plane phase: ${JSON.stringify(plane.map((x) => x.phase))}`);
     const sky = (field) => page.evaluate((k) => window.__ricGame.scene.getScene('skydive')[k], field);
-    const reach = async (phase, label) => {
-        for (let n = 0; n < 150 && (await sky('phase')) !== phase; n++) await sleep(100);
+    const reach = async (phase, label, ms = 15000) => {
+        const end = Date.now() + ms;
+        while ((await sky('phase')) !== phase && Date.now() < end) await sleep(100);
         check((await sky('phase')) === phase, `${label}: phase is "${await sky('phase')}"`);
     };
     await reach('fall', 'no jump after the last plane line');
-    await test('skip'); // the credits and the landing take about a minute
-    await reach('finale', 'no finale after the skip in the fall');
-    check((await litPixels(context, page)) > 200, 'skydive finale looks blank');
-    note(`skydive: ${plane.length} plane lines advanced with X, the jump, then the finale`);
+    await page.keyboard.down('x'); // held, the credits take about 11 s instead of 45: the 40 s limit fails if X does not hurry them
+    await reach('land', 'holding X, the credits did not give way to the landing', 40000);
+    await page.keyboard.up('x');
+    await reach('finale', 'no finale after the landing', 20000);
 
-    // the test skip shows the prompt at once, then the restart key works (the scene's canRestart field says when)
-    for (let n = 0; n < 100; n++) {
-        if (await sky('canRestart')) break;
-        await test('skip');
-        await sleep(300);
-    }
-    check(await sky('canRestart'), 'the skydive never offered the restart');
+    // the prompt comes by itself after a few seconds; the test skip shows it at once, then the restart key works
+    check(!(await sky('canRestart')), 'the restart prompt was already up as the finale started');
+    await test('skip');
+    await sleep(200);
+    check(await sky('canRestart'), 'a skip in the finale did not show the restart prompt at once');
+    check((await litPixels(context, page)) > 200, 'skydive finale looks blank');
+    note(`skydive: the menu opens over it, ${plane.length} plane lines advanced with X, the jump, the credits hurried with X, the landing, then the finale`);
     await press('x');
     s = await until((x) => x.scene === 'title', 'title after the ending');
     check(s.sceneIndex === 0 && s.party.length === 0 && Object.keys(s.results).length === 0, `run not reset by the replay: ${JSON.stringify(s)}`);
